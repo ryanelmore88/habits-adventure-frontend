@@ -1,0 +1,30 @@
+/* src/HabitsPage.css */
+.habits-page {
+    background-color: #1f2937;
+    color: #eee;
+    padding: 20px;
+    border-radius: 8px;
+    max-width: 800px;
+    margin: 20px auto;
+}
+
+.view-toggle {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+
+.view-toggle button {
+    background-color: #374151;
+    color: #eee;
+    border: none;
+    padding: 10px 20px;
+    margin: 0 10px;
+    cursor: pointer;
+    border-radius: 4px;
+    font-size: 16px;
+}
+
+.view-toggle button.active {
+    background-color: #4b5563;
+}

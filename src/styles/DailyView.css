@@ -1,0 +1,70 @@
+/* src/DailyView.css */
+
+.daily-view {
+    padding: 20px;
+    background-color: #1f2937;
+    color: #eee;
+    max-width: 600px;
+    margin: 20px auto;
+    border-radius: 8px;
+}
+
+.daily-view h2 {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.daily-view-container {
+    display: flex;
+    flex-direction: row;
+}
+
+.habit-list-column {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
+
+.habit-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid #444;
+}
+
+.habit-info {
+    display: flex;
+    align-items: center;
+}
+
+.icon {
+    width: 24px;
+    height: 24px;
+    margin-right: 10px;
+}
+
+.habit-name {
+    font-size: 16px;
+}
+
+.habit-toggle input {
+    transform: scale(1.2);
+}
+
+.habit-row.header {
+    font-weight: bold;
+    border-bottom: 2px solid #666;
+}
+
+.habit-days {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.day-label {
+    width: 32px;
+    text-align: center;
+    font-size: 14px;
+}
