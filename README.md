@@ -1,12 +1,93 @@
-# React + Vite
+# Habits Adventure Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A Vite + React application to interact with the Habits Adventure backend, display character sheets, track habits & completions, and roll tabletop‑style dice in 3D.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- Character sheet UI (attributes, bonuses)  
+- Habit management per attribute  
+- Day & week completion views  
+- 3D dice rolling with physics via `@3d-dice/dice-box`  
 
-## Expanding the ESLint configuration
+---
 
-If you are developing a production application, we recommend using TypeScript and enable type-aware lint rules. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## 📁 Project Structure
+
+```
+habits-adventure-frontend/
+├── public/                    # Static assets (e.g. dice‑box assets)
+│   └── assets/dice-box/
+├── src/
+│   ├── api/                   # HTTP client (characterApi, habitApi…)
+│   ├── components/            # Reusable React components
+│   ├── context/               # CharacterContext for global state
+│   ├── dice/                  # DiceBox integration & helpers
+│   ├── pages/                 # Top‑level route pages
+│   ├── styles/                # CSS files
+│   └── main.jsx               # App entry
+├── .env                       # Vite environment variables
+├── index.html
+└── package.json
+```
+
+---
+
+## 🛠 Prerequisites
+
+- **Node.js v16+**  
+- **npm** (or Yarn/Pnpm)  
+
+---
+
+## 🚀 Running Locally
+
+1. **Clone & enter repo**  
+   ```bash
+   git clone https://github.com/your-username/habits-adventure-frontend.git
+   cd habits-adventure-frontend
+   ```
+
+2. **Install dependencies**  
+   ```bash
+   npm install
+   ```
+
+3. **Copy dice‑box static assets**  
+   ```bash
+   mkdir -p public/assets/dice-box
+   cp -R node_modules/@3d-dice/dice-box/dist/assets/* public/assets/dice-box/
+   ```
+
+4. **Configure environment**  
+   Create a `.env` in the project root:
+   ```properties
+   VITE_API_BASE_URL=http://localhost:8000
+   ```
+
+5. **Start development server**  
+   ```bash
+   npm run dev
+   ```
+   Visit: `http://localhost:5173`
+
+6. **Build for production**  
+   ```bash
+   npm run build
+   ```
+   Output in `dist/`.
+
+---
+
+## 🌐 Environment Variables
+
+| Name                    | Description                              |
+|-------------------------|------------------------------------------|
+| `VITE_API_BASE_URL`     | Base URL of the backend API server       |
+
+---
+
+## 🔗 Useful Links
+
+- [Vite Documentation](https://vitejs.dev/)  
+- [React Documentation](https://reactjs.org/)  
+- [3D‑Dice Dice‑Box](https://www.npmjs.com/package/@3d-dice/dice-box)  
