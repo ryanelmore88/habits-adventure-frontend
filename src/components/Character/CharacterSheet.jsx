@@ -10,6 +10,8 @@ import CharacterCard from './CharacterCard.jsx';
 const CharacterSheet = ({ character }) => {
     const [selectedAttribute, setSelectedAttribute] = useState(null);
     const [habits, setHabits] = useState(character ? character.habits || [] : []);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState('');
 
     if (!character) return <div>Loading...</div>;
 
@@ -27,6 +29,14 @@ const CharacterSheet = ({ character }) => {
 
     // Handler for adding a new habit.
     const handleAddHabit = async (attributeName, description) => {
+        if (!description.trim()) {
+            setError('Habit description cannot be empty');
+            return;
+        }
+
+        setLoading(true);
+        setError('');
+
         const habitData = {
             character_id: character.id,
             habit_name: description,
@@ -35,15 +45,22 @@ const CharacterSheet = ({ character }) => {
         };
 
         try {
-            // Create the habit via API call.
+            const habitData = {
+                character_id: character.id,
+                habit_name: description.trim(),
+                attribute: attributeName,
+                description: description.trim(),
+            };
+
             await createHabit(habitData);
-            // Re-fetch the updated habits for the attribute.
             const updatedHabits = await fetchHabitsForAttribute(character.id, attributeName);
             setHabits(updatedHabits);
-            // Optionally, you can close the modal or keep it open.
             setSelectedAttribute(null);
         } catch (error) {
+            setError(error.message || 'Failed to add habit');
             console.error("Error adding habit:", error);
+        } finally {
+            setLoading(false);
         }
     };
 

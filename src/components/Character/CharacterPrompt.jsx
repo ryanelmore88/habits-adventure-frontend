@@ -6,32 +6,35 @@ import Modal from '../Common/Modal.jsx';
 
 export default function CharacterPrompt() {
     const { setCharacterId } = useCharacter();
-
-    // inline fetch form
     const [inputId, setInputId] = useState('');
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState('');
 
     // modal form state
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [userName, setUserName]         = useState('');
     const [email, setEmail]               = useState('');
     const [charName, setCharName]         = useState('');
-    const [loading, setLoading]           = useState(false);
-    const [error, setError]               = useState('');
+
 
     // 1) Fetch existing character
-    const handleFetch = async e => {
+    const handleFetch = async (e) => {
         e.preventDefault();
+
         if (!inputId.trim()) {
             setError('Please enter a character ID.');
             return;
         }
+
         setError('');
         setLoading(true);
 
         try {
-            // right: grab the character directly
             const character = await fetchCharacter(inputId.trim());
-                setCharacterId(character.id);
+            if (!character) {
+                throw new Error('Character not found');
+            }
+            setCharacterId(character.id);
         } catch (err) {
             setError(err.message || 'Could not fetch character.');
         } finally {

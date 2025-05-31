@@ -7,12 +7,23 @@ export function CharacterProvider({ children }) {
     const [characterId,   setCharacterId]   = useState('');
     const [character,     setCharacter]     = useState(null);
 
+    function getDiceNotation() {
+        if (!character?.attributes) return {};
+        return Object.entries(character.attributes)
+            .filter(([ability]) => ability !== 'constitution')
+            .reduce((map, [ability, { bonus }]) => {
+                const sign = bonus >= 0 ? '+' : '';
+                map[ability] = `1d20${sign}${bonus}`;
+            }, {});
+    }
+
     return (
         <CharacterContext.Provider value={{
             characterId,
             setCharacterId,
             character,
-            setCharacter
+            setCharacter,
+            getDiceNotation
         }}>
             {children}
         </CharacterContext.Provider>
