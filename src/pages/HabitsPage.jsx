@@ -1,11 +1,11 @@
 // src/components/HabitsPage.jsx
 import React, { useState, useEffect } from 'react';
-import DayActivity from '../DailyView.jsx';
-import WeekActivity from '../pages/WeekView.jsx';
-import { fetchHabitsForDate, fetchHabitsForWeek } from '../../api/habitApi.js';
-import './HabitsPage.css';
+import DayActivity from '../components/DailyView.jsx';
+import WeekActivity from './WeekView.jsx';
+import { fetchHabitsForDate, fetchHabitsForWeek } from '../api/habitApi.js';
+import '../styles/HabitsPage.css';
 import {Link} from "react-router-dom";
-import NavBar from "../Common/NavBar.jsx";
+import NavBar from "../components/Common/NavBar.jsx";
 
 const HabitsPage = ({ character }) => {
     const [viewMode, setViewMode] = useState('daily'); // "daily" or "weekly"

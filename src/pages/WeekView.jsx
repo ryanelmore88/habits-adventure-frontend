@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { useCharacter } from '../../context/CharacterContext.jsx';
-import { fetchHabitsForWeek } from '../../api/habitApi.js';
-import attributeIcons from '../../icons/attributeIcons.js';
-import '../../styles/DailyView.css'; // reuse existing styles
+import { useCharacter } from '../contexts/CharacterContext.jsx';
+import { fetchHabitsForWeek } from '../api/habitApi.js';
+import attributeIcons from '../icons/attributeIcons.js';
+import '../styles/DailyView.css'; // reuse existing styles
 
 const getCurrentWeekDates = () => {
     const today = new Date();

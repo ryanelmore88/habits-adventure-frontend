@@ -1,9 +1,9 @@
 // src/components/CharacterCard.jsx
 import React, { useState } from 'react';
-import { useCharacter } from '../../context/CharacterContext.jsx';
+import { useCharacter } from '../../contexts/CharacterContext.jsx';
 
 const CharacterCard = ({ characterName }) => {
-    // Access characterId and setter from context.
+    // Access characterId and setter from contexts.
     const { characterId, setCharacterId } = useCharacter();
     // Local state to hold the temporary value from the text input.
     const [tempId, setTempId] = useState(characterId || "");
@@ -14,7 +14,7 @@ const CharacterCard = ({ characterName }) => {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        // Update context with the entered character ID.
+        // Update contexts with the entered character ID.
         setCharacterId(tempId);
     };
 

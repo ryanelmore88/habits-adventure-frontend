@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useCharacter } from '../context/CharacterContext';
+import { useCharacter } from '../contexts/CharacterContext';
 import { fetchHabitsForDate } from '../api/habitApi';
 import attributeIcons from '../icons/attributeIcons';
 import '../styles/DailyView.css'; // optional, see CSS below

@@ -1,7 +1,7 @@
 // src/components/ActivityScreen.jsx
 import React, { useState } from 'react';
 import DayActivity from './DailyView.jsx';
-import WeekActivity from './pages/WeekView.jsx';
+import WeekActivity from '../pages/WeekView.jsx';
 
 const ActivityScreen = ({ habits, weekHabits, date, daysOfWeek }) => {
     // mode can be "day" or "week"

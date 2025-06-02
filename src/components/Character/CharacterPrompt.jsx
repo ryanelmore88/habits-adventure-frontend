@@ -1,6 +1,6 @@
 // src/components/CharacterPrompt.jsx
 import React, { useState } from 'react';
-import { useCharacter } from '../../context/CharacterContext.jsx';
+import { useCharacter } from '../../contexts/CharacterContext.jsx';
 import { fetchCharacter, createCharacter } from '../../api/characterApi';
 import Modal from '../Common/Modal.jsx';
 

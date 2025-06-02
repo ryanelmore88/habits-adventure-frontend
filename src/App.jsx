@@ -1,96 +1,145 @@
-// src/App.jsx
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { useState } from 'react';
+import { CharacterProvider, useCharacter } from './contexts/CharacterContext';
+import CharacterPicker from './components/CharacterPicker';
+import CharacterSwitcher from './components/CharacterSwitcher';
 
-import React, { useEffect, useState } from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import { fetchCharacter } from './api/characterApi';
-import CharacterSheet  from './components/Character/CharacterSheet.jsx';
-import CharacterPrompt from './components/Character/CharacterPrompt.jsx';
-import HabitsPage      from './components/Habit/HabitsPage.jsx';
-import EquipmentPage   from './components/equipment/EquipmentPage.jsx';
-import ErrorBoundary   from './components/Common/ErrorBoundary.jsx';
-import AdventurePage   from './components/adventure/AdventurePage.jsx';
-import DicePage        from './components/dice/DicePage.jsx';
-import NavBar          from './components/Common/NavBar.jsx';
-import { useCharacter } from './context/CharacterContext';
 
-import './styles/index.css';
+import CharacterPage from './pages/CharacterPage';
+import HabitsPage from './pages/HabitsPage.jsx';
+import AdventurePage from './pages/AdventurePage.jsx';
+// import EquipmentPage from './pages/EquipmentPage'; // Uncomment when you create this
 
-function App() {
-    const [character, setCharacter] = useState(null);
-    const { characterId, setCharacterId } = useCharacter();
+// Component that requires character selection
+function ProtectedRoute({ children }) {
+    const { isCharacterSelected } = useCharacter();
 
-    // Whenever characterId changes, fetch the raw character object
-    useEffect(() => {
-        // if no ID, clear out any existing character
-        if (!characterId) {
-            setCharacter(null);
-            return;
-        }
-
-        const load = async () => {
-            try {
-                // fetchCharacter returns { id, name, attributes }
-                const char = await fetchCharacter(characterId);
-                setCharacter(char);
-            } catch (err) {
-                console.error("Error fetching character:", err);
-                setCharacter(null);
-            }
-        };
-
-        load();
-    }, [characterId]);
-
-    // Parent-level guard: prompt until we have a character
-    if (!character) {
-        return (
-            <CharacterPrompt
-                onFetchCharacter={(id) => {
-                    // update context, triggers the above effect
-                    setCharacterId(id);
-                }}
-            />
-        );
+    if (!isCharacterSelected) {
+        return <Navigate to="/characters" replace />;
     }
 
-    // Only render the app once character is loaded
-    return (
-        <ErrorBoundary>
-            <BrowserRouter>
-                <div className="app-container">
-                    <Routes>
-                        <Route
-                            path="/character"
-                            element={<CharacterSheet character={character} />}
-                        />
-                        <Route
-                            path="/habits"
-                            element={<HabitsPage character={character} />}
-                        />
-                        <Route
-                            path="/equipment"
-                            element={<EquipmentPage character={character} />}
-                        />
-                        <Route
-                            path="/adventure"
-                            element={<AdventurePage character={character} />}
-                        />
-                        <Route
-                            path="/dice"
-                            element={<DicePage character={character} />}
-                        />
-                        {/* default to character sheet */}
-                        <Route
-                            path="/"
-                            element={<CharacterSheet character={character} />}
-                        />
-                    </Routes>
+    return children;
+}
 
-                    {/* persistent navigation bar */}
-                    <NavBar />
+// Navigation component
+function Navigation() {
+    const [activeTab, setActiveTab] = useState('character');
+
+    const navItems = [
+        { id: 'character', label: 'Character', path: '/character' },
+        { id: 'habits', label: 'Habits', path: '/habits' },
+        { id: 'equipment', label: 'Equipment', path: '/equipment' },
+        { id: 'adventure', label: 'Adventure', path: '/adventure' }
+    ];
+
+    return (
+        <nav className="bottom-navigation">
+            <div className="nav-container">
+                {navItems.map((item) => (
+                    <a
+                        key={item.id}
+                        href={item.path}
+                        className={`nav-item ${activeTab === item.id ? 'active' : ''}`}
+                        onClick={(e) => {
+                            e.preventDefault();
+                            setActiveTab(item.id);
+                            window.location.href = item.path;
+                        }}
+                    >
+            <span className="nav-icon">
+              {item.id === 'character' && '👤'}
+                {item.id === 'habits' && '✅'}
+                {item.id === 'equipment' && '⚔️'}
+                {item.id === 'adventure' && '🗺️'}
+            </span>
+                        <span className="nav-label">{item.label}</span>
+                    </a>
+                ))}
+            </div>
+        </nav>
+    );
+}
+
+// Main App component
+function AppContent() {
+    return (
+        <div className="app">
+            {/* Top Header with Character Switcher */}
+            <header className="app-header">
+                <div className="header-content">
+                    <h1 className="app-title">Habits & Adventure</h1>
+                    <CharacterSwitcher />
                 </div>
-            </BrowserRouter>
-        </ErrorBoundary>
+            </header>
+
+            {/* Main Content Area */}
+            <main className="main-content">
+                <Routes>
+                    {/* Character selection route */}
+                    <Route path="/characters" element={<CharacterPicker />} />
+
+                    {/* Protected routes that require character selection */}
+                    <Route path="/character" element={
+                        <ProtectedRoute>
+                            <CharacterPage />
+                        </ProtectedRoute>
+                    } />
+
+                    <Route path="/habits" element={
+                        <ProtectedRoute>
+                            <HabitsPage />
+                        </ProtectedRoute>
+                    } />
+
+                    <Route path="/equipment" element={
+                        <ProtectedRoute>
+                            {/* <EquipmentPage /> */}
+                            <div className="placeholder-page">
+                                <h1>Equipment</h1>
+                                <p>Equipment management coming soon!</p>
+                            </div>
+                        </ProtectedRoute>
+                    } />
+
+                    <Route path="/adventure" element={
+                        <ProtectedRoute>
+                            <AdventurePage />
+                        </ProtectedRoute>
+                    } />
+
+                    {/* Redirect root to character picker */}
+                    <Route path="/" element={<Navigate to="/characters" replace />} />
+
+                    {/* Catch all route */}
+                    <Route path="*" element={<Navigate to="/characters" replace />} />
+                </Routes>
+            </main>
+
+            {/* Bottom Navigation - only show when character is selected */}
+            <ProtectedRouteNavigation />
+        </div>
+    );
+}
+
+// Navigation that only shows when character is selected
+function ProtectedRouteNavigation() {
+    const { isCharacterSelected } = useCharacter();
+
+    if (!isCharacterSelected) {
+        return null;
+    }
+
+    return <Navigation />;
+}
+
+// Root App component with providers
+function App() {
+    return (
+        <CharacterProvider>
+            <Router>
+                <AppContent />
+            </Router>
+        </CharacterProvider>
     );
 }
 

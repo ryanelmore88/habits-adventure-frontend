@@ -2,7 +2,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
-import { CharacterProvider } from './context/CharacterContext';
+import { CharacterProvider } from './contexts/CharacterContext';
 import './styles/index.css';
 
 ReactDOM.createRoot(document.getElementById('root')).render(
