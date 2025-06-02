@@ -1,111 +1,218 @@
-// src/components/AttributeModal.jsx
-import React, { useState } from 'react';
-import { fetchHabitCompletions } from '../api/habitApi';
+import { useState, useEffect } from 'react';
+import { useCharacter } from '../contexts/CharacterContext';
+import { createHabit, fetchHabitsForAttribute, markHabitComplete } from '../api/habitApi';
+import '../styles/AttributeModal.css';
 
 const AttributeModal = ({
                             attributeName,
                             base,
                             bonus,
-                            habitBonus,
-                            habits,
-                            onClose,
-                            onCompleteHabit,
-                            onAddHabit,
-                            onDeleteHabit
+                            onClose
                         }) => {
+    const { selectedCharacter, refreshCharacter } = useCharacter();
+    const [habits, setHabits] = useState([]);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState('');
     const [isAddingHabit, setIsAddingHabit] = useState(false);
+    const [newHabitName, setNewHabitName] = useState('');
     const [newHabitDescription, setNewHabitDescription] = useState('');
-    // Track which habit (by id) is expanded to show completions
 
-    const [expandedHabitId, setExpandedHabitId] = useState(null);
-    // Map habit id -> list of completions
-    const [habitCompletions, setHabitCompletions] = useState({});
+    // Calculate attribute bonus D&D style
+    const baseBonus = Math.floor((base - 10) / 2);
+    const habitBonus = bonus - baseBonus;
 
-    const handleAddHabitClick = () => {
-        setIsAddingHabit(true);
+    useEffect(() => {
+        if (selectedCharacter?.id && attributeName) {
+            loadHabits();
+        }
+    }, [selectedCharacter?.id, attributeName]);
+
+    const loadHabits = async () => {
+        try {
+            setLoading(true);
+            const habitData = await fetchHabitsForAttribute(selectedCharacter.id, attributeName);
+            setHabits(habitData || []);
+        } catch (err) {
+            console.error('Error loading habits:', err);
+            setError('Failed to load habits');
+        } finally {
+            setLoading(false);
+        }
     };
 
-    const handleHabitSubmit = (e) => {
-        e.preventDefault();
-        onAddHabit(attributeName, newHabitDescription);
-        setNewHabitDescription('');
-        setIsAddingHabit(false);
+    const handleCreateHabit = async () => {
+        if (!newHabitName.trim()) {
+            setError('Habit name is required');
+            return;
+        }
+
+        try {
+            setLoading(true);
+            setError('');
+
+            await createHabit({
+                character_id: selectedCharacter.id,
+                habit_name: newHabitName.trim(),
+                attribute: attributeName.toLowerCase(),
+                description: newHabitDescription.trim()
+            });
+
+            // Reload habits and refresh character
+            await loadHabits();
+            await refreshCharacter();
+
+            // Reset form
+            setNewHabitName('');
+            setNewHabitDescription('');
+            setIsAddingHabit(false);
+        } catch (err) {
+            console.error('Error creating habit:', err);
+            setError('Failed to create habit: ' + err.message);
+        } finally {
+            setLoading(false);
+        }
     };
 
-    const toggleShowCompletions = async (habitId) => {
-        if (expandedHabitId === habitId) {
-            // If already expanded, collapse it
-            setExpandedHabitId(null);
-        } else {
-            // Expand this habit
-            setExpandedHabitId(habitId);
-            // If completions haven't been fetched yet, fetch them
-            if (!habitCompletions[habitId]) {
-                const completions = await fetchHabitCompletions(habitId);
-                setHabitCompletions(prev => ({ ...prev, [habitId]: completions }));
-            }
+    const handleMarkComplete = async (habitId) => {
+        try {
+            setLoading(true);
+            const today = new Date().toISOString().split('T')[0];
+
+            await markHabitComplete(habitId, today, true);
+
+            // Refresh character data to update attribute bonuses
+            await refreshCharacter();
+
+            alert('Habit marked as complete!');
+        } catch (err) {
+            console.error('Error marking habit complete:', err);
+            setError('Failed to mark habit complete: ' + err.message);
+        } finally {
+            setLoading(false);
         }
     };
 
     return (
-        <div className="modal-overlay">
-            <div className="modal-content">
-                <button className="close-button" onClick={onClose}>X</button>
-                <h2>{attributeName.toUpperCase()} Details</h2>
-                <p>Base Score: {base}</p>
-                <p>Total Bonus: {bonus}</p>
-                <p>Habit Bonus: {habitBonus}</p>
-                <h3>Associated Habits</h3>
-                {habits && habits.length > 0 ? (
-                    habits.map(habit => (
-                        <div key={habit.habit_id} className="habit-item">
-                            <p>{habit.habit_name}</p>
-                            <button onClick={() => onCompleteHabit(habit.habit_id)}>
-                                Mark Complete
-                            </button>
-                            <button onClick={() => onDeleteHabit(habit.habit_id)} style={{marginLeft: '8px'}}>
-                                Delete Habit
-                            </button>
+        <div className="modal-overlay" onClick={onClose}>
+            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+                <div className="modal-header">
+                    <h2>{attributeName.charAt(0).toUpperCase() + attributeName.slice(1)} Details</h2>
+                    <button className="close-button" onClick={onClose}>×</button>
+                </div>
 
-                            <button onClick={() => toggleShowCompletions(habit.habit_id)} style={{ marginLeft: '8px' }}>
-                                {expandedHabitId === habit.habit_id ? 'Hide Past Completions' : 'Show Past Completions'}
-                            </button>
-                            {expandedHabitId === habit.habit_id && habitCompletions[habit.habit_id] && (
-                                <div className="completions-list">
-                                    {habitCompletions[habit.habit_id].length > 0 ? (
-                                        habitCompletions[habit.habit_id].map((completion, index) => (
-                                            <div key={index} className="completion-item">
-                                                <p>Date: {completion.completion_date}</p>
-                                                <p>Status: {completion.completed ? 'Completed' : 'Incomplete'}</p>
-                                            </div>
-                                        ))
-                                    ) : (
-                                        <p>No past completions found.</p>
+                <div className="attribute-details">
+                    <div className="attribute-stat">
+                        <label>Base Score:</label>
+                        <span>{base}</span>
+                    </div>
+                    <div className="attribute-stat">
+                        <label>Base Bonus:</label>
+                        <span>{baseBonus >= 0 ? `+${baseBonus}` : baseBonus}</span>
+                    </div>
+                    <div className="attribute-stat">
+                        <label>Habit Bonus:</label>
+                        <span>{habitBonus >= 0 ? `+${habitBonus}` : habitBonus}</span>
+                    </div>
+                    <div className="attribute-stat total">
+                        <label>Total Bonus:</label>
+                        <span>{bonus >= 0 ? `+${bonus}` : bonus}</span>
+                    </div>
+                </div>
+
+                {error && (
+                    <div className="error-message">
+                        {error}
+                    </div>
+                )}
+
+                <div className="habits-section">
+                    <h3>Habits for {attributeName}</h3>
+
+                    {loading && <p>Loading...</p>}
+
+                    {habits.length === 0 && !loading && (
+                        <p>No habits created yet for this attribute.</p>
+                    )}
+
+                    <div className="habits-list">
+                        {habits.map(habit => (
+                            <div key={habit.habit_id} className="habit-item">
+                                <div className="habit-info">
+                                    <h4>{habit.habit_name}</h4>
+                                    {habit.description && (
+                                        <p className="habit-description">{habit.description}</p>
                                     )}
                                 </div>
-                            )}
+                                <div className="habit-actions">
+                                    <button
+                                        onClick={() => handleMarkComplete(habit.habit_id)}
+                                        disabled={loading}
+                                        className="complete-btn"
+                                    >
+                                        ✓ Mark Complete Today
+                                    </button>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+
+                <div className="add-habit-section">
+                    {!isAddingHabit ? (
+                        <button
+                            onClick={() => setIsAddingHabit(true)}
+                            className="add-habit-btn"
+                            disabled={loading}
+                        >
+                            + Add New Habit
+                        </button>
+                    ) : (
+                        <div className="habit-form">
+                            <h4>Create New Habit</h4>
+                            <div className="form-group">
+                                <label>Habit Name *</label>
+                                <input
+                                    type="text"
+                                    value={newHabitName}
+                                    onChange={(e) => setNewHabitName(e.target.value)}
+                                    placeholder="e.g., Push-ups, Reading, Meditation"
+                                    disabled={loading}
+                                />
+                            </div>
+                            <div className="form-group">
+                                <label>Description (optional)</label>
+                                <textarea
+                                    value={newHabitDescription}
+                                    onChange={(e) => setNewHabitDescription(e.target.value)}
+                                    placeholder="Describe your habit..."
+                                    rows={3}
+                                    disabled={loading}
+                                />
+                            </div>
+                            <div className="form-actions">
+                                <button
+                                    onClick={handleCreateHabit}
+                                    disabled={loading || !newHabitName.trim()}
+                                    className="save-btn"
+                                >
+                                    {loading ? 'Creating...' : 'Create Habit'}
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        setIsAddingHabit(false);
+                                        setNewHabitName('');
+                                        setNewHabitDescription('');
+                                        setError('');
+                                    }}
+                                    className="cancel-btn"
+                                    disabled={loading}
+                                >
+                                    Cancel
+                                </button>
+                            </div>
                         </div>
-                    ))
-                ) : (
-                    <p>No habits found for this attribute.</p>
-                )}
-                <hr />
-                {isAddingHabit ? (
-                    <form onSubmit={handleHabitSubmit} className="habit-form">
-                        <label>
-                            Habit Description:
-                            <input
-                                type="text"
-                                value={newHabitDescription}
-                                onChange={(e) => setNewHabitDescription(e.target.value)}
-                                required
-                            />
-                        </label>
-                        <button type="submit">Submit Habit</button>
-                    </form>
-                ) : (
-                    <button onClick={handleAddHabitClick}>Add Habit</button>
-                )}
+                    )}
+                </div>
             </div>
         </div>
     );

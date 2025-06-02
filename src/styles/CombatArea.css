@@ -1,0 +1,327 @@
+/* src/styles/CombatArea.css */
+
+.combat-area {
+    position: relative;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 20px;
+    color: #eee;
+}
+
+.combat-area-loading {
+    text-align: center;
+    padding: 60px 20px;
+    color: #eee;
+}
+
+.dice-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    pointer-events: none;
+    z-index: 1000;
+    background: rgba(0, 0, 0, 0.1); /* Subtle overlay during rolls */
+}
+
+/* Character and Enemy Status */
+.character-status,
+.enemy-status {
+    background: #1f2937;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.character-status h3,
+.enemy-status h3 {
+    margin: 0 0 12px 0;
+    color: #a5b4fc;
+    font-size: 1.3rem;
+}
+
+.hp-bar {
+    position: relative;
+    background: #374151;
+    border-radius: 20px;
+    height: 24px;
+    margin: 12px 0;
+    overflow: hidden;
+}
+
+.hp-fill {
+    height: 100%;
+    transition: width 0.3s ease;
+    border-radius: 20px;
+}
+
+.enemy-hp {
+    background: #ef4444 !important;
+}
+
+.hp-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-weight: bold;
+    color: white;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
+    font-size: 14px;
+}
+
+.character-dice-info,
+.enemy-dice-info {
+    font-size: 0.9rem;
+    color: #9ca3af;
+}
+
+.character-dice-info p,
+.enemy-dice-info p {
+    margin: 4px 0;
+}
+
+/* Enemy Selection */
+.enemy-selection {
+    background: #1f2937;
+    border-radius: 12px;
+    padding: 24px;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.enemy-selection h3 {
+    margin: 0 0 20px 0;
+    color: #a5b4fc;
+}
+
+.enemy-buttons {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+}
+
+.enemy-button {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    border-radius: 12px;
+    padding: 20px;
+    color: white;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+.enemy-button:hover {
+    transform: translateY(-2px);
+}
+
+.enemy-name {
+    font-size: 1.2rem;
+    font-weight: bold;
+    margin-bottom: 8px;
+}
+
+.enemy-details {
+    font-size: 0.9rem;
+    opacity: 0.9;
+}
+
+/* Active Combat */
+.active-combat {
+    background: #1f2937;
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 20px;
+}
+
+.combat-controls {
+    text-align: center;
+    margin: 24px 0;
+}
+
+.attack-button {
+    background: #ef4444;
+    color: white;
+    border: none;
+    border-radius: 12px;
+    padding: 16px 32px;
+    font-size: 1.2rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-bottom: 12px;
+}
+
+.attack-button:hover:not(:disabled) {
+    background: #dc2626;
+    transform: translateY(-2px);
+}
+
+.attack-button:disabled {
+    background: #6b7280;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.rolling-text {
+    color: #3b82f6;
+    font-style: italic;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
+}
+
+/* Combat Log */
+.combat-log {
+    max-height: 300px;
+    overflow-y: auto;
+    background: #374151;
+    border-radius: 8px;
+    padding: 16px;
+}
+
+.combat-log h4 {
+    margin: 0 0 16px 0;
+    color: #a5b4fc;
+}
+
+.combat-round {
+    background: #1f2937;
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 12px;
+    border-left: 4px solid #3b82f6;
+}
+
+.roll-summary {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 8px;
+    flex-wrap: wrap;
+}
+
+.player-roll {
+    color: #3b82f6;
+    font-weight: bold;
+}
+
+.enemy-roll {
+    color: #ef4444;
+    font-weight: bold;
+}
+
+.vs {
+    color: #9ca3af;
+    font-size: 0.9rem;
+}
+
+.victory-text {
+    color: #10b981;
+    font-weight: bold;
+    margin: 0;
+}
+
+.damage-text {
+    color: #ef4444;
+    font-weight: bold;
+    margin: 0;
+}
+
+.tie-text {
+    color: #6b7280;
+    font-weight: bold;
+    margin: 0;
+}
+
+/* Victory and Defeat Screens */
+.victory-screen,
+.defeat-screen {
+    background: #1f2937;
+    border-radius: 12px;
+    padding: 32px;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.victory-screen {
+    border: 3px solid #10b981;
+}
+
+.defeat-screen {
+    border: 3px solid #ef4444;
+}
+
+.victory-screen h2 {
+    color: #10b981;
+    margin: 0 0 16px 0;
+}
+
+.defeat-screen h2 {
+    color: #ef4444;
+    margin: 0 0 16px 0;
+}
+
+.loot {
+    background: #374151;
+    border-radius: 8px;
+    padding: 16px;
+    margin: 20px 0;
+}
+
+.loot h4 {
+    margin: 0 0 12px 0;
+    color: #a5b4fc;
+}
+
+.complete-button {
+    background: #10b981;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 12px 24px;
+    font-size: 1.1rem;
+    font-weight: bold;
+    cursor: pointer;
+    margin-top: 16px;
+}
+
+.complete-button:hover {
+    background: #059669;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .roll-summary {
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .enemy-buttons {
+        grid-template-columns: 1fr;
+    }
+
+    .attack-button {
+        padding: 12px 24px;
+        font-size: 1rem;
+    }
+
+    .combat-area {
+        padding: 16px;
+    }
+
+    .character-status,
+    .enemy-status,
+    .enemy-selection,
+    .active-combat {
+        padding: 16px;
+    }
+}

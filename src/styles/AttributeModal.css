@@ -1,0 +1,256 @@
+/* src/styles/AttributeModal.css */
+
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background: #1f2937;
+    color: #eee;
+    border-radius: 12px;
+    padding: 24px;
+    max-width: 600px;
+    width: 90%;
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    border-bottom: 1px solid #374151;
+    padding-bottom: 16px;
+}
+
+.modal-header h2 {
+    margin: 0;
+    color: #a5b4fc;
+}
+
+.close-button {
+    background: #374151;
+    border: none;
+    color: #eee;
+    font-size: 1.5rem;
+    cursor: pointer;
+    border-radius: 6px;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.close-button:hover {
+    background: #4b5563;
+}
+
+/* Attribute Details Section */
+.attribute-details {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin-bottom: 24px;
+    padding: 16px;
+    background: #374151;
+    border-radius: 8px;
+}
+
+.attribute-stat {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.attribute-stat.total {
+    grid-column: 1 / -1;
+    font-weight: bold;
+    border-top: 1px solid #4b5563;
+    padding-top: 8px;
+    margin-top: 8px;
+}
+
+.attribute-stat label {
+    color: #9ca3af;
+}
+
+.attribute-stat span {
+    font-weight: bold;
+    color: #eee;
+}
+
+/* Habits Section */
+.habits-section {
+    margin-bottom: 24px;
+}
+
+.habits-section h3 {
+    margin: 0 0 16px 0;
+    color: #a5b4fc;
+}
+
+.habits-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.habit-item {
+    background: #374151;
+    border-radius: 8px;
+    padding: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+}
+
+.habit-info h4 {
+    margin: 0 0 4px 0;
+    color: #eee;
+}
+
+.habit-description {
+    margin: 0;
+    color: #9ca3af;
+    font-size: 0.9rem;
+}
+
+.complete-btn {
+    background: #10b981;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    white-space: nowrap;
+}
+
+.complete-btn:hover {
+    background: #059669;
+}
+
+.complete-btn:disabled {
+    background: #6b7280;
+    cursor: not-allowed;
+}
+
+/* Add Habit Section */
+.add-habit-section {
+    border-top: 1px solid #374151;
+    padding-top: 16px;
+}
+
+.add-habit-btn {
+    background: #3b82f6;
+    color: white;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 500;
+    width: 100%;
+}
+
+.add-habit-btn:hover {
+    background: #2563eb;
+}
+
+.habit-form {
+    background: #374151;
+    border-radius: 8px;
+    padding: 16px;
+}
+
+.habit-form h4 {
+    margin: 0 0 16px 0;
+    color: #a5b4fc;
+}
+
+.form-group {
+    margin-bottom: 16px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 4px;
+    color: #9ca3af;
+    font-weight: 500;
+}
+
+.form-group input,
+.form-group textarea {
+    width: 100%;
+    padding: 8px 12px;
+    background: #1f2937;
+    border: 1px solid #4b5563;
+    border-radius: 6px;
+    color: #eee;
+    font-size: 1rem;
+    box-sizing: border-box;
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: #3b82f6;
+}
+
+.form-actions {
+    display: flex;
+    gap: 12px;
+}
+
+.save-btn {
+    background: #10b981;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 500;
+    flex: 1;
+}
+
+.save-btn:hover {
+    background: #059669;
+}
+
+.save-btn:disabled {
+    background: #6b7280;
+    cursor: not-allowed;
+}
+
+.cancel-btn {
+    background: #6b7280;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 6px;
+    cursor: pointer;
+    flex: 1;
+}
+
+.cancel-btn:hover {
+    background: #4b5563;
+}
+
+.error-message {
+    background: #dc2626;
+    color: white;
+    padding: 12px;
+    border-radius: 6px;
+    margin-bottom: 16px;
+}

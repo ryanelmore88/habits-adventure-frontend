@@ -1,0 +1,189 @@
+/* src/styles/CharacterSheet.css */
+
+.character-sheet {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+    color: #eee;
+}
+
+.character-sheet-loading {
+    text-align: center;
+    padding: 60px 20px;
+    color: #eee;
+}
+
+/* Character Header */
+.character-header {
+    background: #1f2937;
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 24px;
+    text-align: center;
+}
+
+.character-header h1 {
+    margin: 0 0 16px 0;
+    color: #a5b4fc;
+    font-size: 2rem;
+}
+
+.character-stats {
+    display: flex;
+    justify-content: center;
+    gap: 32px;
+}
+
+.stat {
+    text-align: center;
+}
+
+.stat label {
+    display: block;
+    color: #9ca3af;
+    font-size: 0.9rem;
+    margin-bottom: 4px;
+}
+
+.stat span {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #eee;
+}
+
+/* Attributes Section */
+.attributes-section {
+    background: #1f2937;
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 24px;
+}
+
+.attributes-section h2 {
+    margin: 0 0 20px 0;
+    color: #a5b4fc;
+    font-size: 1.5rem;
+}
+
+.attributes-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 16px;
+}
+
+.attribute-card {
+    background: #374151;
+    border: 2px solid #4b5563;
+    border-radius: 12px;
+    padding: 16px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.attribute-card:hover {
+    border-color: #a5b4fc;
+    background: #4b5563;
+    transform: translateY(-2px);
+}
+
+.attribute-card h4 {
+    margin: 0 0 8px 0;
+    color: #a5b4fc;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.attribute-bonus {
+    font-size: 2rem;
+    font-weight: bold;
+    color: #eee;
+    margin-bottom: 4px;
+}
+
+.attribute-total {
+    font-size: 1.2rem;
+    color: #9ca3af;
+    margin-bottom: 8px;
+}
+
+.attribute-breakdown {
+    font-size: 0.8rem;
+    color: #6b7280;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+/* Combat Info */
+.combat-info {
+    background: #1f2937;
+    border-radius: 12px;
+    padding: 24px;
+}
+
+.combat-info h3 {
+    margin: 0 0 16px 0;
+    color: #a5b4fc;
+    font-size: 1.2rem;
+}
+
+.combat-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+}
+
+.combat-stat {
+    background: #374151;
+    border-radius: 8px;
+    padding: 16px;
+    text-align: center;
+}
+
+.combat-stat label {
+    display: block;
+    color: #9ca3af;
+    font-size: 0.9rem;
+    margin-bottom: 8px;
+}
+
+.combat-stat span {
+    font-size: 1.4rem;
+    font-weight: bold;
+    color: #eee;
+}
+
+.no-attributes {
+    grid-column: 1 / -1;
+    text-align: center;
+    color: #6b7280;
+    padding: 40px 20px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .character-stats {
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .attributes-grid {
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    }
+
+    .combat-stats {
+        grid-template-columns: 1fr;
+    }
+
+    .character-sheet {
+        padding: 16px;
+    }
+
+    .character-header,
+    .attributes-section,
+    .combat-info {
+        padding: 16px;
+    }
+}

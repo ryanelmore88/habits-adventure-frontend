@@ -1,154 +1,137 @@
-// src/components/CharacterSheet.jsx
-import React, { useState } from 'react';
-import {BACKEND_URL} from "../../config.js";
-import Header from '../Common/Header.jsx';
-import AttributeCard from '../AttributeCard.jsx';
-import AttributeModal from '../AttributeModal.jsx';
-import { createHabit, fetchHabitsForAttribute, deleteHabit } from '../../api/habitApi.js';
-import CharacterCard from './CharacterCard.jsx';
+import { useState } from 'react';
+import { useCharacter } from '../../contexts/CharacterContext';
+import AttributeModal from '..//AttributeModal';
+import '../../styles/CharacterSheet.css';
 
-const CharacterSheet = ({ character }) => {
+const CharacterSheet = () => {
+    const { selectedCharacter } = useCharacter();
     const [selectedAttribute, setSelectedAttribute] = useState(null);
-    const [habits, setHabits] = useState(character ? character.habits || [] : []);
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState('');
 
-    if (!character) return <div>Loading...</div>;
+    if (!selectedCharacter) {
+        return (
+            <div className="character-sheet-loading">
+                <h2>No Character Selected</h2>
+                <p>Please select a character to view their sheet.</p>
+            </div>
+        );
+    }
 
-    // When an attribute is clicked, open the modal with its details.
-    const handleAttributeClick = (name, base, bonus) => {
-        const baseBonus = Math.floor((base - 10) / 2);
-        const habitBonus = bonus - baseBonus;
-        setSelectedAttribute({ name, base, bonus, habitBonus });
-        // Optionally, fetch habits for that attribute immediately.
-        fetchHabitsForAttribute(character.id, name).then(setHabits);
+    // Calculate attribute bonus D&D style
+    const getAttributeBonus = (attribute) => {
+        if (!attribute) return 0;
+        const total = (attribute.base || 10) + (attribute.bonus || 0);
+        return Math.floor((total - 10) / 2);
     };
 
-    // Close the modal
-    const handleCloseModal = () => setSelectedAttribute(null);
-
-    // Handler for adding a new habit.
-    const handleAddHabit = async (attributeName, description) => {
-        if (!description.trim()) {
-            setError('Habit description cannot be empty');
-            return;
-        }
-
-        setLoading(true);
-        setError('');
-
-        const habitData = {
-            character_id: character.id,
-            habit_name: description,
-            attribute: attributeName,
-            description: description,
-        };
-
-        try {
-            const habitData = {
-                character_id: character.id,
-                habit_name: description.trim(),
-                attribute: attributeName,
-                description: description.trim(),
-            };
-
-            await createHabit(habitData);
-            const updatedHabits = await fetchHabitsForAttribute(character.id, attributeName);
-            setHabits(updatedHabits);
-            setSelectedAttribute(null);
-        } catch (error) {
-            setError(error.message || 'Failed to add habit');
-            console.error("Error adding habit:", error);
-        } finally {
-            setLoading(false);
-        }
+    // Get total attribute value
+    const getAttributeTotal = (attribute) => {
+        if (!attribute) return 10;
+        return (attribute.base || 10) + (attribute.bonus || 0);
     };
 
-    // Handler for marking a habit as complete.
-    const handleCompleteHabit = async (habitId) => {
-        // Calculate today's date in YYYY-MM-DD format
-        const today = new Date().toISOString().split("T")[0];
-        console.log("Marking habit complete for habitId:", habitId, "on", today);
-        try {
-            const response = await fetch(`${BACKEND_URL}/habit/completion`, {
-                method: "POST", // Make sure your backend endpoint is defined as POST
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    habit_id: habitId,
-                    character_id: character.id,
-                    completion_date: today,
-                    completed: true,
-                }),
+    const handleAttributeClick = (attributeName) => {
+        const attribute = selectedCharacter.attributes[attributeName];
+        if (attribute) {
+            setSelectedAttribute({
+                name: attributeName,
+                base: attribute.base || 10,
+                bonus: getAttributeBonus(attribute)
             });
-            if (!response.ok) {
-                throw new Error("Failed to mark habit complete");
-            }
-            const data = await response.json();
-            console.log("Habit completion updated:", data);
-            // Refresh the habit list after updating
-            const updatedHabits = await fetchHabitsForAttribute(character.id, selectedAttribute.name);
-            setHabits(updatedHabits);
-        } catch (error) {
-            console.error("Error marking habit complete:", error);
         }
     };
 
-    const handleDeleteHabit = async (habitId) => {
-        try {
-            const response = await fetch(`${BACKEND_URL}/habit/${habitId}`, {
-                method: "DELETE",
-            });
-            if (!response.ok) throw new Error("Failed to delete habit");
-            console.log("Habit deleted:", habitId);
-            const updatedHabits = await fetchHabitsForAttribute(character.id, selectedAttribute.name);
-            setHabits(updatedHabits);
-        } catch (error) {
-            console.error("Error deleting habit:", error);
-        }
+    const handleCloseModal = () => {
+        setSelectedAttribute(null);
     };
-
-    // Filter habits associated with the selected attribute.
-    const habitsForAttribute = selectedAttribute
-        ? (habits || []).filter(
-            habit => habit.attribute.toLowerCase() === selectedAttribute.name.toLowerCase()
-        )
-        : [];
-
 
     return (
         <div className="character-sheet">
-            {/* Show the character card at the top */}
-            <CharacterCard characterName={character ? character.name : "Unnamed Character"} />
-
-            {/* Only render attributes if character data exists */}
-            {character && (
-                <div className="attributes-grid">
-                    {Object.entries(character.attributes).map(([key, attr]) => (
-                        <AttributeCard
-                            key={key}
-                            name={key}
-                            base={attr.base}
-                            bonus={attr.bonus}
-                            onClick={handleAttributeClick}
-                        />
-                    ))}
+            {/* Character Header */}
+            <div className="character-header">
+                <h1>{selectedCharacter.name}</h1>
+                <div className="character-stats">
+                    <div className="stat">
+                        <label>Level</label>
+                        <span>{selectedCharacter.level || 1}</span>
+                    </div>
+                    <div className="stat">
+                        <label>HP</label>
+                        <span>{selectedCharacter.current_hp || 0}/{selectedCharacter.max_hp || 20}</span>
+                    </div>
+                    <div className="stat">
+                        <label>XP</label>
+                        <span>{selectedCharacter.current_xp || 0}</span>
+                    </div>
                 </div>
-            )}
+            </div>
 
-            {/* Render the modal if an attribute is selected */}
+            {/* Attributes Grid */}
+            <div className="attributes-section">
+                <h2>Attributes</h2>
+                <div className="attributes-grid">
+                    {selectedCharacter.attributes ? (
+                        Object.entries(selectedCharacter.attributes).map(([name, attribute]) => {
+                            const total = getAttributeTotal(attribute);
+                            const bonus = getAttributeBonus(attribute);
+                            const bonusText = bonus >= 0 ? `+${bonus}` : `${bonus}`;
+
+                            return (
+                                <div
+                                    key={name}
+                                    className="attribute-card"
+                                    onClick={() => handleAttributeClick(name)}
+                                >
+                                    <h4>{name.charAt(0).toUpperCase() + name.slice(1)}</h4>
+                                    <div className="attribute-bonus">{bonusText}</div>
+                                    <div className="attribute-total">{total}</div>
+                                    <div className="attribute-breakdown">
+                                        <span>Base: {attribute.base || 10}</span>
+                                        {(attribute.bonus || 0) !== 0 && (
+                                            <span>Habit: +{attribute.bonus || 0}</span>
+                                        )}
+                                    </div>
+                                </div>
+                            );
+                        })
+                    ) : (
+                        <div className="no-attributes">
+                            <p>No attributes found for this character.</p>
+                        </div>
+                    )}
+                </div>
+            </div>
+
+            {/* Combat Info */}
+            <div className="combat-info">
+                <h3>Combat Information</h3>
+                <div className="combat-stats">
+                    <div className="combat-stat">
+                        <label>Best Attack Bonus</label>
+                        <span>
+                            {selectedCharacter.attributes ?
+                                `+${Math.max(...Object.values(selectedCharacter.attributes).map(attr =>
+                                    getAttributeBonus(attr)
+                                ))}` :
+                                '+0'
+                            }
+                        </span>
+                    </div>
+                    <div className="combat-stat">
+                        <label>Dice Pool</label>
+                        <span>1d20 + best bonus</span>
+                    </div>
+                </div>
+            </div>
+
+            {/* Attribute Modal */}
             {selectedAttribute && (
                 <AttributeModal
                     attributeName={selectedAttribute.name}
                     base={selectedAttribute.base}
                     bonus={selectedAttribute.bonus}
-                    habitBonus={selectedAttribute.habitBonus}
-                    habits={habitsForAttribute}
                     onClose={handleCloseModal}
-                    onCompleteHabit={handleCompleteHabit}
-                    onAddHabit={handleAddHabit}
-                    onDeleteHabit={handleDeleteHabit}
                 />
-            )}
+            )}s
         </div>
     );
 };

@@ -1,30 +1,327 @@
-/* src/HabitsPage.css */
+/* src/styles/HabitsPage.css */
+
 .habits-page {
-    background-color: #1f2937;
-    color: #eee;
+    max-width: 1000px;
+    margin: 0 auto;
     padding: 20px;
-    border-radius: 8px;
-    max-width: 800px;
-    margin: 20px auto;
+    color: #eee;
+}
+
+.habits-page-loading {
+    text-align: center;
+    padding: 60px 20px;
+    color: #eee;
+}
+
+/* Header */
+.habits-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.habits-header h1 {
+    margin: 0 0 8px 0;
+    color: #a5b4fc;
+    font-size: 2rem;
+}
+
+.habits-header p {
+    margin: 0;
+    color: #9ca3af;
+}
+
+/* View Controls */
+.view-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+    gap: 16px;
 }
 
 .view-toggle {
     display: flex;
-    justify-content: center;
-    margin-bottom: 20px;
+    background: #374151;
+    border-radius: 8px;
+    overflow: hidden;
 }
 
 .view-toggle button {
-    background-color: #374151;
-    color: #eee;
+    background: transparent;
     border: none;
-    padding: 10px 20px;
-    margin: 0 10px;
+    color: #9ca3af;
+    padding: 12px 24px;
     cursor: pointer;
-    border-radius: 4px;
-    font-size: 16px;
+    transition: all 0.2s ease;
 }
 
 .view-toggle button.active {
-    background-color: #4b5563;
+    background: #3b82f6;
+    color: white;
+}
+
+.view-toggle button:hover:not(.active) {
+    background: #4b5563;
+    color: #eee;
+}
+
+.date-selector input {
+    background: #374151;
+    border: 1px solid #4b5563;
+    border-radius: 6px;
+    color: #eee;
+    padding: 8px 12px;
+    font-size: 1rem;
+}
+
+/* Messages */
+.error-message {
+    background: #dc2626;
+    color: white;
+    padding: 12px;
+    border-radius: 6px;
+    margin-bottom: 16px;
+}
+
+.loading-message {
+    text-align: center;
+    color: #9ca3af;
+    padding: 20px;
+}
+
+/* View Containers */
+.daily-view,
+.weekly-view {
+    background: #1f2937;
+    border-radius: 12px;
+    padding: 24px;
+}
+
+.daily-view h2,
+.weekly-view h2 {
+    margin: 0 0 20px 0;
+    color: #a5b4fc;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.today-badge {
+    background: #10b981;
+    color: white;
+    font-size: 0.8rem;
+    padding: 4px 8px;
+    border-radius: 12px;
+}
+
+.no-habits {
+    text-align: center;
+    color: #6b7280;
+    padding: 40px 20px;
+}
+
+/* Daily View */
+.habits-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.habit-item {
+    background: #374151;
+    border-radius: 8px;
+    padding: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+}
+
+.habit-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 1;
+}
+
+.attribute-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+}
+
+.attribute-text {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    background: #4b5563;
+    border-radius: 50%;
+    font-size: 0.7rem;
+    font-weight: bold;
+    color: #eee;
+}
+
+.habit-details h4 {
+    margin: 0 0 4px 0;
+    color: #eee;
+}
+
+.habit-description {
+    margin: 0;
+    color: #9ca3af;
+    font-size: 0.9rem;
+}
+
+/* Checkbox Styling */
+.checkbox-container {
+    position: relative;
+    cursor: pointer;
+    user-select: none;
+}
+
+.checkbox-container input {
+    position: absolute;
+    opacity: 0;
+    cursor: pointer;
+}
+
+.checkbox-custom {
+    position: relative;
+    display: inline-block;
+    width: 24px;
+    height: 24px;
+    background: #1f2937;
+    border: 2px solid #4b5563;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+}
+
+.checkbox-container input:checked + .checkbox-custom {
+    background: #10b981;
+    border-color: #10b981;
+}
+
+.checkbox-container input:checked + .checkbox-custom::after {
+    content: '✓';
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    color: white;
+    font-weight: bold;
+    font-size: 14px;
+}
+
+.checkbox-container:hover .checkbox-custom {
+    border-color: #6b7280;
+}
+
+/* Weekly View */
+.weekly-grid {
+    display: grid;
+    grid-template-columns: 200px repeat(7, 1fr);
+    gap: 1px;
+    background: #4b5563;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.weekly-header {
+    display: contents;
+}
+
+.habit-name-header {
+    background: #374151;
+    padding: 16px;
+    font-weight: bold;
+    color: #a5b4fc;
+}
+
+.day-header {
+    background: #374151;
+    padding: 12px 8px;
+    text-align: center;
+    font-size: 0.9rem;
+}
+
+.day-header.today {
+    background: #10b981;
+    color: white;
+}
+
+.day-name {
+    font-weight: bold;
+    margin-bottom: 2px;
+}
+
+.day-date {
+    color: #9ca3af;
+    font-size: 0.8rem;
+}
+
+.day-header.today .day-date {
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.habit-row {
+    display: contents;
+}
+
+.habit-row .habit-info {
+    background: #1f2937;
+    padding: 16px;
+    border-radius: 0;
+}
+
+.day-cell {
+    background: #1f2937;
+    padding: 16px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .view-controls {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .weekly-grid {
+        grid-template-columns: 150px repeat(7, 1fr);
+        font-size: 0.8rem;
+    }
+
+    .habit-name-header,
+    .habit-row .habit-info {
+        padding: 12px;
+    }
+
+    .day-header,
+    .day-cell {
+        padding: 8px;
+    }
+
+    .habits-page {
+        padding: 16px;
+    }
+
+    .daily-view,
+    .weekly-view {
+        padding: 16px;
+    }
+
+    .habit-item {
+        padding: 12px;
+    }
+
+    .attribute-icon,
+    .attribute-text {
+        width: 28px;
+        height: 28px;
+    }
 }
