@@ -472,3 +472,4 @@ export const getCurrentWeekDates = () => {
 
 // Export API_CONFIG for other modules that might need it
 export { API_CONFIG };
+export { apiCall };
