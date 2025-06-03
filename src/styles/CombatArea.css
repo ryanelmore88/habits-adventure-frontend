@@ -15,23 +15,33 @@
 }
 
 .dice-container {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
     pointer-events: none;
     z-index: 1000;
-    background: rgba(0, 0, 0, 0.1); /* Subtle overlay during rolls */
+    background: rgba(0, 0, 0, 0.3);
+}
+
+.dice-container canvas {
+    width: 100vw !important;
+    height: 100vh !important;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
 }
 
 /* Character and Enemy Status */
-.character-status,
-.enemy-status {
-    background: #1f2937;
+.combat-area .character-status,
+.combat-area .enemy-status {
+    background: #1f2937 !important;
     border-radius: 12px;
     padding: 20px;
     margin-bottom: 20px;
+    border: 1px solid #374151;
+    color: #eee;
 }
 
 .character-status h3,

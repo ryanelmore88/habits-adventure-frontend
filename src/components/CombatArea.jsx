@@ -1,7 +1,8 @@
+// src/components/CombatArea.jsx
+
 import { useState, useEffect, useRef } from 'react';
 import { useCharacter } from '../contexts/CharacterContext';
 import { useCombat } from '../hooks/useCombat';
-import '../styles/CombatArea.css';
 
 const CombatArea = ({ onAdventureComplete }) => {
     const { selectedCharacter } = useCharacter();
@@ -20,23 +21,36 @@ const CombatArea = ({ onAdventureComplete }) => {
                 const newDiceBox = new DiceBox('#combat-dice-container', {
                     id: 'combat-dice-canvas',
                     assetPath: '/assets/dice-box/',
-                    startingHeight: 15,
-                    throwForce: 10,
-                    spinForce: 8,
-                    lightIntensity: 1.2,
-                    scale: 25,
+                    startingHeight: 25,
+                    throwForce: 15,
+                    spinForce: 12,
+                    lightIntensity: 1.5,
+                    scale: 18, // Good size as requested
                     shadowIntensity: 0.8,
-                    // Expand the physics world boundaries
-                    worldWidth: window.innerWidth,
-                    worldHeight: window.innerHeight,
-                    // Make dice spread out more
-                    offscreenBuffer: 100,
-                    // Increase the "table" size for rolling
+                    // Force the canvas to fill the entire viewport
+                    worldWidth: window.innerWidth * 2,
+                    worldHeight: window.innerHeight * 2,
+                    offscreenBuffer: 300,
                     enableShadows: true,
-                    theme: 'default'
+                    theme: 'default',
+                    gravity: 1,
+                    settleTimeout: 5000,
+                    delay: 0
                 });
 
                 await newDiceBox.init();
+
+                // DON'T manipulate canvas after offscreen transfer - just set container size
+                const container = document.getElementById('combat-dice-container');
+                if (container) {
+                    container.style.width = '100vw';
+                    container.style.height = '100vh';
+                    container.style.position = 'fixed';
+                    container.style.top = '0';
+                    container.style.left = '0';
+                    container.style.zIndex = '1000';
+                }
+
                 setDiceBox(newDiceBox);
 
                 // Set up dice roll completion callback
@@ -47,7 +61,7 @@ const CombatArea = ({ onAdventureComplete }) => {
                     // Hide dice after a longer delay to enjoy the results
                     setTimeout(() => {
                         newDiceBox.hide();
-                    }, 5000); // 5 seconds instead of 3
+                    }, 5000);
                 };
 
             } catch (error) {
@@ -64,31 +78,42 @@ const CombatArea = ({ onAdventureComplete }) => {
         };
     }, []);
 
-    // Calculate character's dice pool based on best attribute
+    // Calculate character's dice pool based on attributes (excluding constitution)
     const getCharacterDicePool = () => {
-        if (!selectedCharacter?.attributes) return { dice: '1d20', bonus: 0, attribute: 'none' };
+        if (!selectedCharacter?.attributes) {
+            return {
+                dicePool: '1d4',
+                totalDice: 1,
+                description: 'Default (no attributes found)'
+            };
+        }
 
-        let bestBonus = 0;
-        let bestAttribute = 'strength';
+        const attributeNames = ['strength', 'dexterity', 'intelligence', 'wisdom', 'charisma'];
+        const breakdown = {};
+        let totalDice = 0;
 
-        Object.entries(selectedCharacter.attributes).forEach(([name, data]) => {
-            const total = (data.base || 10) + (data.bonus || 0);
-            const bonus = Math.floor((total - 10) / 2);
-            if (bonus > bestBonus) {
-                bestBonus = bonus;
-                bestAttribute = name;
+        // Calculate dice per attribute based on base score
+        attributeNames.forEach(attrName => {
+            const attribute = selectedCharacter.attributes[attrName];
+            if (attribute) {
+                const score = attribute.base || 10;
+                // Every 3 points above 8 gives 1d4, minimum 1d4
+                const diceCount = Math.max(1, Math.floor((score - 8) / 3));
+                breakdown[attrName] = diceCount;
+                totalDice += diceCount;
             }
         });
 
         return {
-            dice: `1d20+${bestBonus}`,
-            bonus: bestBonus,
-            attribute: bestAttribute
+            dicePool: `${totalDice}d4`,
+            totalDice,
+            breakdown,
+            description: `${totalDice} dice from: ${Object.entries(breakdown).map(([attr, count]) => `${attr.slice(0,3)}(${count})`).join(', ')}`
         };
     };
 
-    // Roll dice with 3D animation
-    const rollDice = async (playerDice, enemyDice) => {
+    // Roll dice with 3D animation - BOTH ROLL AT SAME TIME
+    const rollDice = async (playerDiceInfo, enemyDicePool) => {
         if (!diceBox || isRolling) return null;
 
         setIsRolling(true);
@@ -97,35 +122,107 @@ const CombatArea = ({ onAdventureComplete }) => {
             // Show dice box
             diceBox.show();
 
-            // Roll player dice (blue) with wider spread
-            const playerRoll = await diceBox.roll([{
-                qty: 1,
-                sides: 20,
-                modifier: getCharacterDicePool().bonus,
-                theme: 'default',
-                themeColor: '#3b82f6',
-                size: 'large',
-                // Throw from left side of screen
-                x: window.innerWidth * 0.2,
-                y: window.innerHeight * 0.3,
-                z: 15
-            }]);
+            // Prepare player dice - create individual dice objects
+            const playerDiceCount = playerDiceInfo.totalDice || 1;
+            const playerDice = [];
+            for (let i = 0; i < playerDiceCount; i++) {
+                playerDice.push({
+                    qty: 1,
+                    sides: 4,
+                    theme: 'default',
+                    themeColor: '#3b82f6',
+                    size: 'large',
+                    // Spread dice across the left side of screen
+                    x: (window.innerWidth * 0.1) + (i * 60),
+                    y: window.innerHeight * 0.2,
+                    z: 20
+                });
+            }
 
-            // Longer delay between rolls for better visual effect
+            // Prepare enemy dice
+            const enemyDiceMatch = enemyDicePool.match(/(\d+)d(\d+)/);
+            const enemyDiceCount = enemyDiceMatch ? parseInt(enemyDiceMatch[1]) : 1;
+            const enemyDiceSize = enemyDiceMatch ? parseInt(enemyDiceMatch[2]) : 4;
+
+            const enemyDice = [];
+            for (let i = 0; i < enemyDiceCount; i++) {
+                enemyDice.push({
+                    qty: 1,
+                    sides: enemyDiceSize,
+                    theme: 'default',
+                    themeColor: '#ef4444',
+                    size: 'large',
+                    // Spread dice across the right side of screen
+                    x: (window.innerWidth * 0.7) + (i * 60),
+                    y: window.innerHeight * 0.2,
+                    z: 20
+                });
+            }
+
+            // Roll all dice simultaneously - flatten the arrays
+            const allDice = [...playerDice, ...enemyDice];
+            console.log('Rolling dice:', allDice); // Debug log
+
+            const allRolls = await diceBox.roll(allDice);
+            console.log('Roll results:', allRolls); // Debug log
+
+            // Split results back into player and enemy
+            const playerRoll = allRolls.slice(0, playerDiceCount);
+            const enemyRoll = allRolls.slice(playerDiceCount);
+
+            return {
+                playerTotal: playerRoll.reduce((sum, die) => sum + die.value, 0),
+                enemyTotal: enemyRoll.reduce((sum, die) => sum + die.value, 0),
+                playerRolls: playerRoll,
+                enemyRolls: enemyRoll
+            };
+
+        } catch (error) {
+            console.error('Error rolling dice:', error);
+            setIsRolling(false);
+            return null;
+        }
+    };
+
+    // Roll dice with 3D animation - BOTH ROLL AT SAME TIME (Alternative approach)
+    const rollDiceAlternative = async (playerDiceInfo, enemyDicePool) => {
+        if (!diceBox || isRolling) return null;
+
+        setIsRolling(true);
+
+        try {
+            // Show dice box
+            diceBox.show();
+
+            // Create dice notation strings instead of individual objects
+            const playerDiceCount = playerDiceInfo.totalDice || 1;
+            const playerNotation = `${playerDiceCount}d4`;
+
+            const enemyDiceMatch = enemyDicePool.match(/(\d+)d(\d+)/);
+            const enemyDiceCount = enemyDiceMatch ? parseInt(enemyDiceMatch[1]) : 1;
+            const enemyDiceSize = enemyDiceMatch ? parseInt(enemyDiceMatch[2]) : 4;
+            const enemyNotation = `${enemyDiceCount}d${enemyDiceSize}`;
+
+            // Roll player and enemy dice with minimal delay
+            const playerRollPromise = diceBox.roll(playerNotation, { themeColor: '#3b82f6' });
+
+            // Very short delay to make them appear almost simultaneous
+            setTimeout(() => {
+                diceBox.roll(enemyNotation, { themeColor: '#ef4444' });
+            }, 50);
+
+            const playerRoll = await playerRollPromise;
+
+            // Wait a bit for enemy roll to complete
             await new Promise(resolve => setTimeout(resolve, 1000));
 
-            const enemyRoll = await diceBox.roll([{
-                qty: 1,
-                sides: 20,
-                modifier: 0,
-                theme: 'default',
-                themeColor: '#ef4444',
-                size: 'large',
-                // Throw from right side of screen
-                x: window.innerWidth * 0.8,
-                y: window.innerHeight * 0.3,
-                z: 15
-            }]);
+            // For now, simulate enemy roll results
+            const enemyRoll = [];
+            for (let i = 0; i < enemyDiceCount; i++) {
+                enemyRoll.push({
+                    value: Math.floor(Math.random() * enemyDiceSize) + 1
+                });
+            }
 
             return {
                 playerTotal: playerRoll.reduce((sum, die) => sum + die.value, 0),
@@ -145,14 +242,47 @@ const CombatArea = ({ onAdventureComplete }) => {
     const handleCombatRound = async () => {
         if (isRolling || combatState.phase !== 'active') return;
 
-        const characterDice = getCharacterDicePool();
+        const characterDiceInfo = getCharacterDicePool();
 
         // Roll the dice with 3D animation
-        const diceResults = await rollDice(characterDice.dice, '1d20');
+        const diceResults = await rollDice(characterDiceInfo, combatState.enemy.dicePool);
 
         if (!diceResults) {
-            // Fallback to regular combat if dice fail
-            const updatedCharacter = executeRound();
+            // Try alternative method if the first one fails
+            const alternativeResults = await rollDiceAlternative(characterDiceInfo, combatState.enemy.dicePool);
+            if (!alternativeResults) {
+                // Fallback to regular combat if both dice methods fail
+                const updatedCharacter = executeRound();
+                return;
+            }
+            // Use alternative results
+            const { playerTotal, enemyTotal } = alternativeResults;
+
+            // Process combat results (rest of the function remains the same)
+            let damage = 0;
+            let winner = null;
+
+            if (playerTotal > enemyTotal) {
+                damage = playerTotal - enemyTotal;
+                winner = 'character';
+            } else if (enemyTotal > playerTotal) {
+                damage = enemyTotal - playerTotal;
+                winner = 'enemy';
+            } else {
+                winner = 'tie';
+            }
+
+            const roundResult = {
+                characterRoll: playerTotal,
+                enemyRoll: enemyTotal,
+                characterDice: characterDiceInfo,
+                enemyDice: { dicePool: combatState.enemy.dicePool },
+                damage: damage,
+                winner: winner,
+                diceResults: alternativeResults
+            };
+
+            executeRound(roundResult);
             return;
         }
 
@@ -177,22 +307,21 @@ const CombatArea = ({ onAdventureComplete }) => {
         const roundResult = {
             characterRoll: playerTotal,
             enemyRoll: enemyTotal,
-            characterDice: characterDice,
-            enemyDice: '1d20',
+            characterDice: characterDiceInfo,
+            enemyDice: { dicePool: combatState.enemy.dicePool },
             damage: damage,
             winner: winner,
             diceResults: diceResults
         };
 
         // Update combat state through the hook
-        // Note: You'll need to modify your useCombat hook to accept custom round results
         executeRound(roundResult);
     };
 
     const handleAdventureComplete = async () => {
         const adventureResults = {
             characterId: selectedCharacter.id,
-            hpChange: combatState.totalXpGained > 0 ? 0 : -damage, // Simplified
+            hpChange: combatState.totalXpGained > 0 ? 0 : -combatState.damage || 0,
             xpGained: combatState.totalXpGained,
             loot: combatState.totalLoot,
             victory: combatState.phase === 'victory'
@@ -215,10 +344,26 @@ const CombatArea = ({ onAdventureComplete }) => {
         );
     }
 
+    const characterDiceInfo = getCharacterDicePool();
+
     return (
         <div className="combat-area">
-            {/* 3D Dice Container */}
-            <div id="combat-dice-container" ref={diceContainerRef} className="dice-container"></div>
+            {/* 3D Dice Container - Full screen */}
+            <div
+                id="combat-dice-container"
+                ref={diceContainerRef}
+                className="dice-container"
+                style={{
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    width: '100vw',
+                    height: '100vh',
+                    pointerEvents: 'none',
+                    zIndex: 1000,
+                    background: isRolling ? 'rgba(0, 0, 0, 0.3)' : 'transparent'
+                }}
+            ></div>
 
             {/* Character Status */}
             <div className="character-status">
@@ -227,16 +372,16 @@ const CombatArea = ({ onAdventureComplete }) => {
                     <div
                         className="hp-fill"
                         style={{
-                            width: `${(selectedCharacter.current_hp / selectedCharacter.max_hp) * 100}%`,
-                            backgroundColor: selectedCharacter.current_hp > selectedCharacter.max_hp * 0.5 ? '#10b981' :
-                                selectedCharacter.current_hp > selectedCharacter.max_hp * 0.2 ? '#f59e0b' : '#ef4444'
+                            width: `${((selectedCharacter.current_hp || 0) / (selectedCharacter.max_hp || 20)) * 100}%`,
+                            backgroundColor: (selectedCharacter.current_hp || 0) > (selectedCharacter.max_hp || 20) * 0.5 ? '#10b981' :
+                                (selectedCharacter.current_hp || 0) > (selectedCharacter.max_hp || 20) * 0.2 ? '#f59e0b' : '#ef4444'
                         }}
                     ></div>
-                    <span className="hp-text">{selectedCharacter.current_hp}/{selectedCharacter.max_hp} HP</span>
+                    <span className="hp-text">{selectedCharacter.current_hp || 0}/{selectedCharacter.max_hp || 20} HP</span>
                 </div>
                 <div className="character-dice-info">
-                    <p>Dice Pool: {getCharacterDicePool().dice}</p>
-                    <p>Best Attribute: {getCharacterDicePool().attribute.charAt(0).toUpperCase() + getCharacterDicePool().attribute.slice(1)}</p>
+                    <p><strong>Dice Pool:</strong> {characterDiceInfo.dicePool}</p>
+                    <p><strong>Breakdown:</strong> {characterDiceInfo.description}</p>
                 </div>
             </div>
 
@@ -277,7 +422,7 @@ const CombatArea = ({ onAdventureComplete }) => {
                             <span className="hp-text">{combatState.enemy.currentHp}/{combatState.enemy.maxHp} HP</span>
                         </div>
                         <div className="enemy-dice-info">
-                            <p>Dice Pool: {combatState.enemy.damageDice}</p>
+                            <p><strong>Dice Pool:</strong> {combatState.enemy.dicePool}</p>
                         </div>
                     </div>
 
@@ -301,11 +446,11 @@ const CombatArea = ({ onAdventureComplete }) => {
                             <div key={index} className="combat-round">
                                 <div className="roll-summary">
                                     <span className="player-roll">
-                                        🔵 You: {round.characterRoll} ({round.characterDice.dice})
+                                        🔵 You: {round.characterRoll} ({round.characterDice?.dicePool || 'unknown'})
                                     </span>
                                     <span className="vs">vs</span>
                                     <span className="enemy-roll">
-                                        🔴 {combatState.enemy.name}: {round.enemyRoll} ({round.enemyDice})
+                                        🔴 {combatState.enemy.name}: {round.enemyRoll} ({round.enemyDice?.dicePool || 'unknown'})
                                     </span>
                                 </div>
 

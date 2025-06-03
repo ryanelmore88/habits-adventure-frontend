@@ -1,245 +1,65 @@
-body {
-  background-color: #121212;
-  color: #eee;
-  font-family: 'Arial', sans-serif;
-  margin: 0;
-  padding: 0;
-}
+/* src/styles/CombatArea.css */
 
-.app {
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
-  padding: 40px 20px;
-  min-height: 100vh;
-}
-
-.app-container {
-  display: flex;
-  flex-direction: column;
-  min-height: 100vh;
-  padding-bottom: 60px; /* Make room for bottom nav */
-}
-
-.header {
-  text-align: center;
-  border-bottom: 2px solid #374151;
-  padding-bottom: 16px;
-}
-
-.header-details {
-  display: flex;
-  justify-content: space-around;
-  margin-top: 12px;
-}
-
-.detail-box {
-  background-color: #374151;
-  border-radius: 6px;
-  padding: 6px 10px;
-}
-
-.attributes-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
-  margin-top: 20px;
-}
-
-.attribute-card {
-  background-color: #374151;
-  padding: 10px;
-  border-radius: 8px;
-  text-align: center;
-  cursor: pointer;
-}
-
-.attribute-card h4 {
-  margin: 4px 0;
-  color: #a5b4fc;
-}
-
-.attribute-card .bonus {
-  font-size: 1.2rem;
-  font-weight: bold;
-}
-
-.attribute-card .base-score {
-  background-color: #1f2937;
-  border-radius: 4px;
-  padding: 4px;
-  margin-top: 6px;
-  font-size: 0.9rem;
-}
-
-.character-sheet {
-  background-color: #1f2937;
-  color: #eee;
+.combat-area {
+  position: relative;
+  max-width: 900px;
+  margin: 0 auto;
   padding: 20px;
-  border-radius: 8px;
-  max-width: 600px;
-  margin: 20px auto;
-}
-
-button {
-  background-color: #374151;
   color: #eee;
-  padding: 10px 20px;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
 }
 
-button:hover {
-  background-color: #4b5563;
+.combat-area-loading {
+  text-align: center;
+  padding: 60px 20px;
+  color: #eee;
 }
 
-.modal-overlay {
+.dice-container {
   position: fixed;
   top: 0;
   left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.8);
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
   z-index: 1000;
+  background: rgba(0, 0, 0, 0.3);
 }
 
-.modal-content {
-  background-color: #222;
-  padding: 20px;
-  border-radius: 8px;
-  color: #eee;
-  max-width: 500px;
-  width: 90%;
-}
-
-.close-button {
-  background: none;
-  border: none;
-  color: #eee;
-  font-size: 1.2rem;
-  float: right;
-  cursor: pointer;
-}
-
-.habit-item {
-  margin-bottom: 10px;
-  padding: 5px;
-  background-color: #333;
-  border-radius: 4px;
-}
-
-.day-activity {
-  max-width: 600px;
-  margin: 0 auto;
-  background-color: #1f2937;
-  padding: 20px;
-  border-radius: 8px;
-}
-
-.habits-list {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  margin-top: 20px;
-}
-
-.habit-list-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  border-bottom: 1px solid #444;
-  padding: 10px 0;
-}
-
-.attribute-icon {
-  width: 24px;
-  height: 24px;
-  margin-right: 12px;
-}
-
-.week-activity {
-  max-width: 800px;
-  margin: 20px auto;
-  background-color: #1f2937;
-  padding: 20px;
-  border-radius: 8px;
-}
-
-.week-activity table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-.week-activity th,
-.week-activity td {
-  border: 1px solid #444;
-  padding: 8px;
-  text-align: center;
-}
-
-.week-activity table th.today,
-.week-activity table td.today {
-  background-color: #374151;
-  border-color: #fff;
-}
-
-
-.week-activity th {
-  background-color: #374151;
-}
-
-.bottom-nav {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background-color: #333;
-  display: flex;
-  justify-content: space-around;
-  padding: 10px 0;
-}
-
-.bottom-nav a {
-  color: #fff;
-  text-decoration: none;
-  font-size: 16px;
-}
-
-.combat-area {
-  max-width: 800px;
-  margin: 0 auto;
-  padding: 20px;
-}
-
-.character-status, .enemy-status {
-  background: white;
-  border-radius: 8px;
+/* Character and Enemy Status */
+.combat-area .character-status,
+.combat-area .enemy-status {
+  background: #1f2937 !important;
+  border-radius: 12px;
   padding: 20px;
   margin-bottom: 20px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  border: 1px solid #374151;
+  color: #eee;
+}
+
+.character-status h3,
+.enemy-status h3 {
+  margin: 0 0 12px 0;
+  color: #a5b4fc;
+  font-size: 1.3rem;
 }
 
 .hp-bar {
   position: relative;
-  background: #e0e0e0;
+  background: #374151;
   border-radius: 20px;
   height: 24px;
-  margin-top: 10px;
+  margin: 12px 0;
   overflow: hidden;
 }
 
 .hp-fill {
   height: 100%;
-  background: #4CAF50;
   transition: width 0.3s ease;
+  border-radius: 20px;
 }
 
 .enemy-hp {
-  background: #ff4444;
+  background: #ef4444 !important;
 }
 
 .hp-text {
@@ -249,26 +69,45 @@ button:hover {
   transform: translate(-50%, -50%);
   font-weight: bold;
   color: white;
-  text-shadow: 1px 1px 2px rgba(0,0,0,0.7);
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
   font-size: 14px;
 }
 
+.character-dice-info,
+.enemy-dice-info {
+  font-size: 0.9rem;
+  color: #9ca3af;
+}
+
+.character-dice-info p,
+.enemy-dice-info p {
+  margin: 4px 0;
+}
+
+/* Enemy Selection */
 .enemy-selection {
+  background: #1f2937;
+  border-radius: 12px;
+  padding: 24px;
   text-align: center;
-  margin: 40px 0;
+  margin-bottom: 20px;
+}
+
+.enemy-selection h3 {
+  margin: 0 0 20px 0;
+  color: #a5b4fc;
 }
 
 .enemy-buttons {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 15px;
-  margin-top: 20px;
 }
 
 .enemy-button {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   border: none;
-  border-radius: 8px;
+  border-radius: 12px;
   padding: 20px;
   color: white;
   cursor: pointer;
@@ -280,100 +119,211 @@ button:hover {
 }
 
 .enemy-name {
-  font-size: 1.2em;
+  font-size: 1.2rem;
   font-weight: bold;
-  text-transform: capitalize;
+  margin-bottom: 8px;
 }
 
 .enemy-details {
-  font-size: 0.9em;
+  font-size: 0.9rem;
   opacity: 0.9;
 }
 
+/* Active Combat */
 .active-combat {
+  background: #1f2937;
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 20px;
+}
+
+.combat-controls {
   text-align: center;
+  margin: 24px 0;
 }
 
 .attack-button {
-  background: #ff6b6b;
+  background: #ef4444;
   color: white;
   border: none;
-  border-radius: 8px;
-  padding: 15px 30px;
-  font-size: 1.1em;
+  border-radius: 12px;
+  padding: 16px 32px;
+  font-size: 1.2rem;
+  font-weight: bold;
   cursor: pointer;
-  margin: 20px 0;
-  transition: background 0.2s ease;
+  transition: all 0.2s ease;
+  margin-bottom: 12px;
 }
 
-.attack-button:hover {
-  background: #ff5252;
+.attack-button:hover:not(:disabled) {
+  background: #dc2626;
+  transform: translateY(-2px);
 }
 
+.attack-button:disabled {
+  background: #6b7280;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.rolling-text {
+  color: #3b82f6;
+  font-style: italic;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* Combat Log */
 .combat-log {
   max-height: 300px;
   overflow-y: auto;
-  margin-top: 20px;
-  text-align: left;
+  background: #374151;
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.combat-log h4 {
+  margin: 0 0 16px 0;
+  color: #a5b4fc;
 }
 
 .combat-round {
-  background: #f8f9fa;
-  border-radius: 6px;
-  padding: 15px;
-  margin-bottom: 10px;
-  border-left: 4px solid #007bff;
+  background: #1f2937;
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 12px;
+  border-left: 4px solid #3b82f6;
+}
+
+.roll-summary {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+
+.player-roll {
+  color: #3b82f6;
+  font-weight: bold;
+}
+
+.enemy-roll {
+  color: #ef4444;
+  font-weight: bold;
+}
+
+.vs {
+  color: #9ca3af;
+  font-size: 0.9rem;
 }
 
 .victory-text {
-  color: #28a745;
+  color: #10b981;
   font-weight: bold;
+  margin: 0;
 }
 
 .damage-text {
-  color: #dc3545;
+  color: #ef4444;
   font-weight: bold;
+  margin: 0;
 }
 
 .tie-text {
-  color: #6c757d;
+  color: #6b7280;
   font-weight: bold;
+  margin: 0;
 }
 
-.victory-screen, .defeat-screen {
-  text-align: center;
-  padding: 40px;
-  background: white;
+/* Victory and Defeat Screens */
+.victory-screen,
+.defeat-screen {
+  background: #1f2937;
   border-radius: 12px;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  padding: 32px;
+  text-align: center;
+  margin-bottom: 20px;
 }
 
 .victory-screen {
-  border: 3px solid #28a745;
+  border: 3px solid #10b981;
 }
 
 .defeat-screen {
-  border: 3px solid #dc3545;
+  border: 3px solid #ef4444;
+}
+
+.victory-screen h2 {
+  color: #10b981;
+  margin: 0 0 16px 0;
+}
+
+.defeat-screen h2 {
+  color: #ef4444;
+  margin: 0 0 16px 0;
 }
 
 .loot {
-  background: #fff3cd;
-  border-radius: 6px;
-  padding: 15px;
+  background: #374151;
+  border-radius: 8px;
+  padding: 16px;
   margin: 20px 0;
 }
 
+.loot h4 {
+  margin: 0 0 12px 0;
+  color: #a5b4fc;
+}
+
 .complete-button {
-  background: #28a745;
+  background: #10b981;
   color: white;
   border: none;
   border-radius: 8px;
-  padding: 15px 30px;
-  font-size: 1.1em;
+  padding: 12px 24px;
+  font-size: 1.1rem;
+  font-weight: bold;
   cursor: pointer;
-  margin-top: 20px;
+  margin-top: 16px;
 }
 
 .complete-button:hover {
-  background: #218838;
+  background: #059669;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .roll-summary {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .enemy-buttons {
+    grid-template-columns: 1fr;
+  }
+
+  .attack-button {
+    padding: 12px 24px;
+    font-size: 1rem;
+  }
+
+  .combat-area {
+    padding: 16px;
+  }
+
+  .character-status,
+  .enemy-status,
+  .enemy-selection,
+  .active-combat {
+    padding: 16px;
+  }
 }
