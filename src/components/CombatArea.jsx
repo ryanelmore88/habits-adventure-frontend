@@ -10,13 +10,19 @@ const CombatArea = ({ onAdventureComplete }) => {
     const [diceBox, setDiceBox] = useState(null);
     const [isRolling, setIsRolling] = useState(false);
     const diceContainerRef = useRef(null);
+    const rollTimeoutRef = useRef(null);
+    const cleanupTimeoutRef = useRef(null);
 
     // Initialize dice box
     useEffect(() => {
+        let mounted = true;
+
         const initDiceBox = async () => {
             try {
                 // Import DiceBox dynamically
                 const { default: DiceBox } = await import('@3d-dice/dice-box');
+
+                if (!mounted) return; // Component unmounted during import
 
                 const newDiceBox = new DiceBox('#combat-dice-container', {
                     id: 'combat-dice-canvas',
@@ -25,20 +31,24 @@ const CombatArea = ({ onAdventureComplete }) => {
                     throwForce: 15,
                     spinForce: 12,
                     lightIntensity: 1.5,
-                    scale: 18, // Good size as requested
+                    scale: 18,
                     shadowIntensity: 0.8,
-                    // Force the canvas to fill the entire viewport
                     worldWidth: window.innerWidth * 2,
                     worldHeight: window.innerHeight * 2,
                     offscreenBuffer: 300,
                     enableShadows: true,
                     theme: 'default',
                     gravity: 1,
-                    settleTimeout: 5000,
+                    settleTimeout: 3000, // Reduced from 5000
                     delay: 0
                 });
 
                 await newDiceBox.init();
+
+                if (!mounted) {
+                    newDiceBox.destroy?.();
+                    return;
+                }
 
                 // DON'T manipulate canvas after offscreen transfer - just set container size
                 const container = document.getElementById('combat-dice-container');
@@ -53,15 +63,24 @@ const CombatArea = ({ onAdventureComplete }) => {
 
                 setDiceBox(newDiceBox);
 
-                // Set up dice roll completion callback
+                // Set up dice roll completion callback with memory cleanup
                 newDiceBox.onRollComplete = (results) => {
                     console.log('Dice roll completed:', results);
                     setIsRolling(false);
 
-                    // Hide dice after a longer delay to enjoy the results
-                    setTimeout(() => {
-                        newDiceBox.hide();
-                    }, 5000);
+                    // Clear any existing cleanup timeout
+                    if (cleanupTimeoutRef.current) {
+                        clearTimeout(cleanupTimeoutRef.current);
+                    }
+
+                    // Hide dice and clear after a shorter delay
+                    cleanupTimeoutRef.current = setTimeout(() => {
+                        if (newDiceBox && mounted) {
+                            newDiceBox.hide();
+                            // Clear the dice from memory
+                            newDiceBox.clear();
+                        }
+                    }, 2000); // Reduced from 5000
                 };
 
             } catch (error) {
@@ -72,11 +91,28 @@ const CombatArea = ({ onAdventureComplete }) => {
         initDiceBox();
 
         return () => {
+            mounted = false;
+
+            // Clear timeouts
+            if (rollTimeoutRef.current) {
+                clearTimeout(rollTimeoutRef.current);
+            }
+            if (cleanupTimeoutRef.current) {
+                clearTimeout(cleanupTimeoutRef.current);
+            }
+
+            // Cleanup dice box
             if (diceBox) {
-                diceBox.destroy?.();
+                try {
+                    diceBox.hide();
+                    diceBox.clear();
+                    diceBox.destroy?.();
+                } catch (error) {
+                    console.warn('Error cleaning up dice box:', error);
+                }
             }
         };
-    }, []);
+    }, []); // Empty dependency array
 
     // Calculate character's dice pool based on attributes (excluding constitution)
     const getCharacterDicePool = () => {
@@ -112,18 +148,24 @@ const CombatArea = ({ onAdventureComplete }) => {
         };
     };
 
-    // Roll dice with 3D animation - BOTH ROLL AT SAME TIME
+    // Enhanced dice rolling with better memory management and error handling
     const rollDice = async (playerDiceInfo, enemyDicePool) => {
-        if (!diceBox || isRolling) return null;
+        if (!diceBox || isRolling) {
+            console.warn('Cannot roll dice: diceBox not ready or already rolling');
+            return null;
+        }
 
         setIsRolling(true);
 
         try {
+            // Clear any existing dice first to prevent buildup
+            diceBox.clear();
+
             // Show dice box
             diceBox.show();
 
             // Prepare player dice - create individual dice objects
-            const playerDiceCount = playerDiceInfo.totalDice || 1;
+            const playerDiceCount = Math.min(playerDiceInfo.totalDice || 1, 10); // Limit to prevent memory issues
             const playerDice = [];
             for (let i = 0; i < playerDiceCount; i++) {
                 playerDice.push({
@@ -131,9 +173,9 @@ const CombatArea = ({ onAdventureComplete }) => {
                     sides: 4,
                     theme: 'default',
                     themeColor: '#3b82f6',
-                    size: 'large',
+                    size: 'medium', // Changed from 'large' to reduce memory usage
                     // Spread dice across the left side of screen
-                    x: (window.innerWidth * 0.1) + (i * 60),
+                    x: (window.innerWidth * 0.1) + (i * 50), // Reduced spacing
                     y: window.innerHeight * 0.2,
                     z: 20
                 });
@@ -141,7 +183,7 @@ const CombatArea = ({ onAdventureComplete }) => {
 
             // Prepare enemy dice
             const enemyDiceMatch = enemyDicePool.match(/(\d+)d(\d+)/);
-            const enemyDiceCount = enemyDiceMatch ? parseInt(enemyDiceMatch[1]) : 1;
+            const enemyDiceCount = Math.min(enemyDiceMatch ? parseInt(enemyDiceMatch[1]) : 1, 10); // Limit enemy dice too
             const enemyDiceSize = enemyDiceMatch ? parseInt(enemyDiceMatch[2]) : 4;
 
             const enemyDice = [];
@@ -151,9 +193,9 @@ const CombatArea = ({ onAdventureComplete }) => {
                     sides: enemyDiceSize,
                     theme: 'default',
                     themeColor: '#ef4444',
-                    size: 'large',
+                    size: 'medium',
                     // Spread dice across the right side of screen
-                    x: (window.innerWidth * 0.7) + (i * 60),
+                    x: (window.innerWidth * 0.7) + (i * 50),
                     y: window.innerHeight * 0.2,
                     z: 20
                 });
@@ -161,9 +203,28 @@ const CombatArea = ({ onAdventureComplete }) => {
 
             // Roll all dice simultaneously - flatten the arrays
             const allDice = [...playerDice, ...enemyDice];
-            console.log('Rolling dice:', allDice); // Debug log
+            console.log('Rolling dice:', allDice.length, 'total dice'); // Debug log
 
-            const allRolls = await diceBox.roll(allDice);
+            // Set a timeout for the roll to prevent hanging
+            const rollPromise = diceBox.roll(allDice);
+
+            rollTimeoutRef.current = setTimeout(() => {
+                if (isRolling) {
+                    console.warn('Dice roll timeout, stopping roll');
+                    setIsRolling(false);
+                    diceBox.hide();
+                    diceBox.clear();
+                }
+            }, 10000); // 10 second timeout
+
+            const allRolls = await rollPromise;
+
+            // Clear the timeout since roll completed
+            if (rollTimeoutRef.current) {
+                clearTimeout(rollTimeoutRef.current);
+                rollTimeoutRef.current = null;
+            }
+
             console.log('Roll results:', allRolls); // Debug log
 
             // Split results back into player and enemy
@@ -180,67 +241,27 @@ const CombatArea = ({ onAdventureComplete }) => {
         } catch (error) {
             console.error('Error rolling dice:', error);
             setIsRolling(false);
-            return null;
-        }
-    };
 
-    // Roll dice with 3D animation - BOTH ROLL AT SAME TIME (Alternative approach)
-    const rollDiceAlternative = async (playerDiceInfo, enemyDicePool) => {
-        if (!diceBox || isRolling) return null;
-
-        setIsRolling(true);
-
-        try {
-            // Show dice box
-            diceBox.show();
-
-            // Create dice notation strings instead of individual objects
-            const playerDiceCount = playerDiceInfo.totalDice || 1;
-            const playerNotation = `${playerDiceCount}d4`;
-
-            const enemyDiceMatch = enemyDicePool.match(/(\d+)d(\d+)/);
-            const enemyDiceCount = enemyDiceMatch ? parseInt(enemyDiceMatch[1]) : 1;
-            const enemyDiceSize = enemyDiceMatch ? parseInt(enemyDiceMatch[2]) : 4;
-            const enemyNotation = `${enemyDiceCount}d${enemyDiceSize}`;
-
-            // Roll player and enemy dice with minimal delay
-            const playerRollPromise = diceBox.roll(playerNotation, { themeColor: '#3b82f6' });
-
-            // Very short delay to make them appear almost simultaneous
-            setTimeout(() => {
-                diceBox.roll(enemyNotation, { themeColor: '#ef4444' });
-            }, 50);
-
-            const playerRoll = await playerRollPromise;
-
-            // Wait a bit for enemy roll to complete
-            await new Promise(resolve => setTimeout(resolve, 1000));
-
-            // For now, simulate enemy roll results
-            const enemyRoll = [];
-            for (let i = 0; i < enemyDiceCount; i++) {
-                enemyRoll.push({
-                    value: Math.floor(Math.random() * enemyDiceSize) + 1
-                });
+            // Clean up on error
+            if (diceBox) {
+                try {
+                    diceBox.hide();
+                    diceBox.clear();
+                } catch (cleanupError) {
+                    console.warn('Error during dice cleanup:', cleanupError);
+                }
             }
 
-            return {
-                playerTotal: playerRoll.reduce((sum, die) => sum + die.value, 0),
-                enemyTotal: enemyRoll.reduce((sum, die) => sum + die.value, 0),
-                playerRolls: playerRoll,
-                enemyRolls: enemyRoll
-            };
-
-        } catch (error) {
-            console.error('Error rolling dice:', error);
-            setIsRolling(false);
             return null;
         }
     };
 
-    // Enhanced combat round with dice rolling
+    // Enhanced combat round with better error handling
     const handleCombatRound = async () => {
-        if (isRolling || combatState.phase !== 'active') return;
+        if (isRolling || combatState.phase !== 'active') {
+            console.warn('Cannot start combat round: already rolling or not in active phase');
+            return;
+        }
 
         const characterDiceInfo = getCharacterDicePool();
 
@@ -248,41 +269,9 @@ const CombatArea = ({ onAdventureComplete }) => {
         const diceResults = await rollDice(characterDiceInfo, combatState.enemy.dicePool);
 
         if (!diceResults) {
-            // Try alternative method if the first one fails
-            const alternativeResults = await rollDiceAlternative(characterDiceInfo, combatState.enemy.dicePool);
-            if (!alternativeResults) {
-                // Fallback to regular combat if both dice methods fail
-                const updatedCharacter = executeRound();
-                return;
-            }
-            // Use alternative results
-            const { playerTotal, enemyTotal } = alternativeResults;
-
-            // Process combat results (rest of the function remains the same)
-            let damage = 0;
-            let winner = null;
-
-            if (playerTotal > enemyTotal) {
-                damage = playerTotal - enemyTotal;
-                winner = 'character';
-            } else if (enemyTotal > playerTotal) {
-                damage = enemyTotal - playerTotal;
-                winner = 'enemy';
-            } else {
-                winner = 'tie';
-            }
-
-            const roundResult = {
-                characterRoll: playerTotal,
-                enemyRoll: enemyTotal,
-                characterDice: characterDiceInfo,
-                enemyDice: { dicePool: combatState.enemy.dicePool },
-                damage: damage,
-                winner: winner,
-                diceResults: alternativeResults
-            };
-
-            executeRound(roundResult);
+            console.warn('Dice roll failed, falling back to regular combat');
+            // Fallback to regular combat without 3D dice
+            const updatedCharacter = executeRound();
             return;
         }
 
@@ -330,6 +319,12 @@ const CombatArea = ({ onAdventureComplete }) => {
         try {
             await onAdventureComplete(adventureResults);
             resetCombat();
+
+            // Clean up dice after adventure
+            if (diceBox) {
+                diceBox.hide();
+                diceBox.clear();
+            }
         } catch (error) {
             console.error('Failed to complete adventure:', error);
         }
