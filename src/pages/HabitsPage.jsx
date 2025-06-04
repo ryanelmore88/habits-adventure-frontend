@@ -11,16 +11,19 @@ const HabitsPage = () => {
     const [error, setError] = useState('');
     const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
 
-    // Generate week dates starting from Monday
+    // Generate week dates starting from SUNDAY (fixed)
     const getWeekDates = (startDate) => {
         const start = new Date(startDate);
-        const day = start.getDay();
-        const diff = start.getDate() - day + (day === 0 ? -6 : 1); // Monday
-        const monday = new Date(start.setDate(diff));
+        const day = start.getDay(); // 0 = Sunday, 1 = Monday, etc.
+
+        // Calculate days to subtract to get to Sunday
+        const daysToSunday = day; // If today is Sunday (0), subtract 0. If Monday (1), subtract 1, etc.
+        const sunday = new Date(start);
+        sunday.setDate(start.getDate() - daysToSunday);
 
         return Array.from({ length: 7 }, (_, i) => {
-            const date = new Date(monday);
-            date.setDate(monday.getDate() + i);
+            const date = new Date(sunday);
+            date.setDate(sunday.getDate() + i);
             return date.toISOString().split('T')[0];
         });
     };
@@ -38,9 +41,18 @@ const HabitsPage = () => {
             setLoading(true);
             setError('');
 
-            // For now, we'll get all habits and simulate completion status
             const habitData = await fetchHabitsForDate(selectedCharacter.id, selectedDate);
-            setHabits(habitData || []);
+
+            // Enhanced habits with completion tracking
+            const habitsWithCompletions = (habitData || []).map(habit => ({
+                ...habit,
+                // Initialize completions array if not present
+                completions: habit.completions || [],
+                // Check if completed for selected date
+                completed: habit.completions?.includes(selectedDate) || false
+            }));
+
+            setHabits(habitsWithCompletions);
         } catch (err) {
             console.error('Error loading habits:', err);
             setError('Failed to load habits');
@@ -52,16 +64,39 @@ const HabitsPage = () => {
     const handleToggleCompletion = async (habitId, date, completed) => {
         try {
             setLoading(true);
+
+            // Optimistically update UI first
+            setHabits(prevHabits =>
+                prevHabits.map(habit => {
+                    if (habit.habit_id === habitId) {
+                        const updatedCompletions = completed
+                            ? [...(habit.completions || []), date].filter((d, i, arr) => arr.indexOf(d) === i) // Add and dedupe
+                            : (habit.completions || []).filter(d => d !== date); // Remove
+
+                        return {
+                            ...habit,
+                            completions: updatedCompletions,
+                            completed: viewMode === 'daily' ? completed : habit.completed
+                        };
+                    }
+                    return habit;
+                })
+            );
+
+            // Then update backend
             await markHabitComplete(habitId, date, completed);
 
             // Refresh character data to update bonuses
             await refreshCharacter();
 
-            // Reload habits to update UI
-            await loadHabits();
+            // Optionally reload habits to ensure sync (but UI should already be correct)
+            // await loadHabits();
         } catch (err) {
             console.error('Error updating habit completion:', err);
             setError('Failed to update habit completion');
+
+            // Revert optimistic update on error
+            await loadHabits();
         } finally {
             setLoading(false);
         }
@@ -87,6 +122,11 @@ const HabitsPage = () => {
             month: 'short',
             day: 'numeric'
         });
+    };
+
+    // Helper to check if habit is completed for a specific date
+    const isHabitCompletedForDate = (habit, date) => {
+        return habit.completions?.includes(date) || false;
     };
 
     if (!selectedCharacter) {
@@ -178,7 +218,7 @@ const HabitsPage = () => {
                                     <label className="checkbox-container">
                                         <input
                                             type="checkbox"
-                                            checked={habit.completed || false}
+                                            checked={isHabitCompletedForDate(habit, selectedDate)}
                                             onChange={(e) =>
                                                 handleToggleCompletion(
                                                     habit.habit_id,
@@ -200,7 +240,7 @@ const HabitsPage = () => {
             {/* Weekly View */}
             {viewMode === 'weekly' && (
                 <div className="weekly-view">
-                    <h2>Weekly Habit Tracker</h2>
+                    <h2>Weekly Habit Tracker (Sunday - Saturday)</h2>
 
                     {habits.length === 0 && !loading && (
                         <div className="no-habits">
@@ -239,7 +279,7 @@ const HabitsPage = () => {
                                         <label className="checkbox-container">
                                             <input
                                                 type="checkbox"
-                                                checked={habit.completions?.includes(date) || false}
+                                                checked={isHabitCompletedForDate(habit, date)}
                                                 onChange={(e) =>
                                                     handleToggleCompletion(
                                                         habit.habit_id,
@@ -258,306 +298,6 @@ const HabitsPage = () => {
                     </div>
                 </div>
             )}
-
-            <style jsx>{`
-                .habits-page {
-                    max-width: 1000px;
-                    margin: 0 auto;
-                    padding: 20px;
-                    color: #eee;
-                }
-
-                .habits-page-loading {
-                    text-align: center;
-                    padding: 60px 20px;
-                    color: #eee;
-                }
-
-                .habits-header {
-                    text-align: center;
-                    margin-bottom: 30px;
-                }
-
-                .habits-header h1 {
-                    margin: 0 0 8px 0;
-                    color: #a5b4fc;
-                    font-size: 2rem;
-                }
-
-                .habits-header p {
-                    margin: 0;
-                    color: #9ca3af;
-                }
-
-                .view-controls {
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                    margin-bottom: 24px;
-                    flex-wrap: wrap;
-                    gap: 16px;
-                }
-
-                .view-toggle {
-                    display: flex;
-                    background: #374151;
-                    border-radius: 8px;
-                    overflow: hidden;
-                }
-
-                .view-toggle button {
-                    background: transparent;
-                    border: none;
-                    color: #9ca3af;
-                    padding: 12px 24px;
-                    cursor: pointer;
-                    transition: all 0.2s ease;
-                }
-
-                .view-toggle button.active {
-                    background: #3b82f6;
-                    color: white;
-                }
-
-                .view-toggle button:hover:not(.active) {
-                    background: #4b5563;
-                    color: #eee;
-                }
-
-                .date-selector input {
-                    background: #374151;
-                    border: 1px solid #4b5563;
-                    border-radius: 6px;
-                    color: #eee;
-                    padding: 8px 12px;
-                    font-size: 1rem;
-                }
-
-                .error-message {
-                    background: #dc2626;
-                    color: white;
-                    padding: 12px;
-                    border-radius: 6px;
-                    margin-bottom: 16px;
-                }
-
-                .loading-message {
-                    text-align: center;
-                    color: #9ca3af;
-                    padding: 20px;
-                }
-
-                .daily-view, .weekly-view {
-                    background: #1f2937;
-                    border-radius: 12px;
-                    padding: 24px;
-                }
-
-                .daily-view h2, .weekly-view h2 {
-                    margin: 0 0 20px 0;
-                    color: #a5b4fc;
-                    display: flex;
-                    align-items: center;
-                    gap: 12px;
-                }
-
-                .today-badge {
-                    background: #10b981;
-                    color: white;
-                    font-size: 0.8rem;
-                    padding: 4px 8px;
-                    border-radius: 12px;
-                }
-
-                .no-habits {
-                    text-align: center;
-                    color: #6b7280;
-                    padding: 40px 20px;
-                }
-
-                .habits-list {
-                    display: flex;
-                    flex-direction: column;
-                    gap: 12px;
-                }
-
-                .habit-item, .habit-row {
-                    background: #374151;
-                    border-radius: 8px;
-                    padding: 16px;
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                    gap: 16px;
-                }
-
-                .habit-info {
-                    display: flex;
-                    align-items: center;
-                    gap: 12px;
-                    flex: 1;
-                }
-
-                .attribute-icon {
-                    width: 32px;
-                    height: 32px;
-                    border-radius: 50%;
-                }
-
-                .attribute-text {
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    width: 32px;
-                    height: 32px;
-                    background: #4b5563;
-                    border-radius: 50%;
-                    font-size: 0.7rem;
-                    font-weight: bold;
-                    color: #eee;
-                }
-
-                .habit-details h4 {
-                    margin: 0 0 4px 0;
-                    color: #eee;
-                }
-
-                .habit-description {
-                    margin: 0;
-                    color: #9ca3af;
-                    font-size: 0.9rem;
-                }
-
-                .checkbox-container {
-                    position: relative;
-                    cursor: pointer;
-                    user-select: none;
-                }
-
-                .checkbox-container input {
-                    position: absolute;
-                    opacity: 0;
-                    cursor: pointer;
-                }
-
-                .checkbox-custom {
-                    position: relative;
-                    display: inline-block;
-                    width: 24px;
-                    height: 24px;
-                    background: #1f2937;
-                    border: 2px solid #4b5563;
-                    border-radius: 4px;
-                    transition: all 0.2s ease;
-                }
-
-                .checkbox-container input:checked + .checkbox-custom {
-                    background: #10b981;
-                    border-color: #10b981;
-                }
-
-                .checkbox-container input:checked + .checkbox-custom::after {
-                    content: '✓';
-                    position: absolute;
-                    left: 50%;
-                    top: 50%;
-                    transform: translate(-50%, -50%);
-                    color: white;
-                    font-weight: bold;
-                    font-size: 14px;
-                }
-
-                .checkbox-container:hover .checkbox-custom {
-                    border-color: #6b7280;
-                }
-
-                /* Weekly View Styles */
-                .weekly-grid {
-                    display: grid;
-                    grid-template-columns: 200px repeat(7, 1fr);
-                    gap: 1px;
-                    background: #4b5563;
-                    border-radius: 8px;
-                    overflow: hidden;
-                }
-
-                .weekly-header {
-                    display: contents;
-                }
-
-                .habit-name-header {
-                    background: #374151;
-                    padding: 16px;
-                    font-weight: bold;
-                    color: #a5b4fc;
-                }
-
-                .day-header {
-                    background: #374151;
-                    padding: 12px 8px;
-                    text-align: center;
-                    font-size: 0.9rem;
-                }
-
-                .day-header.today {
-                    background: #10b981;
-                    color: white;
-                }
-
-                .day-name {
-                    font-weight: bold;
-                    margin-bottom: 2px;
-                }
-
-                .day-date {
-                    color: #9ca3af;
-                    font-size: 0.8rem;
-                }
-
-                .day-header.today .day-date {
-                    color: rgba(255, 255, 255, 0.8);
-                }
-
-                .habit-row {
-                    display: contents;
-                }
-
-                .habit-row .habit-info {
-                    background: #1f2937;
-                    padding: 16px;
-                    border-radius: 0;
-                }
-
-                .day-cell {
-                    background: #1f2937;
-                    padding: 16px;
-                    display: flex;
-                    justify-content: center;
-                    align-items: center;
-                }
-
-                @media (max-width: 768px) {
-                    .view-controls {
-                        flex-direction: column;
-                        align-items: stretch;
-                    }
-
-                    .weekly-grid {
-                        grid-template-columns: 150px repeat(7, 1fr);
-                        font-size: 0.8rem;
-                    }
-
-                    .habit-name-header,
-                    .habit-row .habit-info {
-                        padding: 12px;
-                    }
-
-                    .day-header,
-                    .day-cell {
-                        padding: 8px;
-                    }
-                }
-            `}</style>
         </div>
     );
 };

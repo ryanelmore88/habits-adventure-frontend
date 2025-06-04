@@ -5,29 +5,55 @@
     margin: 0 auto;
     padding: 20px;
     color: #eee;
+    min-height: 100vh;
+    background: #111827;
 }
 
 .habits-page-loading {
     text-align: center;
     padding: 60px 20px;
     color: #eee;
+    background: #111827;
+    min-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.habits-page-loading h1 {
+    color: #a5b4fc;
+    margin-bottom: 16px;
+    font-size: 2rem;
+}
+
+.habits-page-loading p {
+    color: #9ca3af;
+    font-size: 1.1rem;
 }
 
 /* Header */
 .habits-header {
     text-align: center;
     margin-bottom: 30px;
+    padding: 20px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 12px;
+    color: white;
 }
 
 .habits-header h1 {
     margin: 0 0 8px 0;
-    color: #a5b4fc;
-    font-size: 2rem;
+    color: white;
+    font-size: 2.5rem;
+    font-weight: bold;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 .habits-header p {
     margin: 0;
-    color: #9ca3af;
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 1.1rem;
 }
 
 /* View Controls */
@@ -38,6 +64,10 @@
     margin-bottom: 24px;
     flex-wrap: wrap;
     gap: 16px;
+    background: #1f2937;
+    padding: 16px;
+    border-radius: 12px;
+    border: 1px solid #374151;
 }
 
 .view-toggle {
@@ -45,6 +75,7 @@
     background: #374151;
     border-radius: 8px;
     overflow: hidden;
+    border: 1px solid #4b5563;
 }
 
 .view-toggle button {
@@ -75,19 +106,53 @@
     font-size: 1rem;
 }
 
+.date-selector {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.date-selector label {
+    color: #9ca3af;
+    font-weight: 500;
+    font-size: 0.9rem;
+}
+
+.date-selector input {
+    background: #374151;
+    border: 1px solid #4b5563;
+    border-radius: 6px;
+    color: #eee;
+    padding: 8px 12px;
+    font-size: 1rem;
+    transition: border-color 0.2s ease;
+}
+
+.date-selector input:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+
 /* Messages */
 .error-message {
-    background: #dc2626;
+    background: linear-gradient(135deg, #dc2626, #b91c1c);
     color: white;
-    padding: 12px;
-    border-radius: 6px;
+    padding: 12px 16px;
+    border-radius: 8px;
     margin-bottom: 16px;
+    border: 1px solid #ef4444;
+    font-weight: 500;
 }
 
 .loading-message {
     text-align: center;
     color: #9ca3af;
-    padding: 20px;
+    padding: 40px 20px;
+    font-size: 1.1rem;
+    background: #1f2937;
+    border-radius: 12px;
+    border: 1px solid #374151;
 }
 
 /* View Containers */
@@ -96,29 +161,52 @@
     background: #1f2937;
     border-radius: 12px;
     padding: 24px;
+    border: 1px solid #374151;
+    min-height: 400px;
 }
 
 .daily-view h2,
 .weekly-view h2 {
-    margin: 0 0 20px 0;
+    margin: 0 0 24px 0;
     color: #a5b4fc;
     display: flex;
     align-items: center;
     gap: 12px;
+    font-size: 1.5rem;
+    font-weight: 600;
+    border-bottom: 2px solid #374151;
+    padding-bottom: 12px;
 }
 
 .today-badge {
-    background: #10b981;
+    background: linear-gradient(135deg, #10b981, #059669);
     color: white;
     font-size: 0.8rem;
-    padding: 4px 8px;
-    border-radius: 12px;
+    padding: 4px 12px;
+    border-radius: 16px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    box-shadow: 0 2px 4px rgba(16, 185, 129, 0.3);
 }
 
 .no-habits {
     text-align: center;
     color: #6b7280;
-    padding: 40px 20px;
+    padding: 60px 20px;
+    background: #374151;
+    border-radius: 12px;
+    border: 2px dashed #4b5563;
+}
+
+.no-habits p {
+    margin: 8px 0;
+    font-size: 1.1rem;
+}
+
+.no-habits p:first-child {
+    font-weight: 600;
+    color: #9ca3af;
 }
 
 /* Daily View */
@@ -130,62 +218,90 @@
 
 .habit-item {
     background: #374151;
-    border-radius: 8px;
-    padding: 16px;
+    border-radius: 12px;
+    padding: 20px;
     display: flex;
     justify-content: space-between;
     align-items: center;
     gap: 16px;
+    border: 1px solid #4b5563;
+    transition: all 0.2s ease;
+}
+
+.habit-item:hover {
+    background: #4b5563;
+    border-color: #6b7280;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
 .habit-info {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 16px;
     flex: 1;
 }
 
 .attribute-icon {
-    width: 32px;
-    height: 32px;
+    width: 40px;
+    height: 40px;
     border-radius: 50%;
+    border: 2px solid #4b5563;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
 .attribute-text {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 32px;
-    height: 32px;
-    background: #4b5563;
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(135deg, #4b5563, #374151);
     border-radius: 50%;
-    font-size: 0.7rem;
+    font-size: 0.8rem;
     font-weight: bold;
     color: #eee;
+    border: 2px solid #6b7280;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.habit-details {
+    flex: 1;
 }
 
 .habit-details h4 {
-    margin: 0 0 4px 0;
+    margin: 0 0 6px 0;
     color: #eee;
+    font-size: 1.2rem;
+    font-weight: 600;
 }
 
 .habit-description {
     margin: 0;
     color: #9ca3af;
-    font-size: 0.9rem;
+    font-size: 0.95rem;
+    line-height: 1.4;
 }
 
-/* Checkbox Styling */
+.habit-toggle {
+    flex-shrink: 0;
+}
+
+/* Enhanced Checkbox Styling */
 .checkbox-container {
     position: relative;
     cursor: pointer;
     user-select: none;
+    display: block;
+    padding: 4px;
 }
 
 .checkbox-container input {
     position: absolute;
     opacity: 0;
     cursor: pointer;
+    width: 0;
+    height: 0;
 }
 
 .checkbox-custom {
@@ -197,11 +313,13 @@
     border: 2px solid #4b5563;
     border-radius: 4px;
     transition: all 0.2s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .checkbox-container input:checked + .checkbox-custom {
     background: #10b981;
     border-color: #10b981;
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
 }
 
 .checkbox-container input:checked + .checkbox-custom::after {
@@ -219,6 +337,11 @@
     border-color: #6b7280;
 }
 
+.checkbox-container input:disabled + .checkbox-custom {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
 /* Weekly View */
 .weekly-grid {
     display: grid;
@@ -227,6 +350,7 @@
     background: #4b5563;
     border-radius: 8px;
     overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
 .weekly-header {
@@ -238,6 +362,9 @@
     padding: 16px;
     font-weight: bold;
     color: #a5b4fc;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
 }
 
 .day-header {
@@ -245,16 +372,19 @@
     padding: 12px 8px;
     text-align: center;
     font-size: 0.9rem;
+    transition: background-color 0.2s ease;
 }
 
 .day-header.today {
     background: #10b981;
     color: white;
+    font-weight: 600;
 }
 
 .day-name {
     font-weight: bold;
     margin-bottom: 2px;
+    font-size: 0.8rem;
 }
 
 .day-date {
@@ -274,6 +404,15 @@
     background: #1f2937;
     padding: 16px;
     border-radius: 0;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.habit-row .habit-details h4 {
+    font-size: 0.9rem;
+    margin: 0;
+    color: #eee;
 }
 
 .day-cell {
@@ -282,13 +421,52 @@
     display: flex;
     justify-content: center;
     align-items: center;
+    transition: background-color 0.2s ease;
+}
+
+.day-cell:hover {
+    background: #374151;
+}
+
+/* Weekly view checkbox adjustments */
+.weekly-view .checkbox-custom {
+    width: 24px;
+    height: 24px;
+}
+
+.weekly-view .checkbox-container input:checked + .checkbox-custom::after {
+    font-size: 14px;
 }
 
 /* Responsive Design */
 @media (max-width: 768px) {
+    .habits-page {
+        padding: 16px;
+    }
+
+    .habits-header {
+        padding: 16px;
+        margin-bottom: 20px;
+    }
+
+    .habits-header h1 {
+        font-size: 2rem;
+    }
+
     .view-controls {
         flex-direction: column;
         align-items: stretch;
+        gap: 12px;
+        padding: 12px;
+    }
+
+    .view-toggle {
+        order: 1;
+    }
+
+    .date-selector {
+        order: 2;
+        justify-content: center;
     }
 
     .weekly-grid {
@@ -296,18 +474,26 @@
         font-size: 0.8rem;
     }
 
-    .habit-name-header,
+    .habit-name-header {
+        padding: 12px;
+        font-size: 0.9rem;
+    }
+
     .habit-row .habit-info {
         padding: 12px;
     }
 
-    .day-header,
-    .day-cell {
-        padding: 8px;
+    .habit-row .habit-details h4 {
+        font-size: 0.8rem;
     }
 
-    .habits-page {
-        padding: 16px;
+    .day-header {
+        padding: 8px 4px;
+        font-size: 0.8rem;
+    }
+
+    .day-cell {
+        padding: 8px;
     }
 
     .daily-view,
@@ -316,12 +502,54 @@
     }
 
     .habit-item {
-        padding: 12px;
+        padding: 16px;
     }
 
     .attribute-icon,
     .attribute-text {
-        width: 28px;
-        height: 28px;
+        width: 32px;
+        height: 32px;
+    }
+
+    .attribute-text {
+        font-size: 0.7rem;
+    }
+
+    .habit-details h4 {
+        font-size: 1.1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .habits-header h1 {
+        font-size: 1.8rem;
+    }
+
+    .weekly-grid {
+        grid-template-columns: 100px repeat(7, 1fr);
+        font-size: 0.7rem;
+    }
+
+    .habit-name-header {
+        padding: 8px 6px;
+        font-size: 0.8rem;
+    }
+
+    .day-header {
+        padding: 8px 2px;
+        font-size: 0.7rem;
+    }
+
+    .day-cell {
+        padding: 8px 2px;
+    }
+
+    .weekly-view .checkbox-custom {
+        width: 20px;
+        height: 20px;
+    }
+
+    .weekly-view .checkbox-container input:checked + .checkbox-custom::after {
+        font-size: 12px;
     }
 }
