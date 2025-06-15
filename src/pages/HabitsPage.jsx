@@ -1,6 +1,8 @@
+// src/pages/HabitsPage.jsx - Updated with proper date handling
 import { useState, useEffect } from 'react';
 import { useCharacter } from '../contexts/CharacterContext';
 import { fetchHabitsForDate, markHabitComplete, fetchDayCompletions, fetchWeekCompletions } from '../api/habitApi';
+import { getLocalTodayDate, getWeekDates, isToday, formatDate } from '../utils/dateUtils'; // ✅ FIXED: Import from dateUtils
 import attributeIcons from '../icons/attributeIcons';
 import '../styles/HabitsPage.css';
 
@@ -11,22 +13,11 @@ const HabitsPage = () => {
     const [completions, setCompletions] = useState({}); // Store completion status
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
-    const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
 
-    // Generate week dates starting from Monday
-    const getWeekDates = (startDate) => {
-        const start = new Date(startDate);
-        const day = start.getDay();
-        const diff = start.getDate() - day + (day === 0 ? -6 : 1); // Monday
-        const monday = new Date(start.setDate(diff));
+    // Use local timezone instead of UTC
+    const [selectedDate, setSelectedDate] = useState(getLocalTodayDate());
 
-        return Array.from({ length: 7 }, (_, i) => {
-            const date = new Date(monday);
-            date.setDate(monday.getDate() + i);
-            return date.toISOString().split('T')[0];
-        });
-    };
-
+    // Use updated date utility
     const weekDates = getWeekDates(selectedDate);
 
     useEffect(() => {
@@ -119,19 +110,6 @@ const HabitsPage = () => {
         );
     };
 
-    const isToday = (date) => {
-        return date === new Date().toISOString().split('T')[0];
-    };
-
-    const formatDate = (dateString) => {
-        const date = new Date(dateString);
-        return date.toLocaleDateString('en-US', {
-            weekday: 'short',
-            month: 'short',
-            day: 'numeric'
-        });
-    };
-
     if (!selectedCharacter) {
         return (
             <div className="habits-page-loading">
@@ -172,7 +150,7 @@ const HabitsPage = () => {
                             type="date"
                             value={selectedDate}
                             onChange={(e) => setSelectedDate(e.target.value)}
-                            max={new Date().toISOString().split('T')[0]}
+                            max={getLocalTodayDate()} // Use local timezone
                         />
                     </div>
                 )}
@@ -236,6 +214,9 @@ const HabitsPage = () => {
                                                 disabled={loading}
                                             />
                                             <span className="checkbox-custom"></span>
+                                            <span className="checkbox-label">
+                                                {isCompleted ? 'Completed' : 'Mark Complete'}
+                                            </span>
                                         </label>
                                     </div>
                                 </div>
@@ -264,10 +245,10 @@ const HabitsPage = () => {
                             {weekDates.map((date) => (
                                 <div key={date} className={`day-header ${isToday(date) ? 'today' : ''}`}>
                                     <div className="day-name">
-                                        {new Date(date).toLocaleDateString('en-US', { weekday: 'short' })}
+                                        {new Date(date + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'short' })}
                                     </div>
                                     <div className="day-date">
-                                        {new Date(date).getDate()}
+                                        {new Date(date + 'T00:00:00').getDate()}
                                     </div>
                                 </div>
                             ))}
@@ -314,8 +295,6 @@ const HabitsPage = () => {
                     </div>
                 </div>
             )}
-
-
         </div>
     );
 };

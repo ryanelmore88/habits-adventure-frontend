@@ -1,5 +1,6 @@
 // src/api/habitApi.js
 import API_CONFIG from '../config/api.js';
+import { getLocalTodayDate, getLocalDateString, getCurrentWeekDatesSundayStart, isValidDate } from '../utils/dateUtils.js';
 
 const { baseURL, debugMode, timeout } = API_CONFIG;
 
@@ -92,19 +93,9 @@ const validateAttribute = (attribute) => {
 
 // Validate date format (YYYY-MM-DD)
 const validateDate = (dateString) => {
-    if (!dateString) return null;
-
-    const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
-    if (!dateRegex.test(dateString)) {
-        throw new Error('Date must be in YYYY-MM-DD format');
+    if (!isValidDate(dateString)) {
+        throw new Error('Invalid date format. Expected YYYY-MM-DD');
     }
-
-    const date = new Date(dateString);
-    if (isNaN(date.getTime())) {
-        throw new Error('Invalid date provided');
-    }
-
-    return dateString;
 };
 
 // Create a new habit
@@ -252,7 +243,7 @@ export const fetchHabitsForDate = async (characterId, date = null) => {
     }
 
     // Use today's date if none provided
-    const targetDate = date || new Date().toISOString().split('T')[0];
+    const targetDate = date || getLocalTodayDate();
     validateDate(targetDate);
 
     try {
@@ -323,9 +314,12 @@ export const markHabitComplete = async (habitId, completionDate = null, complete
     }
 
     // Use today's date if none provided
-    const targetDate = completionDate || new Date().toISOString().split('T')[0];
+    const targetDate = completionDate || getLocalTodayDate();
     validateDate(targetDate);
 
+    if (!isValidDate(targetDate)) {
+        throw new Error('Invalid date format. Expected YYYY-MM-DD');
+    }
     if (typeof completed !== 'boolean') {
         throw new Error('Completed status must be a boolean');
     }
@@ -453,21 +447,12 @@ export const updateHabit = async (habitId, updates) => {
 
 // Utility function to get today's date in YYYY-MM-DD format
 export const getTodayDate = () => {
-    return new Date().toISOString().split('T')[0];
+    return getLocalTodayDate(); // ✅ FIXED: Uses local timezone instead of UTC
 };
 
 // Utility function to get current week dates
 export const getCurrentWeekDates = () => {
-    const today = new Date();
-    const day = today.getDay(); // 0 (Sun) to 6 (Sat)
-    const start = new Date(today);
-    start.setDate(today.getDate() - day); // Go to previous Sunday
-
-    return Array.from({ length: 7 }, (_, i) => {
-        const date = new Date(start);
-        date.setDate(start.getDate() + i);
-        return date.toISOString().split('T')[0];
-    });
+    return getCurrentWeekDatesSundayStart();
 };
 
 // Export API_CONFIG for other modules that might need it
