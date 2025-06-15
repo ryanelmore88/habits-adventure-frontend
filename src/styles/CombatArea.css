@@ -1,8 +1,10 @@
 /* src/styles/CombatArea.css */
 
 .combat-area {
-    position: relative;
-    max-width: 900px;
+    position: fixed;
+    /*max-width: 900px;*/
+    width: 100%;
+    height: 100%;
     margin: 0 auto;
     padding: 20px;
     color: #eee;
@@ -41,7 +43,7 @@
     padding: 20px;
     margin-bottom: 20px;
     border: 1px solid #374151;
-    color: #eee;
+    color: #1f2937;
 }
 
 .character-status h3,

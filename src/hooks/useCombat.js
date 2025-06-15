@@ -10,7 +10,9 @@ export function useCombat(character) {
         enemy: null,
         combatLog: [],
         totalXpGained: 0,
-        totalLoot: []
+        totalLoot: [],
+        characterHp: character?.current_hp || character?.max_hp || 20,
+        damage: 0
     });
 
     const startCombat = useCallback((enemyType) => {
@@ -20,21 +22,27 @@ export function useCombat(character) {
             enemy,
             combatLog: [],
             totalXpGained: 0,
-            totalLoot: []
+            totalLoot: [],
+            characterHp: character?.current_hp || character?.max_hp || 20,
+            damage: 0
         });
-    }, [combatEngine]);
+    }, [combatEngine, character]);
 
     const executeRound = useCallback((customRoundResult = null) => {
         if (combatState.phase !== 'active' || !combatState.enemy) return;
 
         let result;
+        let newCharacterHp = combatState.characterHp;
+
         if (customRoundResult) {
             // Use custom result from 3D dice rolling
             result = {
                 ...customRoundResult,
-                newCharacterHp: customRoundResult.winner === 'enemy'
-                    ? Math.max(0, (character.current_hp || character.currentHp || 20) - customRoundResult.damage)
-                    : (character.current_hp || character.currentHp || 20),
+                newCharacterHp: customRoundResult.newCharacterHp !== undefined
+                    ? customRoundResult.newCharacterHp
+                    : (customRoundResult.winner === 'enemy'
+                        ? Math.max(0, combatState.characterHp - customRoundResult.damage)
+                        : combatState.characterHp),
                 newEnemyHp: customRoundResult.winner === 'character'
                     ? Math.max(0, combatState.enemy.currentHp - customRoundResult.damage)
                     : combatState.enemy.currentHp,
@@ -43,6 +51,8 @@ export function useCombat(character) {
                 defeat: false
             };
 
+            newCharacterHp = result.newCharacterHp;
+
             // Check for combat end conditions
             result.combatEnded = result.newCharacterHp <= 0 || result.newEnemyHp <= 0;
             result.victory = result.newEnemyHp <= 0 && result.newCharacterHp > 0;
@@ -50,6 +60,7 @@ export function useCombat(character) {
         } else {
             // Use combat engine for fallback
             result = combatEngine.executeCombatRound(character, combatState.enemy);
+            newCharacterHp = result.newCharacterHp;
         }
 
         // Update enemy HP
@@ -58,14 +69,8 @@ export function useCombat(character) {
             currentHp: result.newEnemyHp
         };
 
-        // Update character HP (this will be sent to backend later)
-        const updatedCharacter = {
-            ...character,
-            currentHp: result.newCharacterHp,
-            current_hp: result.newCharacterHp // Support both naming conventions
-        };
-
         const newLog = [...combatState.combatLog, result];
+        const totalDamage = (character?.current_hp || character?.max_hp || 20) - newCharacterHp;
 
         if (result.combatEnded) {
             if (result.victory) {
@@ -77,7 +82,9 @@ export function useCombat(character) {
                     enemy: updatedEnemy,
                     combatLog: newLog,
                     totalXpGained: combatState.enemy.xpReward,
-                    totalLoot: loot
+                    totalLoot: loot,
+                    characterHp: newCharacterHp,
+                    damage: totalDamage
                 }));
             } else {
                 // Defeat
@@ -85,7 +92,9 @@ export function useCombat(character) {
                     ...prev,
                     phase: 'defeat',
                     enemy: updatedEnemy,
-                    combatLog: newLog
+                    combatLog: newLog,
+                    characterHp: 0,
+                    damage: totalDamage
                 }));
             }
         } else {
@@ -93,12 +102,14 @@ export function useCombat(character) {
             setCombatState(prev => ({
                 ...prev,
                 enemy: updatedEnemy,
-                combatLog: newLog
+                combatLog: newLog,
+                characterHp: newCharacterHp,
+                damage: totalDamage
             }));
         }
 
-        // Return updated character state for UI updates
-        return updatedCharacter;
+        // Return updated character HP for UI updates
+        return newCharacterHp;
     }, [combatEngine, character, combatState]);
 
     const resetCombat = useCallback(() => {
@@ -107,9 +118,11 @@ export function useCombat(character) {
             enemy: null,
             combatLog: [],
             totalXpGained: 0,
-            totalLoot: []
+            totalLoot: [],
+            characterHp: character?.current_hp || character?.max_hp || 20,
+            damage: 0
         });
-    }, []);
+    }, [character]);
 
     // Get dice pool information for display
     const getCharacterDiceInfo = useCallback(() => {

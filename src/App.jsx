@@ -231,7 +231,7 @@ function AppContent() {
                     margin: 0 auto;
                     padding: 40px 20px;
                     text-align: center;
-                    color: #eee;
+                    color: #1f2937;
                 }
 
                 .placeholder-page h1 {
