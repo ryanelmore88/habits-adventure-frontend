@@ -56,24 +56,24 @@
 .character-image-container {
     flex-shrink: 0;
     position: relative;
+    display: flex;
+    align-items: center;
+    gap: 0; /* Remove gap so HP bar touches the image */
 }
 
 .character-avatar-wrapper {
     position: relative;
-    width: 160px;
-    height: 160px;
     display: flex;
     align-items: center;
-    justify-content: center;
 }
 
 .character-avatar,
 .character-avatar-placeholder {
-    width: 120px;
-    height: 120px;
+    width: 80px;
+    height: 80px;
     border-radius: 50%;
-    position: absolute;
-    z-index: 2;
+    flex-shrink: 0;
+    z-index: 2; /* Ensure image is above HP bar */
 }
 
 .character-avatar {
@@ -90,36 +90,48 @@
 }
 
 .placeholder-icon {
-    font-size: 2rem;
+    font-size: 1.5rem;
     color: #9ca3af;
 }
 
-/* HP Ring (Curved HP Bar) */
-.hp-ring {
-    position: absolute;
-    top: 0;
-    left: 0;
+/* Straight HP Bar Container */
+.hp-bar-container {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 120px;
+    margin-left: -20px; /* Overlap with the image to create seamless connection */
     z-index: 1;
-    filter: drop-shadow(0 0 4px rgba(16, 185, 129, 0.3));
 }
 
-.hp-progress {
-    transition: stroke-dashoffset 0.5s ease-in-out;
+/* Straight HP Bar with Concave Left Side */
+.hp-bar-background {
+    position: relative;
+    background: #374151;
+    height: 12px;
+    overflow: hidden;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
+    /* Create concave left side without taper - clean curve that matches image radius */
+    border-radius: 0 12px 12px 0;
+    clip-path: circle(40px at 0px 50%);
 }
 
-/* HP Text Overlay */
-.hp-text-overlay {
-    position: absolute;
-    bottom: -8px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: #1f2937;
-    border: 1px solid #374151;
-    border-radius: 12px;
-    padding: 4px 8px;
+.hp-bar-fill {
+    height: 100%;
+    transition: width 0.5s ease-in-out;
+    position: relative;
+    box-shadow: 0 0 8px rgba(16, 185, 129, 0.4);
+    /* Match the concave shape without taper */
+    clip-path: circle(40px at 0px 50%);
+}
+
+/* HP Text Display */
+.hp-text-display {
+    display: flex;
+    justify-content: center;
+    align-items: center;
     font-size: 0.8rem;
     font-weight: 600;
-    z-index: 3;
     white-space: nowrap;
 }
 
@@ -146,68 +158,9 @@
     }
 }
 
-.character-status-with-image.low-hp .hp-progress {
+.character-status-with-image.low-hp .hp-bar-fill {
     animation: pulse-red 1.5s infinite;
-}
-
-.character-status-with-image.low-hp .hp-ring {
-    filter: drop-shadow(0 0 8px rgba(239, 68, 68, 0.5));
-}
-
-/* Responsive Design */
-@media (max-width: 640px) {
-    .character-status-with-image {
-        padding: 16px;
-    }
-
-    .character-info {
-        flex-direction: column;
-        text-align: center;
-        gap: 16px;
-    }
-
-    .character-name {
-        font-size: 1.3rem;
-    }
-
-    .character-avatar-wrapper {
-        width: 140px;
-        height: 140px;
-    }
-
-    .character-avatar,
-    .character-avatar-placeholder {
-        width: 100px;
-        height: 100px;
-    }
-
-    .stat-item {
-        max-width: none;
-        justify-content: center;
-        gap: 8px;
-    }
-
-    .character-stats {
-        align-items: center;
-    }
-}
-
-/* Tablet responsive */
-@media (max-width: 768px) and (min-width: 641px) {
-    .character-name {
-        font-size: 1.4rem;
-    }
-
-    .character-avatar-wrapper {
-        width: 150px;
-        height: 150px;
-    }
-
-    .character-avatar,
-    .character-avatar-placeholder {
-        width: 110px;
-        height: 110px;
-    }
+    box-shadow: 0 0 12px rgba(239, 68, 68, 0.6);
 }
 
 /* Header-specific styling */
@@ -224,21 +177,28 @@
     margin-bottom: 8px;
 }
 
-.header-character-status .character-avatar-wrapper {
-    width: 80px;
-    height: 80px;
-}
-
 .header-character-status .character-avatar,
 .header-character-status .character-avatar-placeholder {
     width: 60px;
     height: 60px;
 }
 
-.header-character-status .hp-text-overlay {
+.header-character-status .hp-bar-container {
+    min-width: 100px;
+    margin-left: -15px; /* Adjusted for smaller header image */
+}
+
+.header-character-status .hp-bar-background {
+    height: 10px;
+    clip-path: circle(30px at 0px 50%);
+}
+
+.header-character-status .hp-bar-fill {
+    clip-path: circle(30px at 0px 50%);
+}
+
+.header-character-status .hp-text-display {
     font-size: 0.7rem;
-    padding: 2px 6px;
-    bottom: -6px;
 }
 
 .header-character-status .stat-item {
@@ -250,7 +210,7 @@
     font-size: 0.8rem;
 }
 
-/* Additional styling for different contexts */
+/* Compact variant */
 .character-status-with-image.compact {
     padding: 16px;
 }
@@ -259,15 +219,75 @@
     font-size: 1.2rem;
 }
 
-.character-status-with-image.compact .character-avatar-wrapper {
-    width: 120px;
-    height: 120px;
-}
-
 .character-status-with-image.compact .character-avatar,
 .character-status-with-image.compact .character-avatar-placeholder {
-    width: 80px;
-    height: 80px;
+    width: 70px;
+    height: 70px;
+}
+
+.character-status-with-image.compact .hp-bar-container {
+    min-width: 110px;
+    margin-left: -17px; /* Adjusted for compact size */
+}
+
+.character-status-with-image.compact .hp-bar-background,
+.character-status-with-image.compact .hp-bar-fill {
+    clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%, 0% 50%);
+}
+
+/* Responsive Design */
+@media (max-width: 640px) {
+    .character-status-with-image {
+        padding: 16px;
+    }
+
+    .character-info {
+        flex-direction: column;
+        text-align: center;
+        gap: 16px;
+    }
+
+    .character-image-container {
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .character-name {
+        font-size: 1.3rem;
+    }
+
+    .character-avatar,
+    .character-avatar-placeholder {
+        width: 70px;
+        height: 70px;
+    }
+
+    .stat-item {
+        max-width: none;
+        justify-content: center;
+        gap: 8px;
+    }
+
+    .character-stats {
+        align-items: center;
+    }
+
+    .hp-bar-container {
+        min-width: 100px;
+    }
+}
+
+/* Tablet responsive */
+@media (max-width: 768px) and (min-width: 641px) {
+    .character-name {
+        font-size: 1.4rem;
+    }
+
+    .character-avatar,
+    .character-avatar-placeholder {
+        width: 75px;
+        height: 75px;
+    }
 }
 
 /* Hover effects */
@@ -276,7 +296,7 @@
     transition: border-color 0.2s ease;
 }
 
-.character-status-with-image:hover .hp-ring {
-    filter: drop-shadow(0 0 6px rgba(16, 185, 129, 0.4));
-    transition: filter 0.2s ease;
+.character-status-with-image:hover .hp-bar-fill {
+    box-shadow: 0 0 12px rgba(16, 185, 129, 0.6);
+    transition: box-shadow 0.2s ease;
 }

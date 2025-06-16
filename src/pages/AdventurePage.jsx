@@ -81,21 +81,12 @@ export default function AdventurePage() {
 
     return (
         <div className="adventure-page">
-            {/* Adventure Header with Character Status */}
-            <header className="adventure-header">
-                <div className="header-content">
-                    <div className="header-text">
-                        <h1>Adventure Awaits</h1>
-                        <p>Choose your battle and test your skills!</p>
-                    </div>
 
-                    {/* Character Status with Image */}
-                    <CharacterStatusWithImage
-                        character={selectedCharacter}
-                        className="header-character-status"
-                    />
-                </div>
-            </header>
+            {/* Current Combat System */}
+            <CombatArea
+                character={selectedCharacter}
+                onAdventureComplete={handleAdventureComplete}
+            />
 
             {/* Adventure Selection */}
             <div className="adventure-selection">
@@ -109,12 +100,6 @@ export default function AdventurePage() {
                     {/* Future adventures will go here */}
                 </div>
             </div>
-
-            {/* Current Combat System */}
-            <CombatArea
-                character={selectedCharacter}
-                onAdventureComplete={handleAdventureComplete}
-            />
 
             <div className="adventure-tips">
                 <h3>Adventure Tips</h3>

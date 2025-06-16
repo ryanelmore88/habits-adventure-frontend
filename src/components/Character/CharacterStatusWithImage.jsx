@@ -1,4 +1,4 @@
-// src/components/CharacterStatusWithImage.jsx
+// src/components/Character/CharacterStatusWithImage.jsx
 import React from 'react';
 import '../../styles/CharacterStatusWithImage.css';
 
@@ -6,14 +6,6 @@ const CharacterStatusWithImage = ({ character, className = "" }) => {
     if (!character) return null;
 
     const hpPercentage = Math.max(0, Math.min(100, (character.current_hp / character.max_hp) * 100));
-
-    // Calculate the curved path for HP bar
-    const radius = 80; // Radius of the character image
-    const strokeWidth = 12;
-    const normalizedRadius = radius - strokeWidth * 2;
-    const circumference = normalizedRadius * 2 * Math.PI;
-    const strokeDasharray = `${circumference} ${circumference}`;
-    const strokeDashoffset = circumference - (hpPercentage / 100) * circumference;
 
     // Determine HP bar color based on percentage
     const getHPColor = () => {
@@ -54,42 +46,24 @@ const CharacterStatusWithImage = ({ character, className = "" }) => {
                             </div>
                         )}
 
-                        {/* Curved HP Bar around the image */}
-                        <svg
-                            className="hp-ring"
-                            height={radius * 2}
-                            width={radius * 2}
-                        >
-                            {/* Background circle */}
-                            <circle
-                                stroke="#374151"
-                                fill="transparent"
-                                strokeWidth={strokeWidth}
-                                r={normalizedRadius}
-                                cx={radius}
-                                cy={radius}
-                            />
-                            {/* HP progress circle */}
-                            <circle
-                                stroke={getHPColor()}
-                                fill="transparent"
-                                strokeWidth={strokeWidth}
-                                strokeDasharray={strokeDasharray}
-                                strokeDashoffset={strokeDashoffset}
-                                strokeLinecap="round"
-                                r={normalizedRadius}
-                                cx={radius}
-                                cy={radius}
-                                transform={`rotate(-90 ${radius} ${radius})`}
-                                className="hp-progress"
-                            />
-                        </svg>
+                        {/* Straight HP Bar that starts from the image edge */}
+                        <div className="hp-bar-container">
+                            <div className="hp-bar-background">
+                                <div
+                                    className="hp-bar-fill"
+                                    style={{
+                                        width: `${hpPercentage}%`,
+                                        backgroundColor: getHPColor()
+                                    }}
+                                />
+                            </div>
 
-                        {/* HP Text */}
-                        <div className="hp-text-overlay">
-                            <span className="hp-current">{character.current_hp}</span>
-                            <span className="hp-separator">/</span>
-                            <span className="hp-max">{character.max_hp}</span>
+                            {/* HP Text */}
+                            <div className="hp-text-display">
+                                <span className="hp-current">{character.current_hp}</span>
+                                <span className="hp-separator">/</span>
+                                <span className="hp-max">{character.max_hp}</span>
+                            </div>
                         </div>
                     </div>
                 </div>

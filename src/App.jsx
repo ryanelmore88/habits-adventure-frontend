@@ -24,13 +24,13 @@ function ProtectedRoute({ children }) {
 function HeaderCharacterStatus() {
     const { selectedCharacter, isCharacterSelected } = useCharacter();
 
-    if (!isCharacterSelected || !selectedCharacter) {
-        return <CharacterSwitcher />;
-    }
+    // if (!isCharacterSelected || !selectedCharacter) {
+    //     return <CharacterSwitcher />;
+    // }
 
     return (
         <div className="header-character-section">
-            <CharacterSwitcher />
+            {/*<CharacterSwitcher />*/}
             <CharacterStatusWithImage
                 character={selectedCharacter}
                 className="header-character-status compact"
