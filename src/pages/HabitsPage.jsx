@@ -1,7 +1,7 @@
 // src/pages/HabitsPage.jsx - Updated with proper date handling
 import { useState, useEffect } from 'react';
 import { useCharacter } from '../contexts/CharacterContext';
-import { fetchHabitsForDate, markHabitComplete, fetchDayCompletions, fetchWeekCompletions } from '../api/habitApi';
+import { fetchHabitsForDate, markHabitComplete } from '../api/habitApi';
 import { getLocalTodayDate, getWeekDates, isToday, formatDate } from '../utils/dateUtils'; // ✅ FIXED: Import from dateUtils
 import attributeIcons from '../icons/attributeIcons';
 import '../styles/HabitsPage.css';
@@ -31,87 +31,35 @@ const HabitsPage = () => {
             setLoading(true);
             setError('');
 
-            // Load habits
+            // ✅ SIMPLIFIED: Just load habits (which includes completion data)
             const habitData = await fetchHabitsForDate(selectedCharacter.id, selectedDate);
+            console.log('Raw habits data from API:', habitData);
+
             setHabits(habitData || []);
 
-            // Load completions based on view mode
-            if (viewMode === 'daily') {
-                const dayCompletions = await fetchDayCompletions(selectedCharacter.id);
-                console.log('Raw day completions from API:', dayCompletions);
+            // ✅ NEW: Build completion map from habits data instead of separate API calls
+            const completionMap = {};
 
-                // Transform completions into a map for easy lookup
-                const completionMap = {};
+            if (habitData && Array.isArray(habitData)) {
+                habitData.forEach((habit) => {
+                    const habitId = habit.habit_id;
+                    const completions = habit.completions || [];
 
-                dayCompletions.forEach((comp, index) => {
-                    if (comp.habit && comp.completion) {
-                        // ✅ FIXED: Extract values from Gremlin valueMap arrays
-                        const habitId = Array.isArray(comp.habit.habit_id)
-                            ? comp.habit.habit_id[0]
-                            : comp.habit.habit_id;
-                        const date = Array.isArray(comp.completion.completion_date)
-                            ? comp.completion.completion_date[0]
-                            : comp.completion.completion_date;
-                        const completed = Array.isArray(comp.completion.completed)
-                            ? comp.completion.completed[0]
-                            : comp.completion.completed;
+                    console.log(`Processing habit ${habit.habit_name} (ID: ${habitId})`);
+                    console.log(`Completions for this habit:`, completions);
 
-                        if (habitId && date) {
-                            const key = `${habitId}_${date}`;
-                            completionMap[key] = completed === true;
-                            console.log(`Day completion added: ${key} = ${completionMap[key]}`);
-                        }
-                    }
+                    // Mark each completion date as true for this habit
+                    completions.forEach((date) => {
+                        const key = `${habitId}_${date}`;
+                        completionMap[key] = true;
+                        console.log(`Added completion: ${key} = true`);
+                    });
                 });
-
-                console.log('Final day completion map:', completionMap);
-                setCompletions(completionMap);
-
-            } else {
-                // ✅ FIXED WEEKLY VIEW
-                const weekCompletions = await fetchWeekCompletions(selectedCharacter.id);
-                console.log('Raw week completions from API:', weekCompletions);
-
-                const completionMap = {};
-
-                weekCompletions.forEach((comp, index) => {
-                    console.log(`Processing week completion ${index}:`, comp);
-
-                    if (comp.habit && comp.completion) {
-                        // ✅ EXTRACT VALUES FROM ARRAYS
-                        const habitId = Array.isArray(comp.habit.habit_id)
-                            ? comp.habit.habit_id[0]
-                            : comp.habit.habit_id;
-                        const date = Array.isArray(comp.completion.completion_date)
-                            ? comp.completion.completion_date[0]
-                            : comp.completion.completion_date;
-                        const completed = Array.isArray(comp.completion.completed)
-                            ? comp.completion.completed[0]
-                            : comp.completion.completed;
-
-                        console.log(`Extracted values:`, {
-                            habitId,
-                            date,
-                            completed,
-                            completedType: typeof completed
-                        });
-
-                        if (habitId && date) {
-                            const key = `${habitId}_${date}`;
-                            completionMap[key] = completed === true;
-                            console.log(`Added to map: ${key} = ${completionMap[key]}`);
-                        } else {
-                            console.warn(`Missing data - habitId: ${habitId}, date: ${date}`);
-                        }
-                    } else {
-                        console.warn(`Invalid completion structure at index ${index}:`, comp);
-                    }
-                });
-
-                console.log('Final week completion map:', completionMap);
-                console.log('Week completion map keys:', Object.keys(completionMap));
-                setCompletions(completionMap);
             }
+
+            console.log('Final completion map built from habits:', completionMap);
+            console.log('All completion keys:', Object.keys(completionMap));
+            setCompletions(completionMap);
 
         } catch (err) {
             console.error('Error loading habits:', err);
