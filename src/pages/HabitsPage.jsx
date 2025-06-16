@@ -38,31 +38,81 @@ const HabitsPage = () => {
             // Load completions based on view mode
             if (viewMode === 'daily') {
                 const dayCompletions = await fetchDayCompletions(selectedCharacter.id);
+                console.log('Raw day completions from API:', dayCompletions);
+
                 // Transform completions into a map for easy lookup
                 const completionMap = {};
-                dayCompletions.forEach(comp => {
+
+                dayCompletions.forEach((comp, index) => {
                     if (comp.habit && comp.completion) {
-                        const habitId = comp.habit.habit_id || comp.habit.id;
-                        const date = comp.completion.completion_date;
-                        const key = `${habitId}_${date}`;
-                        completionMap[key] = comp.completion.completed;
+                        // ✅ FIXED: Extract values from Gremlin valueMap arrays
+                        const habitId = Array.isArray(comp.habit.habit_id)
+                            ? comp.habit.habit_id[0]
+                            : comp.habit.habit_id;
+                        const date = Array.isArray(comp.completion.completion_date)
+                            ? comp.completion.completion_date[0]
+                            : comp.completion.completion_date;
+                        const completed = Array.isArray(comp.completion.completed)
+                            ? comp.completion.completed[0]
+                            : comp.completion.completed;
+
+                        if (habitId && date) {
+                            const key = `${habitId}_${date}`;
+                            completionMap[key] = completed === true;
+                            console.log(`Day completion added: ${key} = ${completionMap[key]}`);
+                        }
                     }
                 });
+
+                console.log('Final day completion map:', completionMap);
                 setCompletions(completionMap);
+
             } else {
+                // ✅ FIXED WEEKLY VIEW
                 const weekCompletions = await fetchWeekCompletions(selectedCharacter.id);
-                // Transform week completions into a map
+                console.log('Raw week completions from API:', weekCompletions);
+
                 const completionMap = {};
-                weekCompletions.forEach(comp => {
+
+                weekCompletions.forEach((comp, index) => {
+                    console.log(`Processing week completion ${index}:`, comp);
+
                     if (comp.habit && comp.completion) {
-                        const habitId = comp.habit.habit_id || comp.habit.id;
-                        const date = comp.completion.completion_date;
-                        const key = `${habitId}_${date}`;
-                        completionMap[key] = comp.completion.completed;
+                        // ✅ EXTRACT VALUES FROM ARRAYS
+                        const habitId = Array.isArray(comp.habit.habit_id)
+                            ? comp.habit.habit_id[0]
+                            : comp.habit.habit_id;
+                        const date = Array.isArray(comp.completion.completion_date)
+                            ? comp.completion.completion_date[0]
+                            : comp.completion.completion_date;
+                        const completed = Array.isArray(comp.completion.completed)
+                            ? comp.completion.completed[0]
+                            : comp.completion.completed;
+
+                        console.log(`Extracted values:`, {
+                            habitId,
+                            date,
+                            completed,
+                            completedType: typeof completed
+                        });
+
+                        if (habitId && date) {
+                            const key = `${habitId}_${date}`;
+                            completionMap[key] = completed === true;
+                            console.log(`Added to map: ${key} = ${completionMap[key]}`);
+                        } else {
+                            console.warn(`Missing data - habitId: ${habitId}, date: ${date}`);
+                        }
+                    } else {
+                        console.warn(`Invalid completion structure at index ${index}:`, comp);
                     }
                 });
+
+                console.log('Final week completion map:', completionMap);
+                console.log('Week completion map keys:', Object.keys(completionMap));
                 setCompletions(completionMap);
             }
+
         } catch (err) {
             console.error('Error loading habits:', err);
             setError('Failed to load habits');
