@@ -1,4 +1,4 @@
-// frontend/src/contexts/CharacterContext.jsx
+// src/contexts/CharacterContext.jsx - Updated with temporary HP support
 
 import { createContext, useContext, useState, useEffect } from 'react';
 import { apiCall } from '../api/habitApi';
@@ -18,6 +18,19 @@ export const CharacterProvider = ({ children }) => {
     const [availableCharacters, setAvailableCharacters] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
+
+    // Add temporary HP for combat (this doesn't save to backend)
+    const [temporaryHp, setTemporaryHp] = useState(null);
+
+    // Get effective character data (with temporary HP if in combat)
+    const getEffectiveCharacter = () => {
+        if (!selectedCharacter) return null;
+
+        return {
+            ...selectedCharacter,
+            current_hp: temporaryHp !== null ? temporaryHp : selectedCharacter.current_hp
+        };
+    };
 
     // Load available characters
     const loadCharacters = async () => {
@@ -63,6 +76,7 @@ export const CharacterProvider = ({ children }) => {
                 };
 
                 setSelectedCharacter(characterData);
+                setTemporaryHp(null); // Reset temporary HP when selecting character
 
                 // Persist selection in localStorage
                 localStorage.setItem('selectedCharacterId', characterId);
@@ -80,40 +94,94 @@ export const CharacterProvider = ({ children }) => {
         }
     };
 
+    // Refresh current character
+    const refreshCharacter = async () => {
+        if (!selectedCharacter) return;
+
+        try {
+            setLoading(true);
+            setError(null);
+
+            const response = await apiCall(`/api/character/${selectedCharacter.id}`);
+
+            if (response.status === 'success' && response.data) {
+                const characterData = {
+                    ...response.data,
+                    current_hp: response.data.current_hp || response.data.max_hp || 20,
+                    max_hp: response.data.max_hp || 20,
+                    level: response.data.level || 1,
+                    current_xp: response.data.current_xp || 0,
+                    inventory: response.data.inventory || {}
+                };
+
+                setSelectedCharacter(characterData);
+                setTemporaryHp(null); // Reset temporary HP when refreshing
+
+                return characterData;
+            } else {
+                throw new Error('Failed to refresh character data');
+            }
+        } catch (err) {
+            console.error('Failed to refresh character:', err);
+            setError(err.message);
+            throw err;
+        } finally {
+            setLoading(false);
+        }
+    };
+
     // Clear character selection
     const clearCharacter = () => {
         setSelectedCharacter(null);
+        setTemporaryHp(null);
         localStorage.removeItem('selectedCharacterId');
     };
 
-    // Refresh current character data
-    const refreshCharacter = async () => {
-        if (selectedCharacter?.id) {
-            await selectCharacter(selectedCharacter.id);
-        }
+    // Update temporary HP (for combat)
+    const updateTemporaryHp = (newHp) => {
+        setTemporaryHp(newHp);
     };
 
-    // Load saved character on app start
+    // Clear temporary HP (when combat ends)
+    const clearTemporaryHp = () => {
+        setTemporaryHp(null);
+    };
+
+    // Auto-load character from localStorage on mount
     useEffect(() => {
         const savedCharacterId = localStorage.getItem('selectedCharacterId');
-        if (savedCharacterId) {
+        if (savedCharacterId && !selectedCharacter) {
             selectCharacter(savedCharacterId).catch(err => {
-                console.error('Failed to load saved character:', err);
+                console.warn('Failed to auto-load saved character:', err);
                 localStorage.removeItem('selectedCharacterId');
             });
         }
+
+        // Always load available characters
+        loadCharacters();
     }, []);
 
     const value = {
-        selectedCharacter,
+        // Character data
+        selectedCharacter: getEffectiveCharacter(), // Returns character with temporary HP if set
+        originalCharacter: selectedCharacter, // Original character data without temporary changes
         availableCharacters,
+
+        // State
         loading,
         error,
+        isCharacterSelected: !!selectedCharacter,
+
+        // Actions
         selectCharacter,
+        refreshCharacter,
         clearCharacter,
         loadCharacters,
-        refreshCharacter,
-        isCharacterSelected: !!selectedCharacter
+
+        // Temporary HP for combat
+        updateTemporaryHp,
+        clearTemporaryHp,
+        isInCombat: temporaryHp !== null
     };
 
     return (

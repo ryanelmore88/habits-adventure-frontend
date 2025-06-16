@@ -7,7 +7,7 @@ import '../styles/CombatArea.css'; // Import your styles here
 
 
 const CombatArea = ({ onAdventureComplete }) => {
-    const { selectedCharacter, refreshCharacter } = useCharacter();
+    const { selectedCharacter, refreshCharacter, updateTemporaryHp, clearTemporaryHp } = useCharacter();
     const { combatState, startCombat, executeRound, resetCombat, availableEnemies } = useCombat(selectedCharacter);
     const [diceBox, setDiceBox] = useState(null);
     const [isRolling, setIsRolling] = useState(false);
@@ -16,12 +16,16 @@ const CombatArea = ({ onAdventureComplete }) => {
     const diceBoxRef = useRef(null);
     const cleanupTimeoutRef = useRef(null);
 
+
     // Update character HP when selected character changes
     useEffect(() => {
         if (selectedCharacter) {
-            setCharacterCurrentHp(selectedCharacter.current_hp || selectedCharacter.max_hp || 20);
+            const newHp = selectedCharacter.current_hp || selectedCharacter.max_hp || 20;
+            setCharacterCurrentHp(newHp);
+            // Clear any temporary HP when starting fresh
+            clearTemporaryHp();
         }
-    }, [selectedCharacter]);
+    }, [selectedCharacter, clearTemporaryHp]);
 
     // Initialize dice box
     useEffect(() => {

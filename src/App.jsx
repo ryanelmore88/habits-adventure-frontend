@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { CharacterProvider, useCharacter } from './contexts/CharacterContext';
 import CharacterPicker from './components/CharacterPicker';
 import CharacterSwitcher from './components/CharacterSwitcher';
-import CharacterStatusWithImage from './components/CharacterStatusWithImage';
+import CharacterStatusWithImage from './components/Character/CharacterStatusWithImage';
 import CharacterSheet from './components/Character/CharacterSheet.jsx'
 import HabitsPage from './pages/HabitsPage';
 import AdventurePage from './pages/AdventurePage';
