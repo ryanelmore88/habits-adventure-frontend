@@ -1,6 +1,6 @@
 // src/api/habitApi.js
 import API_CONFIG from '../config/api.js';
-import { getLocalTodayDate, getLocalDateString, getCurrentWeekDatesSundayStart, isValidDate } from '../utils/dateUtils.js';
+import { getLocalTodayDate, getCurrentWeekDatesSundayStart, isValidDate } from '../utils/dateUtils.js';
 
 const { baseURL, debugMode, timeout } = API_CONFIG;
 

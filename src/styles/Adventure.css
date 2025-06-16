@@ -1,18 +1,160 @@
+/* src/styles/Adventure.css */
+
 .adventure-page {
     max-width: 1200px;
     margin: 0 auto;
     padding: 20px;
+    color: #eee;
 }
 
-.adventure-header {
+.adventure-page.error,
+.adventure-page.cannot-adventure {
     text-align: center;
-    margin-bottom: 30px;
-    padding: 20px;
+    padding: 60px 20px;
+}
+
+.adventure-page.error h1,
+.adventure-page.cannot-adventure h1 {
+    color: #a5b4fc;
+    margin-bottom: 16px;
+}
+
+.adventure-page.error p,
+.adventure-page.cannot-adventure p {
+    color: #9ca3af;
+    margin-bottom: 24px;
+}
+
+/* Adventure Header */
+.adventure-header {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    border-radius: 12px;
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 24px;
     color: white;
 }
 
+.header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 24px;
+}
+
+.header-text {
+    flex: 1;
+    min-width: 0;
+}
+
+.header-text h1 {
+    margin: 0 0 8px 0;
+    font-size: 2.5rem;
+    font-weight: 700;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.header-text p {
+    margin: 0;
+    font-size: 1.1rem;
+    opacity: 0.9;
+}
+
+/* Character Status in Header */
+.header-character-status {
+    background: rgba(255, 255, 255, 0.1) !important;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    flex-shrink: 0;
+}
+
+/* Character Status Display (for cannot adventure state) */
+.character-status-display {
+    max-width: 500px;
+    margin: 0 auto 24px auto;
+}
+
+/* Heal Button */
+.heal-button {
+    background: #10b981;
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.heal-button:hover {
+    background: #059669;
+    transform: translateY(-1px);
+}
+
+/* Adventure Selection */
+.adventure-selection {
+    background: #1f2937;
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 24px;
+    border: 1px solid #374151;
+}
+
+.adventure-selection h3 {
+    margin: 0 0 20px 0;
+    color: #a5b4fc;
+    font-size: 1.5rem;
+}
+
+.adventure-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 16px;
+}
+
+.adventure-option {
+    background: #374151;
+    border: 2px solid #4b5563;
+    border-radius: 12px;
+    padding: 20px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.adventure-option:hover {
+    border-color: #3b82f6;
+    background: #4b5563;
+    transform: translateY(-2px);
+}
+
+.adventure-option.default {
+    border-color: #10b981;
+}
+
+.adventure-option h4 {
+    margin: 0 0 8px 0;
+    color: #eee;
+    font-size: 1.2rem;
+}
+
+.adventure-option p {
+    margin: 0 0 12px 0;
+    color: #9ca3af;
+    font-size: 0.9rem;
+    line-height: 1.4;
+}
+
+.difficulty {
+    display: inline-block;
+    background: #6b7280;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+/* Legacy character stats for backwards compatibility */
 .character-summary h2 {
     margin: 10px 0;
     font-size: 1.8em;
@@ -42,96 +184,117 @@
     font-weight: bold;
 }
 
-.inventory-summary {
-    background: #f8f9fa;
-    border-radius: 8px;
+/* Adventure Tips */
+.adventure-tips {
+    background: #374151;
+    border-radius: 12px;
     padding: 20px;
-    margin-bottom: 30px;
+    margin-top: 24px;
+    border: 1px solid #4b5563;
+}
+
+.adventure-tips h3 {
+    margin: 0 0 16px 0;
+    color: #a5b4fc;
+    font-size: 1.3rem;
+}
+
+.adventure-tips ul {
+    margin: 0;
+    padding-left: 20px;
+    color: #9ca3af;
+}
+
+.adventure-tips li {
+    margin-bottom: 8px;
+    line-height: 1.4;
+}
+
+/* Inventory Summary (if needed) */
+.inventory-summary {
+    background: #1f2937;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 24px;
+    border: 1px solid #374151;
 }
 
 .inventory-items {
     display: flex;
-    gap: 15px;
+    gap: 12px;
     flex-wrap: wrap;
-    margin-top: 10px;
+    margin-top: 12px;
 }
 
 .inventory-item {
-    background: white;
-    border: 1px solid #dee2e6;
+    background: #374151;
+    border: 1px solid #4b5563;
     border-radius: 6px;
     padding: 8px 12px;
     display: flex;
     align-items: center;
     gap: 8px;
+    color: #eee;
 }
 
 .item-name {
     text-transform: capitalize;
+    color: #eee;
 }
 
 .item-quantity {
-    color: #6c757d;
-    font-weight: bold;
+    color: #9ca3af;
+    font-weight: 600;
 }
 
-.adventure-tips {
-    background: #fff3cd;
-    border: 1px solid #ffeaa7;
-    border-radius: 8px;
-    padding: 20px;
-    margin-top: 30px;
-}
-
-.adventure-tips h3 {
-    margin-top: 0;
-    color: #856404;
-}
-
-.adventure-tips ul {
-    margin: 10px 0 0 0;
-    padding-left: 20px;
-}
-
-.adventure-tips li {
-    margin-bottom: 8px;
-    color: #856404;
-}
-
-.loading, .error, .no-character, .cannot-adventure {
+/* Loading and Error States */
+.loading, .error, .no-character {
     text-align: center;
     padding: 60px 20px;
+    color: #9ca3af;
 }
 
 .error {
-    background: #f8d7da;
-    border: 1px solid #f5c6cb;
-    border-radius: 8px;
-    color: #721c24;
+    background: #374151;
+    border: 1px solid #ef4444;
+    border-radius: 12px;
+    color: #fca5a5;
 }
 
-.cannot-adventure {
-    background: #fff3cd;
-    border: 1px solid #ffeaa7;
-    border-radius: 8px;
-    color: #856404;
-}
-
-.character-status {
-    background: white;
-    border-radius: 8px;
-    padding: 20px;
-    margin: 20px 0;
-    border: 1px solid #dee2e6;
-}
-
+/* Responsive Design */
 @media (max-width: 768px) {
-    .character-stats {
-        flex-direction: column;
-        gap: 15px;
+    .adventure-page {
+        padding: 16px;
     }
 
-    .inventory-items {
-        justify-content: center;
+    .adventure-header {
+        padding: 20px;
+    }
+
+    .header-content {
+        flex-direction: column;
+        text-align: center;
+        gap: 20px;
+    }
+
+    .header-text h1 {
+        font-size: 2rem;
+    }
+
+    .character-stats {
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .adventure-list {
+        grid-template-columns: 1fr;
+    }
+
+    .adventure-selection {
+        padding: 16px;
+    }
+
+    .adventure-tips {
+        padding: 16px;
     }
 }

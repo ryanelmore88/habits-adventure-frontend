@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useCharacter } from '../contexts/CharacterContext';
 import { useNavigate } from 'react-router-dom';
+import '../styles/CharacterSwitcher.css';
 
 export default function CharacterSwitcher() {
     const { selectedCharacter, clearCharacter } = useCharacter();

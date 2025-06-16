@@ -141,6 +141,170 @@ export const createCharacter = async (payload) => {
     }
 };
 
+/ Create a new character with optional image
+export const createCharacterWithImage = async (payload) => {
+    // Input validation
+    if (!payload || typeof payload !== 'object') {
+        throw new Error('Character data is required');
+    }
+
+    const { name, strength, dexterity, constitution, intelligence, wisdom, charisma, image_data } = payload;
+
+    // Validate required fields
+    if (!name || !name.trim()) {
+        throw new Error('Character name is required');
+    }
+
+    // Validate attribute scores
+    const attributes = { strength, dexterity, constitution, intelligence, wisdom, charisma };
+    for (const [attrName, value] of Object.entries(attributes)) {
+        if (typeof value !== 'number' || value < 1 || value > 30) {
+            throw new Error(`${attrName} must be between 1 and 30`);
+        }
+    }
+
+    // Validate image data if provided
+    if (image_data && !image_data.startsWith('data:image/')) {
+        throw new Error('Invalid image format. Please provide a valid image.');
+    }
+
+    try {
+        const response = await apiCall('/api/character', {
+            method: 'POST',
+            body: JSON.stringify({
+                name: name.trim(),
+                strength,
+                dexterity,
+                constitution,
+                intelligence,
+                wisdom,
+                charisma,
+                image_data // Include image data
+            })
+        });
+
+        if (!response.data) {
+            throw new Error('Invalid response format from server');
+        }
+
+        return response.data;
+
+    } catch (error) {
+        handleApiError(error, 'Create character with image');
+    }
+};
+
+// Update character image
+export const updateCharacterImage = async (characterId, imageData) => {
+    // Input validation
+    if (!characterId || !characterId.trim()) {
+        throw new Error('Character ID is required');
+    }
+
+    if (!imageData || !imageData.startsWith('data:image/')) {
+        throw new Error('Valid image data is required');
+    }
+
+    try {
+        const response = await apiCall(`/api/character/${characterId.trim()}/image`, {
+            method: 'PUT',
+            body: JSON.stringify({
+                image_data: imageData
+            })
+        });
+
+        return response;
+
+    } catch (error) {
+        handleApiError(error, 'Update character image');
+    }
+};
+
+// Upload character image file (alternative to base64)
+export const uploadCharacterImageFile = async (characterId, file) => {
+    // Input validation
+    if (!characterId || !characterId.trim()) {
+        throw new Error('Character ID is required');
+    }
+
+    if (!file || !file.type.startsWith('image/')) {
+        throw new Error('Valid image file is required');
+    }
+
+    // Check file size (5MB limit)
+    const maxSize = 5 * 1024 * 1024; // 5MB
+    if (file.size > maxSize) {
+        throw new Error('Image file too large. Please choose a file under 5MB.');
+    }
+
+    try {
+        const formData = new FormData();
+        formData.append('file', file);
+
+        const response = await fetch(`${API_CONFIG.baseURL}/api/character/${characterId.trim()}/upload-image`, {
+            method: 'POST',
+            body: formData
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            const error = new Error(errorData.detail || `HTTP ${response.status}`);
+            error.status = response.status;
+            throw error;
+        }
+
+        const data = await response.json();
+        return data;
+
+    } catch (error) {
+        handleApiError(error, 'Upload character image file');
+    }
+};
+
+// Helper function to resize image before upload (optional)
+export const resizeImageFile = (file, maxWidth = 800, maxHeight = 800, quality = 0.8) => {
+    return new Promise((resolve) => {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        const img = new Image();
+
+        img.onload = () => {
+            // Calculate new dimensions
+            let { width, height } = img;
+
+            if (width > maxWidth || height > maxHeight) {
+                const ratio = Math.min(maxWidth / width, maxHeight / height);
+                width = width * ratio;
+                height = height * ratio;
+            }
+
+            // Set canvas size
+            canvas.width = width;
+            canvas.height = height;
+
+            // Draw resized image
+            ctx.drawImage(img, 0, 0, width, height);
+
+            // Convert to blob
+            canvas.toBlob(resolve, file.type, quality);
+        };
+
+        img.src = URL.createObjectURL(file);
+    });
+};
+
+// Convert file to base64 data URL
+export const fileToDataURL = (file) => {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+    });
+};
+
+// Habit API Management Functions
+
 // Create a habit (moved from habitApi for consistency, but you might want to keep it separate)
 export const createHabit = async (habitData) => {
     // Input validation

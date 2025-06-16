@@ -1,8 +1,10 @@
+// src/App.jsx
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { useState } from 'react';
 import { CharacterProvider, useCharacter } from './contexts/CharacterContext';
 import CharacterPicker from './components/CharacterPicker';
 import CharacterSwitcher from './components/CharacterSwitcher';
+import CharacterStatusWithImage from './components/CharacterStatusWithImage';
 import CharacterSheet from './components/Character/CharacterSheet.jsx'
 import HabitsPage from './pages/HabitsPage';
 import AdventurePage from './pages/AdventurePage';
@@ -16,6 +18,25 @@ function ProtectedRoute({ children }) {
     }
 
     return children;
+}
+
+// Header Character Status Component
+function HeaderCharacterStatus() {
+    const { selectedCharacter, isCharacterSelected } = useCharacter();
+
+    if (!isCharacterSelected || !selectedCharacter) {
+        return <CharacterSwitcher />;
+    }
+
+    return (
+        <div className="header-character-section">
+            <CharacterSwitcher />
+            <CharacterStatusWithImage
+                character={selectedCharacter}
+                className="header-character-status compact"
+            />
+        </div>
+    );
 }
 
 // Navigation component
@@ -117,11 +138,11 @@ function Navigation() {
 function AppContent() {
     return (
         <div className="app">
-            {/* Top Header with Character Switcher */}
+            {/* Top Header with Character Status */}
             <header className="app-header">
                 <div className="header-content">
                     <h1 className="app-title">Habits & Adventure</h1>
-                    <CharacterSwitcher />
+                    <HeaderCharacterStatus />
                 </div>
             </header>
 
@@ -212,6 +233,7 @@ function AppContent() {
                     display: flex;
                     justify-content: space-between;
                     align-items: center;
+                    gap: 20px;
                 }
 
                 .app-title {
@@ -219,6 +241,14 @@ function AppContent() {
                     color: #a5b4fc;
                     font-size: 1.5rem;
                     font-weight: bold;
+                    flex-shrink: 0;
+                }
+
+                .header-character-section {
+                    display: flex;
+                    align-items: center;
+                    gap: 16px;
+                    flex-shrink: 0;
                 }
 
                 .main-content {
@@ -278,14 +308,30 @@ function AppContent() {
                 @media (max-width: 768px) {
                     .header-content {
                         padding: 0 16px;
+                        flex-direction: column;
+                        gap: 12px;
+                        align-items: stretch;
                     }
 
                     .app-title {
                         font-size: 1.2rem;
+                        text-align: center;
+                    }
+
+                    .header-character-section {
+                        justify-content: center;
+                        flex-direction: column;
+                        gap: 12px;
                     }
 
                     .main-content {
                         padding-bottom: 70px;
+                    }
+                }
+
+                @media (max-width: 480px) {
+                    .app-header {
+                        padding: 12px 16px;
                     }
                 }
             `}</style>

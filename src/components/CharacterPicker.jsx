@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useCharacter } from '../contexts/CharacterContext';
 import { useNavigate } from 'react-router-dom';
+import '../styles/CharacterPicker.css';
 
 export default function CharacterPicker() {
     const {

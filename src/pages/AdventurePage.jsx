@@ -1,10 +1,13 @@
+// src/pages/AdventurePage.jsx
 import { useState, useEffect } from 'react';
 import { useCharacter } from '../contexts/CharacterContext';
 import { useCombat } from '../hooks/useCombat';
 import CombatArea from '../components/CombatArea';
+import CharacterStatusWithImage from '../components/Character/CharacterStatusWithImage.jsx';
 import { apiCall } from '../api/habitApi.js';
+import '../styles/Adventure.css';
 
-export default function AdventurePage() {  // No more props needed!
+export default function AdventurePage() {
     const { selectedCharacter, refreshCharacter } = useCharacter();
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
@@ -55,17 +58,21 @@ export default function AdventurePage() {  // No more props needed!
             <div className="adventure-page cannot-adventure">
                 <h1>Cannot Adventure</h1>
                 <p>Your character has 0 HP and needs healing before adventuring.</p>
-                <div className="character-status">
-                    <h3>{selectedCharacter.name}</h3>
-                    <p>HP: {selectedCharacter.current_hp}/{selectedCharacter.max_hp}</p>
-                    <p>Level: {selectedCharacter.level}</p>
-                    <p>XP: {selectedCharacter.current_xp}</p>
-                </div>
-                <button onClick={async () => {
-                    // Simple healing - this would be replaced with proper healing system
-                    await refreshCharacter();
-                    alert("Rest and recover to continue your adventures!");
-                }}>
+
+                {/* Character Status with Image */}
+                <CharacterStatusWithImage
+                    character={selectedCharacter}
+                    className="character-status-display"
+                />
+
+                <button
+                    className="heal-button"
+                    onClick={async () => {
+                        // Simple healing - this would be replaced with proper healing system
+                        await refreshCharacter();
+                        alert("Rest and recover to continue your adventures!");
+                    }}
+                >
                     Rest and Heal
                 </button>
             </div>
@@ -74,28 +81,23 @@ export default function AdventurePage() {  // No more props needed!
 
     return (
         <div className="adventure-page">
+            {/* Adventure Header with Character Status */}
             <header className="adventure-header">
-                <h1>Adventure Awaits</h1>
-                <div className="character-summary">
-                    <h2>{selectedCharacter.name}</h2>
-                    <div className="character-stats">
-                        <div className="stat">
-                            <label>HP:</label>
-                            <span>{selectedCharacter.current_hp}/{selectedCharacter.max_hp}</span>
-                        </div>
-                        <div className="stat">
-                            <label>Level:</label>
-                            <span>{selectedCharacter.level}</span>
-                        </div>
-                        <div className="stat">
-                            <label>XP:</label>
-                            <span>{selectedCharacter.current_xp}</span>
-                        </div>
+                <div className="header-content">
+                    <div className="header-text">
+                        <h1>Adventure Awaits</h1>
+                        <p>Choose your battle and test your skills!</p>
                     </div>
+
+                    {/* Character Status with Image */}
+                    <CharacterStatusWithImage
+                        character={selectedCharacter}
+                        className="header-character-status"
+                    />
                 </div>
             </header>
 
-            {/* Adventure Selection (for future) */}
+            {/* Adventure Selection */}
             <div className="adventure-selection">
                 <h3>Available Adventures</h3>
                 <div className="adventure-list">
