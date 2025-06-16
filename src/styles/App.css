@@ -1,74 +1,191 @@
-#root {
-  max-width: 1280px;
+/* File: src/styles/App.css */
+/* Main app layout styles moved from styled-jsx */
+
+.app {
+  min-height: 100vh;
+  background: #111827;
+  color: #eee;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-header {
+  background: #1f2937;
+  border-bottom: 1px solid #374151;
+  padding: 16px 20px;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+
+.header-content {
+  max-width: 1200px;
   margin: 0 auto;
-  padding: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.app-title {
+  margin: 0;
+  color: #a5b4fc;
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+
+.header-character-section {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.main-content {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.placeholder-page {
   text-align: center;
+  padding: 60px 20px;
+  color: #eee;
 }
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
-}
-
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
-}
-
-.card {
-  padding: 2em;
-}
-
-.read-the-docs {
-  color: #888;
-}
-
-button {
-  font-size: 1rem;
-  padding: 5px;
-  cursor: pointer;
-  margin-right: 5px;
-  margin-bottom: 5px;
-}
-
-#dice-box,
-#dice-box canvas {
-  position: fixed;
-  pointer-events: none;
-  z-index: 100;
-  width: 100%;
-  height: 100%;
-}
-
-.buttonList {
+.placeholder-content {
   display: grid;
-  grid-template-columns: auto auto 1fr;
-  column-gap: 5px;
-  row-gap: 10px;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 20px;
+  max-width: 600px;
+  margin: 40px auto 0;
 }
-.header {
-  font-weight: bold;
-  font-size: 120%;
-  text-decoration: underline;
+
+.equipment-slot {
+  background: #1f2937;
+  border: 2px dashed #4b5563;
+  border-radius: 12px;
+  padding: 24px 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
 }
-.notation {
-  font-weight: bold;
+
+.slot-icon {
+  font-size: 2rem;
+  opacity: 0.6;
+}
+
+.slot-label {
+  color: #9ca3af;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+/* Bottom Navigation */
+.bottom-navigation {
+  background: #1f2937;
+  border-top: 1px solid #374151;
+  padding: 8px 0;
+  position: sticky;
+  bottom: 0;
+  z-index: 50;
+}
+
+.nav-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  padding: 0 20px;
+}
+
+.nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 16px;
+  background: none;
+  border: none;
+  color: #9ca3af;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  min-width: 60px;
+}
+
+.nav-item:hover {
+  background: #374151;
+  color: #eee;
+}
+
+.nav-item.active {
+  background: #4b5563;
+  color: #a5b4fc;
+}
+
+.nav-icon {
+  font-size: 1.2rem;
+}
+
+.nav-label {
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .header-content {
+    padding: 0 16px;
+    flex-direction: column;
+    gap: 12px;
+    align-items: stretch;
+  }
+
+  .app-title {
+    font-size: 1.2rem;
+    text-align: center;
+  }
+
+  .header-character-section {
+    justify-content: center;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .main-content {
+    padding-bottom: 70px;
+  }
+
+  .nav-container {
+    padding: 0 16px;
+  }
+
+  .nav-item {
+    min-width: 50px;
+    padding: 6px 12px;
+  }
+
+  .nav-icon {
+    font-size: 1.1rem;
+  }
+
+  .nav-label {
+    font-size: 0.7rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .app-header {
+    padding: 12px 16px;
+  }
+
+  .placeholder-content {
+    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+    gap: 16px;
+  }
+
+  .equipment-slot {
+    padding: 16px 12px;
+  }
 }

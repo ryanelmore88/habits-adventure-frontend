@@ -1,13 +1,15 @@
-// src/pages/CharacterPage.jsx
+// File: src/pages/CharacterPage.jsx
+// Fixed import path for CharacterImageUpload component
+
 import React, { useState, useEffect } from 'react';
 import { useCharacter } from '../contexts/CharacterContext';
-import CharacterImageUpload from '../components/CharacterImageUpload';
+import CharacterImageUpload from '../components/Character/CharacterImageUpload'; // Fixed: added /Character/ to path
 import '../styles/CharacterPage.css';
 
 const CharacterPage = () => {
     const { selectedCharacter, refreshCharacter } = useCharacter();
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState(null);
+    const [loading] = useState(false);
+    const [error] = useState(null);
     const [editMode, setEditMode] = useState(false);
     const [editForm, setEditForm] = useState({
         name: '',

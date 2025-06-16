@@ -141,7 +141,7 @@ export const createCharacter = async (payload) => {
     }
 };
 
-/ Create a new character with optional image
+// Create a new character with optional image
 export const createCharacterWithImage = async (payload) => {
     // Input validation
     if (!payload || typeof payload !== 'object') {

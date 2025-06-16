@@ -8,6 +8,7 @@ import CharacterStatusWithImage from './components/Character/CharacterStatusWith
 import CharacterSheet from './components/Character/CharacterSheet.jsx'
 import HabitsPage from './pages/HabitsPage';
 import AdventurePage from './pages/AdventurePage';
+import './styles/App.css';
 
 // Component that requires character selection
 function ProtectedRoute({ children }) {
@@ -71,65 +72,65 @@ function Navigation() {
                 ))}
             </div>
 
-            <style jsx>{`
-                .bottom-navigation {
-                    position: fixed;
-                    bottom: 0;
-                    left: 0;
-                    right: 0;
-                    background: #1f2937;
-                    border-top: 1px solid #374151;
-                    z-index: 100;
-                }
+            {/*<style jsx>{`*/}
+            {/*    .bottom-navigation {*/}
+            {/*        position: fixed;*/}
+            {/*        bottom: 0;*/}
+            {/*        left: 0;*/}
+            {/*        right: 0;*/}
+            {/*        background: #1f2937;*/}
+            {/*        border-top: 1px solid #374151;*/}
+            {/*        z-index: 100;*/}
+            {/*    }*/}
 
-                .nav-container {
-                    display: flex;
-                    max-width: 1200px;
-                    margin: 0 auto;
-                }
+            {/*    .nav-container {*/}
+            {/*        display: flex;*/}
+            {/*        max-width: 1200px;*/}
+            {/*        margin: 0 auto;*/}
+            {/*    }*/}
 
-                .nav-item {
-                    flex: 1;
-                    display: flex;
-                    flex-direction: column;
-                    align-items: center;
-                    padding: 12px 8px;
-                    background: none;
-                    border: none;
-                    color: #9ca3af;
-                    cursor: pointer;
-                    transition: color 0.2s ease;
-                    text-decoration: none;
-                }
+            {/*    .nav-item {*/}
+            {/*        flex: 1;*/}
+            {/*        display: flex;*/}
+            {/*        flex-direction: column;*/}
+            {/*        align-items: center;*/}
+            {/*        padding: 12px 8px;*/}
+            {/*        background: none;*/}
+            {/*        border: none;*/}
+            {/*        color: #9ca3af;*/}
+            {/*        cursor: pointer;*/}
+            {/*        transition: color 0.2s ease;*/}
+            {/*        text-decoration: none;*/}
+            {/*    }*/}
 
-                .nav-item:hover {
-                    color: #a5b4fc;
-                }
+            {/*    .nav-item:hover {*/}
+            {/*        color: #a5b4fc;*/}
+            {/*    }*/}
 
-                .nav-item.active {
-                    color: #3b82f6;
-                }
+            {/*    .nav-item.active {*/}
+            {/*        color: #3b82f6;*/}
+            {/*    }*/}
 
-                .nav-icon {
-                    font-size: 1.2rem;
-                    margin-bottom: 4px;
-                }
+            {/*    .nav-icon {*/}
+            {/*        font-size: 1.2rem;*/}
+            {/*        margin-bottom: 4px;*/}
+            {/*    }*/}
 
-                .nav-label {
-                    font-size: 0.8rem;
-                    font-weight: 500;
-                }
+            {/*    .nav-label {*/}
+            {/*        font-size: 0.8rem;*/}
+            {/*        font-weight: 500;*/}
+            {/*    }*/}
 
-                @media (max-width: 480px) {
-                    .nav-label {
-                        font-size: 0.7rem;
-                    }
-                    
-                    .nav-item {
-                        padding: 8px 4px;
-                    }
-                }
-            `}</style>
+            {/*    @media (max-width: 480px) {*/}
+            {/*        .nav-label {*/}
+            {/*            font-size: 0.7rem;*/}
+            {/*        }*/}
+            {/*        */}
+            {/*        .nav-item {*/}
+            {/*            padding: 8px 4px;*/}
+            {/*        }*/}
+            {/*    }*/}
+            {/*`}</style>*/}
         </nav>
     );
 }

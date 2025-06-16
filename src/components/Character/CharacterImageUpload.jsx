@@ -1,17 +1,44 @@
+// File: src/components/Character/CharacterImageUpload.jsx
+// Improved with better error handling and image compression
+
 import React, { useState, useRef } from 'react';
+import { updateCharacterImage } from '../../api/characterApi';
+import '../../styles/CharacterImageUpload.css';
 
 const CharacterImageUpload = ({ character, onImageUpdate, className = "" }) => {
     const [uploading, setUploading] = useState(false);
     const [dragActive, setDragActive] = useState(false);
     const fileInputRef = useRef(null);
 
-    // Convert file to base64 data URL
-    const fileToDataURL = (file) => {
+    // Convert file to base64 data URL with compression
+    const fileToDataURL = (file, maxWidth = 400, maxHeight = 400, quality = 0.8) => {
         return new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onload = () => resolve(reader.result);
-            reader.onerror = reject;
-            reader.readAsDataURL(file);
+            const img = new Image();
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+
+            img.onload = () => {
+                // Calculate new dimensions to keep within limits
+                let { width, height } = img;
+
+                if (width > maxWidth || height > maxHeight) {
+                    const ratio = Math.min(maxWidth / width, maxHeight / height);
+                    width = width * ratio;
+                    height = height * ratio;
+                }
+
+                // Set canvas size and draw resized image
+                canvas.width = width;
+                canvas.height = height;
+                ctx.drawImage(img, 0, 0, width, height);
+
+                // Convert to compressed data URL
+                const dataURL = canvas.toDataURL('image/jpeg', quality);
+                resolve(dataURL);
+            };
+
+            img.onerror = () => reject(new Error('Failed to load image'));
+            img.src = URL.createObjectURL(file);
         });
     };
 
@@ -22,14 +49,19 @@ const CharacterImageUpload = ({ character, onImageUpdate, className = "" }) => {
             throw new Error('Please select an image file');
         }
 
-        // Validate file size (5MB limit)
-        const maxSize = 5 * 1024 * 1024; // 5MB
+        // Validate file size (10MB limit before compression)
+        const maxSize = 10 * 1024 * 1024; // 10MB
         if (file.size > maxSize) {
-            throw new Error('Image file too large. Please choose a file under 5MB.');
+            throw new Error('Image file too large. Please choose a file under 10MB.');
         }
 
-        // Convert to data URL
-        const dataURL = await fileToDataURL(file);
+        // Convert to compressed data URL
+        const dataURL = await fileToDataURL(file, 400, 400, 0.8);
+
+        // Check final size (should be much smaller after compression)
+        const finalSize = new Blob([dataURL]).size;
+        console.log(`Original size: ${(file.size / 1024).toFixed(2)}KB, Compressed size: ${(finalSize / 1024).toFixed(2)}KB`);
+
         return dataURL;
     };
 
@@ -38,22 +70,14 @@ const CharacterImageUpload = ({ character, onImageUpdate, className = "" }) => {
         try {
             setUploading(true);
 
+            console.log('Processing image file:', file.name, 'Size:', file.size);
             const imageData = await processImageFile(file);
 
-            // Call the API to update character image
-            const response = await fetch(`/api/character/${character.id}/image`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ image_data: imageData })
-            });
+            console.log('Uploading image for character:', character.id);
+            // Use the API function instead of direct fetch
+            await updateCharacterImage(character.id, imageData);
 
-            if (!response.ok) {
-                const error = await response.json();
-                throw new Error(error.detail || 'Failed to upload image');
-            }
-
+            console.log('Image upload successful');
             // Notify parent component
             if (onImageUpdate) {
                 onImageUpdate(imageData);
@@ -61,7 +85,20 @@ const CharacterImageUpload = ({ character, onImageUpdate, className = "" }) => {
 
         } catch (error) {
             console.error('Image upload error:', error);
-            alert(error.message || 'Failed to upload image');
+
+            // More specific error messages
+            let errorMessage = 'Failed to upload image';
+            if (error.message.includes('network') || error.message.includes('fetch')) {
+                errorMessage = 'Network error - please check your connection';
+            } else if (error.message.includes('500') || error.message.includes('Internal')) {
+                errorMessage = 'Server error - the image might be too large or complex. Try a smaller, simpler image.';
+            } else if (error.message.includes('400') || error.message.includes('Invalid')) {
+                errorMessage = 'Invalid image format - please try a different image';
+            } else if (error.message) {
+                errorMessage = error.message;
+            }
+
+            alert(errorMessage);
         } finally {
             setUploading(false);
         }
@@ -75,7 +112,7 @@ const CharacterImageUpload = ({ character, onImageUpdate, className = "" }) => {
         }
     };
 
-    // Handle drag and drop
+    // Handle drag and drop events
     const handleDrag = (e) => {
         e.preventDefault();
         e.stopPropagation();
@@ -102,6 +139,13 @@ const CharacterImageUpload = ({ character, onImageUpdate, className = "" }) => {
         fileInputRef.current?.click();
     };
 
+    // Build CSS class names
+    const uploadAreaClasses = [
+        'image-upload-area',
+        dragActive ? 'drag-active' : '',
+        uploading ? 'uploading' : ''
+    ].filter(Boolean).join(' ');
+
     return (
         <div className={`character-image-upload ${className}`}>
             {/* Hidden file input */}
@@ -115,7 +159,7 @@ const CharacterImageUpload = ({ character, onImageUpdate, className = "" }) => {
 
             {/* Image display area */}
             <div
-                className={`image-upload-area ${dragActive ? 'drag-active' : ''} ${uploading ? 'uploading' : ''}`}
+                className={uploadAreaClasses}
                 onDragEnter={handleDrag}
                 onDragLeave={handleDrag}
                 onDragOver={handleDrag}
@@ -146,129 +190,14 @@ const CharacterImageUpload = ({ character, onImageUpdate, className = "" }) => {
                                 <div className="upload-icon">📸</div>
                                 <div className="upload-text">
                                     <div>Click or drag image here</div>
-                                    <div className="upload-subtext">PNG, JPG up to 5MB</div>
+                                    <div className="upload-subtext">PNG, JPG up to 10MB</div>
+                                    <div className="upload-subtext">(will be compressed)</div>
                                 </div>
                             </>
                         )}
                     </div>
                 )}
             </div>
-
-            <style jsx>{`
-                .character-image-upload {
-                    width: 100%;
-                    max-width: 200px;
-                }
-
-                .image-upload-area {
-                    position: relative;
-                    width: 100%;
-                    height: 200px;
-                    border: 2px dashed #4b5563;
-                    border-radius: 12px;
-                    cursor: pointer;
-                    transition: all 0.2s ease;
-                    overflow: hidden;
-                }
-
-                .image-upload-area:hover:not(.uploading) {
-                    border-color: #3b82f6;
-                    background-color: rgba(59, 130, 246, 0.05);
-                }
-
-                .image-upload-area.drag-active {
-                    border-color: #10b981;
-                    background-color: rgba(16, 185, 129, 0.1);
-                }
-
-                .image-upload-area.uploading {
-                    cursor: not-allowed;
-                    opacity: 0.7;
-                }
-
-                .current-image {
-                    position: relative;
-                    width: 100%;
-                    height: 100%;
-                }
-
-                .character-avatar {
-                    width: 100%;
-                    height: 100%;
-                    object-fit: cover;
-                    border-radius: 10px;
-                }
-
-                .image-overlay {
-                    position: absolute;
-                    top: 0;
-                    left: 0;
-                    right: 0;
-                    bottom: 0;
-                    background: rgba(0, 0, 0, 0.7);
-                    color: white;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    opacity: 0;
-                    transition: opacity 0.2s ease;
-                    border-radius: 10px;
-                }
-
-                .current-image:hover .image-overlay {
-                    opacity: 1;
-                }
-
-                .no-image {
-                    display: flex;
-                    flex-direction: column;
-                    align-items: center;
-                    justify-content: center;
-                    height: 100%;
-                    color: #6b7280;
-                    text-align: center;
-                    padding: 20px;
-                }
-
-                .upload-icon {
-                    font-size: 2rem;
-                    margin-bottom: 8px;
-                }
-
-                .upload-text {
-                    font-size: 0.9rem;
-                }
-
-                .upload-subtext {
-                    font-size: 0.8rem;
-                    color: #9ca3af;
-                    margin-top: 4px;
-                }
-
-                .upload-prompt,
-                .upload-spinner {
-                    font-size: 0.9rem;
-                    text-align: center;
-                }
-
-                .upload-spinner::after {
-                    content: '';
-                    display: inline-block;
-                    width: 16px;
-                    height: 16px;
-                    border: 2px solid #ffffff;
-                    border-radius: 50%;
-                    border-top-color: transparent;
-                    animation: spin 1s linear infinite;
-                    margin-left: 8px;
-                }
-
-                @keyframes spin {
-                    to {
-                        transform: rotate(360deg);
-                    }
-                }
-            `}</style>
         </div>
     );
 };

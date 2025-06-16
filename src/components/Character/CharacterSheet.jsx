@@ -1,10 +1,14 @@
+// File: src/components/Character/CharacterSheet.jsx
+// Updated to use external CSS instead of styled-jsx
+
 import { useState } from 'react';
 import { useCharacter } from '../../contexts/CharacterContext';
-import AttributeModal from '..//AttributeModal';
+import CharacterImageUpload from './CharacterImageUpload';
+import AttributeModal from '../AttributeModal';
 import '../../styles/CharacterSheet.css';
 
 const CharacterSheet = () => {
-    const { selectedCharacter } = useCharacter();
+    const { selectedCharacter, refreshCharacter } = useCharacter();
     const [selectedAttribute, setSelectedAttribute] = useState(null);
 
     if (!selectedCharacter) {
@@ -44,23 +48,47 @@ const CharacterSheet = () => {
         setSelectedAttribute(null);
     };
 
+    // Handle image update
+    const handleImageUpdate = async (imageData) => {
+        try {
+            // Refresh character data to get updated image
+            await refreshCharacter();
+        } catch (error) {
+            console.error('Failed to refresh character after image update:', error);
+        }
+    };
+
     return (
         <div className="character-sheet">
-            {/* Character Header */}
+            {/* Character Header with Image */}
             <div className="character-header">
-                <h1>{selectedCharacter.name}</h1>
-                <div className="character-stats">
-                    <div className="stat">
-                        <label>Level</label>
-                        <span>{selectedCharacter.level || 1}</span>
+                <div className="character-header-content">
+                    {/* Character Image Section */}
+                    <div className="character-image-section">
+                        <CharacterImageUpload
+                            character={selectedCharacter}
+                            onImageUpdate={handleImageUpdate}
+                            className="character-avatar-upload"
+                        />
                     </div>
-                    <div className="stat">
-                        <label>HP</label>
-                        <span>{selectedCharacter.current_hp || 0}/{selectedCharacter.max_hp || 20}</span>
-                    </div>
-                    <div className="stat">
-                        <label>XP</label>
-                        <span>{selectedCharacter.current_xp || 0}</span>
+
+                    {/* Character Basic Info */}
+                    <div className="character-info">
+                        <h1>{selectedCharacter.name}</h1>
+                        <div className="character-stats">
+                            <div className="stat">
+                                <label>Level</label>
+                                <span>{selectedCharacter.level || 1}</span>
+                            </div>
+                            <div className="stat">
+                                <label>HP</label>
+                                <span>{selectedCharacter.current_hp || 0}/{selectedCharacter.max_hp || 20}</span>
+                            </div>
+                            <div className="stat">
+                                <label>XP</label>
+                                <span>{selectedCharacter.current_xp || 0}</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -83,55 +111,30 @@ const CharacterSheet = () => {
                                 >
                                     <h4>{name.charAt(0).toUpperCase() + name.slice(1)}</h4>
                                     <div className="attribute-bonus">{bonusText}</div>
-                                    <div className="attribute-total">{total}</div>
+                                    <div className="attribute-total">({total})</div>
                                     <div className="attribute-breakdown">
-                                        <span>Base: {attribute.base || 10}</span>
-                                        {(attribute.bonus || 0) !== 0 && (
-                                            <span>Habit: +{attribute.bonus || 0}</span>
-                                        )}
+                                        <div>Base: {attribute.base || 10}</div>
+                                        <div>Habit: +{attribute.habit_points || 0}</div>
                                     </div>
                                 </div>
                             );
                         })
                     ) : (
                         <div className="no-attributes">
-                            <p>No attributes found for this character.</p>
+                            <p>No attributes available</p>
                         </div>
                     )}
-                </div>
-            </div>
-
-            {/* Combat Info */}
-            <div className="combat-info">
-                <h3>Combat Information</h3>
-                <div className="combat-stats">
-                    <div className="combat-stat">
-                        <label>Best Attack Bonus</label>
-                        <span>
-                            {selectedCharacter.attributes ?
-                                `+${Math.max(...Object.values(selectedCharacter.attributes).map(attr =>
-                                    getAttributeBonus(attr)
-                                ))}` :
-                                '+0'
-                            }
-                        </span>
-                    </div>
-                    <div className="combat-stat">
-                        <label>Dice Pool</label>
-                        <span>1d20 + best bonus</span>
-                    </div>
                 </div>
             </div>
 
             {/* Attribute Modal */}
             {selectedAttribute && (
                 <AttributeModal
-                    attributeName={selectedAttribute.name}
-                    base={selectedAttribute.base}
-                    bonus={selectedAttribute.bonus}
+                    attribute={selectedAttribute}
+                    character={selectedCharacter}
                     onClose={handleCloseModal}
                 />
-            )}s
+            )}
         </div>
     );
 };
