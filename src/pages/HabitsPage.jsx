@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useCharacter } from '../contexts/CharacterContext';
 import { fetchHabitsForDate, markHabitComplete } from '../api/habitApi';
-import { getLocalTodayDate, getWeekDates, isToday, formatDate } from '../utils/dateUtils'; // ✅ FIXED: Import from dateUtils
+import { getLocalTodayDate, getWeekDates, isToday, formatDate } from '../utils/dateUtils';
 import attributeIcons from '../icons/attributeIcons';
 import '../styles/HabitsPage.css';
 

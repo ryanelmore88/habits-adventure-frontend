@@ -1,4 +1,9 @@
 /* src/styles/CombatArea.css */
+body {
+  margin: 0;
+  padding: 2px;
+  background: #1f2937
+}
 
 .combat-area {
   position: relative;
@@ -104,18 +109,39 @@
   gap: 15px;
 }
 
-.enemy-button {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border: none;
-  border-radius: 12px;
-  padding: 20px;
+
+.btn-grad {
+  margin: 10px;
+  padding: 15px 45px;
+  text-align: center;
+  text-transform: uppercase;
+  transition: 0.5s;
+  background-size: 200% auto;
   color: white;
-  cursor: pointer;
-  transition: transform 0.2s ease;
+  box-shadow: 0 0 20px #eee;
+  border-radius: 10px;
+  display: block;
+}
+
+.enemy-button {background-image: linear-gradient(to right, #16222A 0%, #3A6073  51%, #16222A  100%)}
+.enemy-button {
+  margin: 10px;
+  padding: 15px 45px;
+  text-align: center;
+  text-transform: uppercase;
+  transition: 0.5s;
+  background-size: 200% auto;
+  color: white;
+  box-shadow: 0 0 20px #eee;
+  border-radius: 10px;
+  display: block;
 }
 
 .enemy-button:hover {
   transform: translateY(-2px);
+  background-position: right center; /* change the direction of the change here */
+  color: #fff;
+  text-decoration: none;
 }
 
 .enemy-name {
@@ -142,22 +168,24 @@
   margin: 24px 0;
 }
 
+.attack-button {background-image: linear-gradient(to right, #e52d27 0%, #b31217  51%, #e52d27  100%)}
 .attack-button {
-  background: #ef4444;
+  margin: 10px;
+  padding: 15px 45px;
+  text-align: center;
+  text-transform: uppercase;
+  transition: 0.5s;
+  background-size: 200% auto;
   color: white;
-  border: none;
-  border-radius: 12px;
-  padding: 16px 32px;
-  font-size: 1.2rem;
-  font-weight: bold;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  margin-bottom: 12px;
+  box-shadow: 0 0 20px #eee;
+  border-radius: 10px;
+  display: block;
 }
 
 .attack-button:hover:not(:disabled) {
-  background: #dc2626;
-  transform: translateY(-2px);
+  background-position: right center; /* change the direction of the change here */
+  color: #fff;
+  text-decoration: none;
 }
 
 .attack-button:disabled {
