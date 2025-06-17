@@ -1,5 +1,5 @@
 // File: src/components/Character/CharacterSheet.jsx
-// Updated to use external CSS instead of styled-jsx
+// Fixed AttributeModal props to prevent charAt error
 
 import { useState } from 'react';
 import { useCharacter } from '../../contexts/CharacterContext';
@@ -37,7 +37,7 @@ const CharacterSheet = () => {
         const attribute = selectedCharacter.attributes[attributeName];
         if (attribute) {
             setSelectedAttribute({
-                name: attributeName,
+                attributeName: attributeName, // Fixed: use attributeName instead of name
                 base: attribute.base || 10,
                 bonus: getAttributeBonus(attribute)
             });
@@ -127,11 +127,12 @@ const CharacterSheet = () => {
                 </div>
             </div>
 
-            {/* Attribute Modal */}
+            {/* Attribute Modal - Fixed props */}
             {selectedAttribute && (
                 <AttributeModal
-                    attribute={selectedAttribute}
-                    character={selectedCharacter}
+                    attributeName={selectedAttribute.attributeName}
+                    base={selectedAttribute.base}
+                    bonus={selectedAttribute.bonus}
                     onClose={handleCloseModal}
                 />
             )}

@@ -1,6 +1,7 @@
 // src/components/Character/CharacterStatusWithImage.jsx
 import React from 'react';
 import '../../styles/CharacterStatusWithImage.css';
+import '../../contexts/CharacterContext'; // Ensure context is imported for useCharacter hook
 
 const CharacterStatusWithImage = ({ character, className = "" }) => {
     if (!character) return null;
@@ -28,6 +29,10 @@ const CharacterStatusWithImage = ({ character, className = "" }) => {
                             <span className="stat-label">XP:</span>
                             <span className="stat-value">{character.current_xp || 0}</span>
                         </div>
+                        {/*<div className="stat-item">*/}
+                        {/*    <p><strong>Dice Pool:</strong> {characterDiceInfo.dicePool}</p>*/}
+                        {/*    <p><strong>Breakdown:</strong> {characterDiceInfo.description}</p>*/}
+                        {/*</div>*/}
                     </div>
                 </div>
 

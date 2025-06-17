@@ -27,6 +27,14 @@ const CombatArea = ({ onAdventureComplete }) => {
         }
     }, [selectedCharacter, clearTemporaryHp]);
 
+    // Sync local HP with context whenever it changes
+    useEffect(() => {
+        if (combatState.phase === 'active' || combatState.phase === 'victory' || combatState.phase === 'defeat') {
+            // During combat, update the context with temporary HP
+            updateTemporaryHp(characterCurrentHp);
+        }
+    }, [characterCurrentHp, combatState.phase, updateTemporaryHp]);
+
     // Initialize dice box
     useEffect(() => {
         let mounted = true;
@@ -312,7 +320,7 @@ const CombatArea = ({ onAdventureComplete }) => {
                 winner = 'tie';
             }
 
-            // Update character HP locally
+            // Update character HP locally AND in context
             if (winner === 'enemy') {
                 const newHp = Math.max(0, characterCurrentHp - damage);
                 setCharacterCurrentHp(newHp);
@@ -343,14 +351,25 @@ const CombatArea = ({ onAdventureComplete }) => {
         };
 
         try {
+            // Clear temporary HP since combat is ending
+            clearTemporaryHp();
+
             await onAdventureComplete(adventureResults);
             resetCombat();
+
             // Reset character HP to match backend
             await refreshCharacter();
         } catch (error) {
             console.error('Failed to complete adventure:', error);
         }
     };
+
+    // Clean up temporary HP when combat ends
+    useEffect(() => {
+        if (combatState.phase === 'idle') {
+            clearTemporaryHp();
+        }
+    }, [combatState.phase, clearTemporaryHp]);
 
     if (!selectedCharacter) {
         return (
@@ -382,25 +401,26 @@ const CombatArea = ({ onAdventureComplete }) => {
                 }}
             ></div>
 
+            {/* Removed to use the CharacterStatusWithImage component */}
             {/* Character Status */}
-            <div className="character-status">
-                <h3>{selectedCharacter.name}</h3>
-                <div className="hp-bar">
-                    <div
-                        className="hp-fill"
-                        style={{
-                            width: `${(characterCurrentHp / (selectedCharacter.max_hp || 20)) * 100}%`,
-                            backgroundColor: characterCurrentHp > (selectedCharacter.max_hp || 20) * 0.5 ? '#10b981' :
-                                characterCurrentHp > (selectedCharacter.max_hp || 20) * 0.2 ? '#f59e0b' : '#ef4444'
-                        }}
-                    ></div>
-                    <span className="hp-text">{characterCurrentHp}/{selectedCharacter.max_hp || 20} HP</span>
-                </div>
-                <div className="character-dice-info">
-                    <p><strong>Dice Pool:</strong> {characterDiceInfo.dicePool}</p>
-                    <p><strong>Breakdown:</strong> {characterDiceInfo.description}</p>
-                </div>
-            </div>
+            {/*<div className="character-status">*/}
+            {/*    <h3>{selectedCharacter.name}</h3>*/}
+            {/*    <div className="hp-bar">*/}
+            {/*        <div*/}
+            {/*            className="hp-fill"*/}
+            {/*            style={{*/}
+            {/*                width: `${(characterCurrentHp / (selectedCharacter.max_hp || 20)) * 100}%`,*/}
+            {/*                backgroundColor: characterCurrentHp > (selectedCharacter.max_hp || 20) * 0.5 ? '#10b981' :*/}
+            {/*                    characterCurrentHp > (selectedCharacter.max_hp || 20) * 0.2 ? '#f59e0b' : '#ef4444'*/}
+            {/*            }}*/}
+            {/*        ></div>*/}
+            {/*        <span className="hp-text">{characterCurrentHp}/{selectedCharacter.max_hp || 20} HP</span>*/}
+            {/*    </div>*/}
+            {/*    <div className="character-dice-info">*/}
+            {/*        <p><strong>Dice Pool:</strong> {characterDiceInfo.dicePool}</p>*/}
+            {/*        <p><strong>Breakdown:</strong> {characterDiceInfo.description}</p>*/}
+            {/*    </div>*/}
+            {/*</div>*/}
 
             {/* Enemy Selection */}
             {combatState.phase === 'selection' && (
