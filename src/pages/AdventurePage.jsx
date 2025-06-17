@@ -1,4 +1,6 @@
-// src/pages/AdventurePage.jsx
+// File: src/pages/AdventurePage.jsx
+// Updated Adventure page with dedicated Skirmish section for monster battles
+
 import { useState, useEffect } from 'react';
 import { useCharacter } from '../contexts/CharacterContext';
 import { useCombat } from '../hooks/useCombat';
@@ -11,6 +13,7 @@ export default function AdventurePage() {
     const { selectedCharacter, refreshCharacter } = useCharacter();
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
+    const [currentSection, setCurrentSection] = useState('overview'); // 'overview', 'skirmish', 'quests'
 
     // Simplified adventure completion
     const handleAdventureComplete = async (adventureResults) => {
@@ -26,7 +29,7 @@ export default function AdventurePage() {
             let message = `Adventure Complete!`;
             if (adventureResults.victory) {
                 message += ` You gained ${xpGained} XP!`;
-                if (adventureResults.loot.length > 0) {
+                if (adventureResults.loot && adventureResults.loot.length > 0) {
                     message += ` Found ${adventureResults.loot.length} items!`;
                 }
             } else {
@@ -35,9 +38,13 @@ export default function AdventurePage() {
 
             alert(message);
 
+            // Return to overview after combat
+            setCurrentSection('overview');
+
         } catch (error) {
             console.error('Failed to complete adventure:', error);
             alert('Adventure completed locally. Backend save will be added later.');
+            setCurrentSection('overview');
         }
     };
 
@@ -79,35 +86,128 @@ export default function AdventurePage() {
         );
     }
 
+    // Render skirmish section (monster battles)
+    if (currentSection === 'skirmish') {
+        return (
+            <div className="adventure-page skirmish-mode">
+                <div className="skirmish-header">
+                    <button
+                        className="back-button"
+                        onClick={() => setCurrentSection('overview')}
+                    >
+                        ← Back to Adventure Overview
+                    </button>
+                    <h1>⚔️ Skirmish Combat</h1>
+                    <p>Choose an enemy to fight and test your combat skills!</p>
+                </div>
+
+                {/* Character Status */}
+                <CharacterStatusWithImage
+                    character={selectedCharacter}
+                    className="skirmish-character-status"
+                />
+
+                {/* Combat System */}
+                <CombatArea
+                    character={selectedCharacter}
+                    onAdventureComplete={handleAdventureComplete}
+                />
+            </div>
+        );
+    }
+
+    // Main adventure overview page
     return (
         <div className="adventure-page">
+            <div className="adventure-header">
+                <h1>🏰 Adventure Hub</h1>
+                <p>Choose your path and begin your adventure!</p>
+            </div>
 
-            {/* Current Combat System */}
-            <CombatArea
+            {/* Character Status */}
+            <CharacterStatusWithImage
                 character={selectedCharacter}
-                onAdventureComplete={handleAdventureComplete}
+                className="adventure-character-status"
             />
 
-            {/* Adventure Selection */}
-            <div className="adventure-selection">
-                <h3>Available Adventures</h3>
-                <div className="adventure-list">
-                    <div className="adventure-option default">
-                        <h4>🏰 Goblin Cave</h4>
-                        <p>A classic adventure perfect for gaining experience</p>
-                        <span className="difficulty">Recommended Level: 1-3</span>
+            {/* Adventure Mode Selection */}
+            <div className="adventure-modes">
+                <div className="adventure-mode-grid">
+
+                    {/* Skirmish Mode */}
+                    <div
+                        className="adventure-mode skirmish-mode"
+                        onClick={() => setCurrentSection('skirmish')}
+                    >
+                        <div className="mode-icon">⚔️</div>
+                        <h3>Skirmish Combat</h3>
+                        <p>Quick battles against various monsters. Perfect for testing your combat abilities and gaining experience.</p>
+                        <div className="mode-details">
+                            <span className="detail-item">🎲 Dice-based combat</span>
+                            <span className="detail-item">⚡ Quick battles</span>
+                            <span className="detail-item">🏆 XP rewards</span>
+                        </div>
+                        <button className="mode-button">Enter Skirmish</button>
                     </div>
-                    {/* Future adventures will go here */}
+
+                    {/* Quest Mode (Coming Soon) */}
+                    <div className="adventure-mode quest-mode disabled">
+                        <div className="mode-icon">📜</div>
+                        <h3>Quest Adventures</h3>
+                        <p>Structured adventures with stories, objectives, and larger rewards.</p>
+                        <div className="mode-details">
+                            <span className="detail-item">📖 Story-driven</span>
+                            <span className="detail-item">🎯 Multiple objectives</span>
+                            <span className="detail-item">💰 Better rewards</span>
+                        </div>
+                        <button className="mode-button disabled">Coming Soon</button>
+                    </div>
+
+                    {/* Expedition Mode (Coming Soon) */}
+                    <div className="adventure-mode expedition-mode disabled">
+                        <div className="mode-icon">🗺️</div>
+                        <h3>Expeditions</h3>
+                        <p>Long-form adventures that can take multiple sessions to complete.</p>
+                        <div className="mode-details">
+                            <span className="detail-item">🏕️ Multi-session</span>
+                            <span className="detail-item">👥 Team-based</span>
+                            <span className="detail-item">🏰 Epic rewards</span>
+                        </div>
+                        <button className="mode-button disabled">Coming Soon</button>
+                    </div>
+                </div>
+            </div>
+
+            {/* Adventure Selection (Legacy - now just shows upcoming content) */}
+            <div className="legacy-adventures">
+                <h3>📅 Upcoming Adventures</h3>
+                <div className="adventure-list">
+                    <div className="adventure-option preview">
+                        <h4>🏰 The Goblin Warren</h4>
+                        <p>A multi-room dungeon filled with goblin tribes and their treasures</p>
+                        <span className="difficulty">Quest Mode - Coming Soon</span>
+                    </div>
+                    <div className="adventure-option preview">
+                        <h4>🌲 The Whispering Woods</h4>
+                        <p>A mysterious forest where strange creatures and ancient magic await</p>
+                        <span className="difficulty">Expedition Mode - Coming Soon</span>
+                    </div>
+                    <div className="adventure-option preview">
+                        <h4>⛰️ Dragon's Peak</h4>
+                        <p>A legendary mountain where dragons are said to guard ancient treasures</p>
+                        <span className="difficulty">Epic Expedition - Coming Soon</span>
+                    </div>
                 </div>
             </div>
 
             <div className="adventure-tips">
-                <h3>Adventure Tips</h3>
+                <h3>💡 Adventure Tips</h3>
                 <ul>
-                    <li>Choose your battles wisely - stronger enemies give more XP but are more dangerous</li>
-                    <li>Your highest attribute bonus is added to your combat rolls</li>
-                    <li>Complete habits to improve your attributes and combat effectiveness</li>
-                    <li>🚧 More adventures coming soon!</li>
+                    <li><strong>Start with Skirmish:</strong> Practice combat and gain XP quickly</li>
+                    <li><strong>Manage your HP:</strong> Rest between difficult battles</li>
+                    <li><strong>Improve attributes:</strong> Complete habits to increase your dice pool</li>
+                    <li><strong>Know your dice:</strong> Higher attribute levels = better combat dice</li>
+                    <li>🚧 <strong>More adventure types coming soon!</strong></li>
                 </ul>
             </div>
         </div>

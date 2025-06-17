@@ -1,5 +1,5 @@
 // File: src/components/Character/CharacterStatusWithImage.jsx
-// Updated to be bigger and include total dice pool
+// Updated to be bigger and include total dice pool with HP bar restored
 
 import React from 'react';
 import { useCharacter } from '../../contexts/CharacterContext';
@@ -73,9 +73,9 @@ const CharacterStatusWithImage = ({ character, className = "" }) => {
 
                         {/* HP Text */}
                         <div className="hp-text-display">
-                            <span className="hp-current">{character.current_hp}</span>
+                            <span className="hp-current">{character.current_hp || 0}</span>
                             <span className="hp-separator">/</span>
-                            <span className="hp-max">{character.max_hp}</span>
+                            <span className="hp-max">{character.max_hp || 20}</span>
                         </div>
                     </div>
                 </div>

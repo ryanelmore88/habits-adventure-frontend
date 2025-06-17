@@ -1,5 +1,5 @@
 // File: src/components/Character/AttributeDisplay.jsx
-// Enhanced component to display attribute levels and dice pools
+// Enhanced component to display attribute levels and dice pools - Fixed Constitution NaN issue
 
 import React from 'react';
 import '../../styles/AttributeDisplay.css';
@@ -21,7 +21,7 @@ const AttributeDisplay = ({ character, onAttributeClick, className = "" }) => {
             4: 'Master',
             5: 'Legendary'
         };
-        return levelNames[level] || 'Unknown';
+        return levelNames[Math.min(level, 5)] || 'Legendary';
     };
 
     const getAttributeLevelColor = (level) => {
@@ -32,7 +32,12 @@ const AttributeDisplay = ({ character, onAttributeClick, className = "" }) => {
             4: '#8b5cf6', // Purple - Master
             5: '#f59e0b'  // Gold - Legendary
         };
-        return colors[level] || '#6b7280';
+        return colors[Math.min(level, 5)] || '#f59e0b';
+    };
+
+    // Calculate D&D style bonus from effective score
+    const calculateDnDBonus = (effectiveScore) => {
+        return Math.floor((effectiveScore - 10) / 2);
     };
 
     const attributeOrder = ['strength', 'dexterity', 'constitution', 'intelligence', 'wisdom', 'charisma'];
@@ -47,6 +52,9 @@ const AttributeDisplay = ({ character, onAttributeClick, className = "" }) => {
                     const isConstitution = attrName === 'constitution';
                     const levelName = getAttributeLevelName(attribute.level);
                     const levelColor = getAttributeLevelColor(attribute.level);
+
+                    // Calculate D&D bonus from effective score
+                    const dndBonus = calculateDnDBonus(attribute.effectiveScore || 10);
 
                     return (
                         <div
@@ -79,7 +87,9 @@ const AttributeDisplay = ({ character, onAttributeClick, className = "" }) => {
                                     <>
                                         <div className="contribution-icon">❤️</div>
                                         <div className="contribution-text">
-                                            <span className="contribution-value">+{attribute.bonus * 2}</span>
+                                            <span className="contribution-value">
+                                                +{attribute.hpBonus || 0}
+                                            </span>
                                             <span className="contribution-label">HP</span>
                                         </div>
                                     </>
@@ -87,7 +97,9 @@ const AttributeDisplay = ({ character, onAttributeClick, className = "" }) => {
                                     <>
                                         <div className="contribution-icon">🎲</div>
                                         <div className="contribution-text">
-                                            <span className="contribution-value">{attribute.dicePool}</span>
+                                            <span className="contribution-value">
+                                                {attribute.diceNotation || '1d4'}
+                                            </span>
                                             <span className="contribution-label">Dice</span>
                                         </div>
                                     </>
@@ -98,16 +110,20 @@ const AttributeDisplay = ({ character, onAttributeClick, className = "" }) => {
                             <div className="attribute-breakdown">
                                 <div className="breakdown-row">
                                     <span className="breakdown-label">Base Score:</span>
-                                    <span className="breakdown-value">{attribute.base}</span>
+                                    <span className="breakdown-value">{attribute.base || 10}</span>
                                 </div>
                                 <div className="breakdown-row">
                                     <span className="breakdown-label">Habit Points:</span>
-                                    <span className="breakdown-value">{attribute.habitPoints}</span>
+                                    <span className="breakdown-value">{attribute.habitPoints || 0}</span>
+                                </div>
+                                <div className="breakdown-row">
+                                    <span className="breakdown-label">Effective Score:</span>
+                                    <span className="breakdown-value">{attribute.effectiveScore || 10}</span>
                                 </div>
                                 <div className="breakdown-row">
                                     <span className="breakdown-label">D&D Bonus:</span>
                                     <span className="breakdown-value">
-                                        {attribute.bonus >= 0 ? '+' : ''}{attribute.bonus}
+                                        {dndBonus >= 0 ? '+' : ''}{dndBonus}
                                     </span>
                                 </div>
                             </div>
@@ -129,14 +145,16 @@ const AttributeDisplay = ({ character, onAttributeClick, className = "" }) => {
                     <h3>Combat Dice Pool</h3>
                     <div className="combat-dice-display">
                         <div className="dice-pool-main">
-                            <span className="dice-notation">{character.getCombatDicePool().notation}</span>
+                            <span className="dice-notation">
+                                {character.getCombatDicePool().notation || '1d4'}
+                            </span>
                             <span className="dice-description">
-                                ({character.getCombatDicePool().diceCount} dice + {character.getCombatDicePool().bonus} bonus)
+                                ({character.getCombatDicePool().totalDice || 1} total dice)
                             </span>
                         </div>
                         <p className="dice-explanation">
                             Your combat dice pool combines all attributes except Constitution.
-                            Higher attribute levels grant more dice and bonuses!
+                            Higher attribute levels grant better dice!
                         </p>
                     </div>
                 </div>

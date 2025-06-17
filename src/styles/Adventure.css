@@ -1,10 +1,12 @@
-/* src/styles/Adventure.css */
+/* File: src/styles/Adventure.css */
+/* Enhanced Adventure page with Skirmish section and mode selection */
 
 .adventure-page {
     max-width: 1200px;
     margin: 0 auto;
     padding: 20px;
     color: #eee;
+    min-height: 100vh;
 }
 
 .adventure-page.error,
@@ -13,86 +15,194 @@
     padding: 60px 20px;
 }
 
-.adventure-page.error h1,
-.adventure-page.cannot-adventure h1 {
-    color: #a5b4fc;
-    margin-bottom: 16px;
-}
-
-.adventure-page.error p,
-.adventure-page.cannot-adventure p {
-    color: #9ca3af;
-    margin-bottom: 24px;
+.adventure-page.skirmish-mode {
+    padding: 0;
+    max-width: none;
 }
 
 /* Adventure Header */
 .adventure-header {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    border-radius: 16px;
-    padding: 24px;
-    margin-bottom: 24px;
-    color: white;
+    text-align: center;
+    margin-bottom: 32px;
 }
 
-.header-content {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 24px;
-}
-
-.header-text {
-    flex: 1;
-    min-width: 0;
-}
-
-.header-text h1 {
+.adventure-header h1 {
     margin: 0 0 8px 0;
+    color: #a5b4fc;
     font-size: 2.5rem;
     font-weight: 700;
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
-.header-text p {
+.adventure-header p {
     margin: 0;
+    color: #9ca3af;
     font-size: 1.1rem;
-    opacity: 0.9;
 }
 
-/* Character Status in Header */
-.header-character-status {
-    background: rgba(255, 255, 255, 0.1) !important;
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.2) !important;
-    flex-shrink: 0;
-}
-
-/* Character Status Display (for cannot adventure state) */
-.character-status-display {
+/* Character Status */
+.adventure-character-status,
+.skirmish-character-status {
+    margin: 24px auto;
     max-width: 500px;
-    margin: 0 auto 24px auto;
 }
 
-/* Heal Button */
-.heal-button {
-    background: #10b981;
+.skirmish-character-status {
+    margin-bottom: 20px;
+}
+
+/* Skirmish Header */
+.skirmish-header {
+    background: #1f2937;
+    border-bottom: 1px solid #374151;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.back-button {
+    background: #374151;
+    color: #eee;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    margin-bottom: 16px;
+    transition: background 0.2s ease;
+}
+
+.back-button:hover {
+    background: #4b5563;
+}
+
+.skirmish-header h1 {
+    margin: 0 0 8px 0;
+    color: #a5b4fc;
+    font-size: 2rem;
+}
+
+.skirmish-header p {
+    margin: 0;
+    color: #9ca3af;
+}
+
+/* Adventure Modes Grid */
+.adventure-modes {
+    margin-bottom: 40px;
+}
+
+.adventure-mode-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 24px;
+    margin-bottom: 32px;
+}
+
+.adventure-mode {
+    background: #1f2937;
+    border: 2px solid #374151;
+    border-radius: 16px;
+    padding: 24px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.adventure-mode:not(.disabled):hover {
+    border-color: #3b82f6;
+    transform: translateY(-4px);
+    box-shadow: 0 8px 25px rgba(59, 130, 246, 0.2);
+}
+
+.adventure-mode.disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    border-color: #4b5563;
+}
+
+.adventure-mode.skirmish-mode:not(.disabled) {
+    border-color: #ef4444;
+}
+
+.adventure-mode.skirmish-mode:not(.disabled):hover {
+    border-color: #dc2626;
+    box-shadow: 0 8px 25px rgba(239, 68, 68, 0.2);
+}
+
+.adventure-mode.quest-mode:not(.disabled) {
+    border-color: #8b5cf6;
+}
+
+.adventure-mode.expedition-mode:not(.disabled) {
+    border-color: #10b981;
+}
+
+/* Mode Icon */
+.mode-icon {
+    font-size: 3rem;
+    margin-bottom: 16px;
+    display: block;
+}
+
+.adventure-mode h3 {
+    margin: 0 0 12px 0;
+    color: #eee;
+    font-size: 1.4rem;
+    font-weight: 600;
+}
+
+.adventure-mode p {
+    margin: 0 0 16px 0;
+    color: #9ca3af;
+    line-height: 1.5;
+}
+
+/* Mode Details */
+.mode-details {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 20px;
+}
+
+.detail-item {
+    color: #6b7280;
+    font-size: 0.9rem;
+    padding: 4px 0;
+}
+
+.mode-button {
+    background: #3b82f6;
     color: white;
     border: none;
-    padding: 12px 24px;
     border-radius: 8px;
+    padding: 12px 24px;
     font-size: 1rem;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: background 0.2s ease;
+    width: 100%;
 }
 
-.heal-button:hover {
-    background: #059669;
-    transform: translateY(-1px);
+.mode-button:hover:not(.disabled) {
+    background: #2563eb;
 }
 
-/* Adventure Selection */
-.adventure-selection {
+.mode-button.disabled {
+    background: #4b5563;
+    cursor: not-allowed;
+}
+
+.skirmish-mode .mode-button:not(.disabled) {
+    background: #ef4444;
+}
+
+.skirmish-mode .mode-button:not(.disabled):hover {
+    background: #dc2626;
+}
+
+/* Legacy Adventures (Preview) */
+.legacy-adventures {
     background: #1f2937;
     border-radius: 12px;
     padding: 24px;
@@ -100,7 +210,7 @@
     border: 1px solid #374151;
 }
 
-.adventure-selection h3 {
+.legacy-adventures h3 {
     margin: 0 0 20px 0;
     color: #a5b4fc;
     font-size: 1.5rem;
@@ -117,18 +227,18 @@
     border: 2px solid #4b5563;
     border-radius: 12px;
     padding: 20px;
-    cursor: pointer;
     transition: all 0.2s ease;
 }
 
-.adventure-option:hover {
+.adventure-option.preview {
+    opacity: 0.7;
+    border-style: dashed;
+}
+
+.adventure-option:not(.preview):hover {
     border-color: #3b82f6;
     background: #4b5563;
     transform: translateY(-2px);
-}
-
-.adventure-option.default {
-    border-color: #10b981;
 }
 
 .adventure-option h4 {
@@ -154,34 +264,8 @@
     font-weight: 500;
 }
 
-/* Legacy character stats for backwards compatibility */
-.character-summary h2 {
-    margin: 10px 0;
-    font-size: 1.8em;
-}
-
-.character-stats {
-    display: flex;
-    justify-content: center;
-    gap: 30px;
-    margin-top: 15px;
-}
-
-.stat {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
-
-.stat label {
-    font-size: 0.9em;
-    opacity: 0.9;
-    margin-bottom: 5px;
-}
-
-.stat span {
-    font-size: 1.2em;
-    font-weight: bold;
+.adventure-option.preview .difficulty {
+    background: #8b5cf6;
 }
 
 /* Adventure Tips */
@@ -190,7 +274,6 @@
     border-radius: 12px;
     padding: 20px;
     margin-top: 24px;
-    border: 1px solid #4b5563;
 }
 
 .adventure-tips h3 {
@@ -201,7 +284,7 @@
 
 .adventure-tips ul {
     margin: 0;
-    padding-left: 20px;
+    padding-left: 24px;
     color: #9ca3af;
 }
 
@@ -210,55 +293,31 @@
     line-height: 1.4;
 }
 
-/* Inventory Summary (if needed) */
-.inventory-summary {
-    background: #1f2937;
-    border-radius: 12px;
-    padding: 20px;
-    margin-bottom: 24px;
-    border: 1px solid #374151;
-}
-
-.inventory-items {
-    display: flex;
-    gap: 12px;
-    flex-wrap: wrap;
-    margin-top: 12px;
-}
-
-.inventory-item {
-    background: #374151;
-    border: 1px solid #4b5563;
-    border-radius: 6px;
-    padding: 8px 12px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
+.adventure-tips strong {
     color: #eee;
 }
 
-.item-name {
-    text-transform: capitalize;
-    color: #eee;
+/* Cannot Adventure State */
+.cannot-adventure .character-status-display {
+    margin: 32px auto;
+    max-width: 400px;
 }
 
-.item-quantity {
-    color: #9ca3af;
+.heal-button {
+    background: #10b981;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 12px 24px;
+    font-size: 1.1rem;
     font-weight: 600;
+    cursor: pointer;
+    margin-top: 20px;
+    transition: background 0.2s ease;
 }
 
-/* Loading and Error States */
-.loading, .error, .no-character {
-    text-align: center;
-    padding: 60px 20px;
-    color: #9ca3af;
-}
-
-.error {
-    background: #374151;
-    border: 1px solid #ef4444;
-    border-radius: 12px;
-    color: #fca5a5;
+.heal-button:hover {
+    background: #059669;
 }
 
 /* Responsive Design */
@@ -267,34 +326,50 @@
         padding: 16px;
     }
 
-    .adventure-header {
-        padding: 20px;
+    .adventure-mode-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
     }
 
-    .header-content {
-        flex-direction: column;
-        text-align: center;
-        gap: 20px;
-    }
-
-    .header-text h1 {
+    .adventure-header h1 {
         font-size: 2rem;
     }
 
-    .character-stats {
-        flex-direction: column;
-        gap: 12px;
+    .adventure-mode {
+        padding: 20px;
+    }
+
+    .mode-icon {
+        font-size: 2.5rem;
+    }
+
+    .adventure-mode h3 {
+        font-size: 1.2rem;
+    }
+
+    .skirmish-header {
+        padding: 16px;
+    }
+
+    .skirmish-header h1 {
+        font-size: 1.5rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .adventure-mode-grid {
+        grid-template-columns: 1fr;
     }
 
     .adventure-list {
         grid-template-columns: 1fr;
     }
 
-    .adventure-selection {
+    .adventure-mode {
         padding: 16px;
     }
 
-    .adventure-tips {
-        padding: 16px;
+    .mode-details {
+        align-items: center;
     }
 }

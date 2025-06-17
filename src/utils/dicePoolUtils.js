@@ -236,3 +236,80 @@ export function rollDicePool(dicePool) {
         dicePool
     };
 }
+
+/**
+ * Consolidate dice notation by combining dice of the same type
+ * Example: "1d4 + 1d4 + 1d6 + 1d4" becomes "3d4 + 1d6"
+ */
+export function consolidateDiceNotation(diceNotation) {
+    if (!diceNotation || typeof diceNotation !== 'string') {
+        return '1d4'; // Fallback
+    }
+
+    // Split by ' + ' and parse each die
+    const diceTerms = diceNotation.split(' + ').map(term => term.trim());
+    const diceMap = new Map();
+
+    // Count dice of each type
+    diceTerms.forEach(term => {
+        const match = term.match(/(\d+)d(\d+)/);
+        if (match) {
+            const count = parseInt(match[1]);
+            const sides = parseInt(match[2]);
+            const currentCount = diceMap.get(sides) || 0;
+            diceMap.set(sides, currentCount + count);
+        }
+    });
+
+    // Convert back to notation, ordered by die size (largest first)
+    const consolidatedTerms = Array.from(diceMap.entries())
+        .sort(([sidesA], [sidesB]) => sidesB - sidesA) // Sort descending by die size
+        .map(([sides, count]) => `${count}d${sides}`);
+
+    return consolidatedTerms.join(' + ') || '1d4';
+}
+
+/**
+ * Consolidate dice from multiple attributes into a single notation
+ * Takes an array of dice notations and combines them
+ */
+export function consolidateMultipleDiceNotations(notationArray) {
+    if (!Array.isArray(notationArray) || notationArray.length === 0) {
+        return '1d4';
+    }
+
+    // Join all notations and then consolidate
+    const combinedNotation = notationArray.filter(notation => notation).join(' + ');
+    return consolidateDiceNotation(combinedNotation);
+}
+
+/**
+ * Alternative approach: consolidate from dice progression arrays
+ * Takes an array of dice progression objects and creates consolidated notation
+ */
+export function consolidateDiceProgression(diceProgressions) {
+    if (!Array.isArray(diceProgressions) || diceProgressions.length === 0) {
+        return '1d4';
+    }
+
+    const diceMap = new Map();
+
+    // Count all dice across all progressions
+    diceProgressions.forEach(progression => {
+        if (Array.isArray(progression)) {
+            progression.forEach(die => {
+                const sides = die.sides;
+                const count = die.count || 1;
+                const currentCount = diceMap.get(sides) || 0;
+                diceMap.set(sides, currentCount + count);
+            });
+        }
+    });
+
+    // Convert to consolidated notation
+    const consolidatedTerms = Array.from(diceMap.entries())
+        .sort(([sidesA], [sidesB]) => sidesB - sidesA)
+        .map(([sides, count]) => `${count}d${sides}`);
+
+    return consolidatedTerms.join(' + ') || '1d4';
+}

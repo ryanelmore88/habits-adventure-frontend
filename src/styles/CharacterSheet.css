@@ -207,12 +207,9 @@
         align-items: flex-start;
         gap: 2px;
     }
-}-items: center;
-text-align: center;
 }
 
 .character-avatar-upload {
     width: 120px;
     height: 120px;
-}
 }

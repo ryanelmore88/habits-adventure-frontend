@@ -1,5 +1,7 @@
-// File: src/utils/Character.js
-// Character-based dice pool system with extended dice progression
+// File: src/components/Character/Character.js
+// Fix for Max HP NaN issue - added hpBonus calculation to constitution attribute
+
+import { consolidateDiceNotation } from '../../utils/dicePoolUtils';
 
 export class Character {
     constructor(characterData) {
@@ -66,6 +68,11 @@ export class Character {
                 diceNotation: this.getDiceNotation(level),
                 effectiveScore: (attrData.base || 10) + Math.floor((attrData.habit_points || 0) / 5)
             };
+
+            // Special calculation for Constitution - add HP bonus
+            if (name === 'constitution') {
+                processedAttributes[name].hpBonus = this.calculateConstitutionHPBonus(level);
+            }
         }
 
         return processedAttributes;
@@ -99,14 +106,9 @@ export class Character {
         return 1; // 10-11 for level 1
     }
 
-    // Calculate max HP using Constitution dice progression
-    calculateMaxHP() {
-        const constitution = this.attributes.constitution;
-        const baseHP = 20; // Base HP for all characters
-
-        // For now, using same dice progression for Constitution
-        // We can adjust this later if HP scaling becomes too high
-        const constitutionDice = constitution.diceProgression;
+    // Calculate Constitution HP bonus based on level
+    calculateConstitutionHPBonus(constitutionLevel) {
+        const constitutionDice = this.getDiceProgression(constitutionLevel);
 
         // Calculate average HP bonus from Constitution dice
         let avgDiceValue = 0;
@@ -117,7 +119,21 @@ export class Character {
 
         const levelBonus = (this.level - 1) * 2; // +2 HP per level after 1st
 
-        return Math.max(1, Math.floor(baseHP + avgDiceValue + levelBonus));
+        return Math.floor(avgDiceValue + levelBonus);
+    }
+
+    // Calculate max HP using Constitution dice progression
+    calculateMaxHP() {
+        const constitution = this.attributes.constitution;
+        if (!constitution) {
+            // Fallback if no constitution attribute
+            return 20 + (this.level - 1) * 2;
+        }
+
+        const baseHP = 20; // Base HP for all characters
+        const constitutionBonus = constitution.hpBonus || 0;
+
+        return Math.max(1, baseHP + constitutionBonus);
     }
 
     // Get character's combat dice pool (all attributes except Constitution)
@@ -130,6 +146,8 @@ export class Character {
 
         for (const attrName of combatAttributes) {
             const attribute = this.attributes[attrName];
+            if (!attribute) continue;
+
             for (const dieType of attribute.diceProgression) {
                 for (let i = 0; i < dieType.count; i++) {
                     allDice.push({
@@ -158,12 +176,13 @@ export class Character {
 
         for (const attrName of combatAttributes) {
             const attribute = this.attributes[attrName];
-            if (attribute.level > 0) {
+            if (attribute && attribute.level > 0) {
                 notations.push(attribute.diceNotation);
             }
         }
 
-        return notations.join(' + ');
+        // Use consolidation utility from dicePoolUtils to combine dice of the same type
+        return consolidateDiceNotation(notations.join(' + ')) || '1d4';
     }
 
     // Get detailed breakdown of combat dice calculation
@@ -173,57 +192,42 @@ export class Character {
 
         for (const attrName of combatAttributes) {
             const attr = this.attributes[attrName];
-            details.push({
-                name: attrName,
-                level: attr.level,
-                diceNotation: attr.diceNotation,
-                diceProgression: attr.diceProgression,
-                effectiveScore: attr.effectiveScore,
-                description: `${attrName.charAt(0).toUpperCase() + attrName.slice(1)}: Level ${attr.level} (${attr.diceNotation})`
-            });
+            if (attr) {
+                details.push({
+                    name: attrName,
+                    level: attr.level,
+                    diceNotation: attr.diceNotation,
+                    effectiveScore: attr.effectiveScore
+                });
+            }
         }
 
         return details;
     }
 
-    // Get attribute level name for levels 1-20
-    getAttributeLevelName(level) {
-        if (level >= 18) return 'Godlike';
-        if (level >= 15) return 'Legendary';
-        if (level >= 12) return 'Heroic';
-        if (level >= 9) return 'Expert';
-        if (level >= 6) return 'Adept';
-        if (level >= 3) return 'Trained';
-        return 'Novice';
-    }
-
-    // Roll dice for a specific attribute (for tracking max values)
+    // Roll dice for an attribute
     rollAttributeDice(attributeName) {
         const attribute = this.attributes[attributeName];
         if (!attribute) return { total: 0, dice: [], maxValueRolls: [] };
 
-        const results = [];
+        const dice = [];
         const maxValueRolls = [];
         let total = 0;
 
         for (const dieType of attribute.diceProgression) {
             for (let i = 0; i < dieType.count; i++) {
                 const roll = Math.floor(Math.random() * dieType.sides) + 1;
-                results.push({
+                dice.push({
                     sides: dieType.sides,
-                    value: roll,
-                    attribute: attributeName,
+                    result: roll,
                     isMaxValue: roll === dieType.sides
                 });
 
                 total += roll;
-
-                // Track max value rolls for special effects
                 if (roll === dieType.sides) {
                     maxValueRolls.push({
-                        attribute: attributeName,
-                        damage: roll,
-                        dieType: `d${dieType.sides}`
+                        sides: dieType.sides,
+                        attribute: attributeName
                     });
                 }
             }
@@ -231,20 +235,21 @@ export class Character {
 
         return {
             total,
-            dice: results,
-            maxValueRolls,
-            notation: attribute.diceNotation
+            dice,
+            maxValueRolls
         };
     }
 
-    // Roll all combat dice with attribute tracking
+    // Roll all combat dice (excluding Constitution)
     rollCombatDice() {
         const combatAttributes = ['strength', 'dexterity', 'intelligence', 'wisdom', 'charisma'];
         const allResults = [];
-        const allMaxValueRolls = [];
         let grandTotal = 0;
+        const allMaxValueRolls = [];
 
         for (const attrName of combatAttributes) {
+            if (!this.attributes[attrName]) continue;
+
             const result = this.rollAttributeDice(attrName);
             allResults.push({
                 attribute: attrName,
@@ -262,6 +267,18 @@ export class Character {
         };
     }
 
+    // Get attribute level name for display
+    getAttributeLevelName(level) {
+        const levelNames = {
+            1: 'Novice',
+            2: 'Trained',
+            3: 'Expert',
+            4: 'Master',
+            5: 'Legendary'
+        };
+        return levelNames[Math.min(level, 5)] || 'Legendary';
+    }
+
     // Get character summary for UI
     getCharacterSummary() {
         const combatDice = this.getCombatDicePool();
@@ -275,9 +292,10 @@ export class Character {
             maxPossibleDamage: combatDice.maxPossibleDamage,
             highestAttribute: this.getHighestAttribute(),
             constitution: {
-                level: this.attributes.constitution.level,
-                diceNotation: this.attributes.constitution.diceNotation,
-                effectiveScore: this.attributes.constitution.effectiveScore
+                level: this.attributes.constitution?.level || 1,
+                diceNotation: this.attributes.constitution?.diceNotation || '1d4',
+                effectiveScore: this.attributes.constitution?.effectiveScore || 10,
+                hpBonus: this.attributes.constitution?.hpBonus || 0
             }
         };
     }
@@ -287,7 +305,7 @@ export class Character {
         let highest = { name: 'strength', level: 1 };
 
         for (const [name, attr] of Object.entries(this.attributes)) {
-            if (attr.level > highest.level) {
+            if (attr && attr.level > highest.level) {
                 highest = { name, level: attr.level };
             }
         }
