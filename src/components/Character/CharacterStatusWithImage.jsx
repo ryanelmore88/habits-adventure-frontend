@@ -1,12 +1,19 @@
-// src/components/Character/CharacterStatusWithImage.jsx
+// File: src/components/Character/CharacterStatusWithImage.jsx
+// Updated to be bigger and include total dice pool
+
 import React from 'react';
+import { useCharacter } from '../../contexts/CharacterContext';
 import '../../styles/CharacterStatusWithImage.css';
-import '../../contexts/CharacterContext'; // Ensure context is imported for useCharacter hook
 
 const CharacterStatusWithImage = ({ character, className = "" }) => {
+    const { getCharacterDicePool } = useCharacter();
+
     if (!character) return null;
 
     const hpPercentage = Math.max(0, Math.min(100, (character.current_hp / character.max_hp) * 100));
+
+    // Get dice pool information
+    const dicePool = getCharacterDicePool();
 
     // Determine HP bar color based on percentage
     const getHPColor = () => {
@@ -29,10 +36,10 @@ const CharacterStatusWithImage = ({ character, className = "" }) => {
                             <span className="stat-label">XP:</span>
                             <span className="stat-value">{character.current_xp || 0}</span>
                         </div>
-                        {/*<div className="stat-item">*/}
-                        {/*    <p><strong>Dice Pool:</strong> {characterDiceInfo.dicePool}</p>*/}
-                        {/*    <p><strong>Breakdown:</strong> {characterDiceInfo.description}</p>*/}
-                        {/*</div>*/}
+                        <div className="stat-item dice-pool-stat">
+                            <span className="stat-label">Dice Pool:</span>
+                            <span className="stat-value dice-notation">{dicePool.notation || '2d6'}</span>
+                        </div>
                     </div>
                 </div>
 
@@ -50,25 +57,25 @@ const CharacterStatusWithImage = ({ character, className = "" }) => {
                                 <span className="placeholder-icon">⚔️</span>
                             </div>
                         )}
+                    </div>
 
-                        {/* Straight HP Bar that starts from the image edge */}
-                        <div className="hp-bar-container">
-                            <div className="hp-bar-background">
-                                <div
-                                    className="hp-bar-fill"
-                                    style={{
-                                        width: `${hpPercentage}%`,
-                                        backgroundColor: getHPColor()
-                                    }}
-                                />
-                            </div>
+                    {/* HP Bar that starts from the image edge */}
+                    <div className="hp-bar-container">
+                        <div className="hp-bar-background">
+                            <div
+                                className="hp-bar-fill"
+                                style={{
+                                    width: `${hpPercentage}%`,
+                                    backgroundColor: getHPColor()
+                                }}
+                            />
+                        </div>
 
-                            {/* HP Text */}
-                            <div className="hp-text-display">
-                                <span className="hp-current">{character.current_hp}</span>
-                                <span className="hp-separator">/</span>
-                                <span className="hp-max">{character.max_hp}</span>
-                            </div>
+                        {/* HP Text */}
+                        <div className="hp-text-display">
+                            <span className="hp-current">{character.current_hp}</span>
+                            <span className="hp-separator">/</span>
+                            <span className="hp-max">{character.max_hp}</span>
                         </div>
                     </div>
                 </div>

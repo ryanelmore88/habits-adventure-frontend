@@ -1,0 +1,328 @@
+/* File: src/components/Character/AttributeDisplay.css */
+/* Enhanced attribute display with levels and dice pools */
+
+.attribute-display {
+    width: 100%;
+}
+
+.attributes-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(2, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
+    max-width: 1200px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.attribute-card {
+    background: #1f2937;
+    border: 2px solid #374151;
+    border-radius: 12px;
+    padding: 16px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    min-height: 200px;
+    display: flex;
+    flex-direction: column;
+}
+
+.attribute-card:hover {
+    border-color: var(--level-color, #3b82f6);
+    background: #374151;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+}
+
+.attribute-card.constitution {
+    border-left: 4px solid #ef4444;
+}
+
+.attribute-card.combat {
+    border-left: 4px solid #3b82f6;
+}
+
+/* Attribute Header */
+.attribute-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.attribute-name {
+    margin: 0;
+    color: #a5b4fc;
+    font-size: 1.1rem;
+    font-weight: 600;
+    text-transform: capitalize;
+}
+
+.attribute-level-badge {
+    background: #10b981;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+/* Level Name */
+.attribute-level-name {
+    color: #e5e7eb;
+    font-size: 0.9rem;
+    font-weight: 500;
+    margin-bottom: 16px;
+    text-align: center;
+    opacity: 0.8;
+}
+
+/* Main Contribution Display */
+.attribute-contribution {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    background: rgba(59, 130, 246, 0.1);
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 12px;
+    flex: 1;
+}
+
+.attribute-card.constitution .attribute-contribution {
+    background: rgba(239, 68, 68, 0.1);
+}
+
+.contribution-icon {
+    font-size: 2rem;
+}
+
+.contribution-text {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.contribution-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #eee;
+    line-height: 1;
+}
+
+.contribution-label {
+    font-size: 0.75rem;
+    color: #9ca3af;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Attribute Breakdown */
+.attribute-breakdown {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.breakdown-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 4px 0;
+    border-bottom: 1px solid rgba(75, 85, 99, 0.3);
+}
+
+.breakdown-row:last-child {
+    border-bottom: none;
+}
+
+.breakdown-label {
+    color: #9ca3af;
+    font-size: 0.85rem;
+}
+
+.breakdown-value {
+    color: #eee;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+/* Special Note */
+.attribute-note {
+    margin-top: 12px;
+    padding: 8px;
+    background: rgba(59, 130, 246, 0.1);
+    border-radius: 6px;
+    font-size: 0.8rem;
+    color: #9ca3af;
+    text-align: center;
+    font-style: italic;
+}
+
+.attribute-card.constitution .attribute-note {
+    background: rgba(239, 68, 68, 0.1);
+}
+
+/* Combat Summary Section */
+.combat-summary {
+    background: #374151;
+    border-radius: 12px;
+    padding: 20px;
+    border: 2px solid #4b5563;
+}
+
+.combat-summary h3 {
+    margin: 0 0 16px 0;
+    color: #a5b4fc;
+    font-size: 1.3rem;
+    text-align: center;
+}
+
+.combat-dice-display {
+    text-align: center;
+}
+
+.dice-pool-main {
+    margin-bottom: 12px;
+}
+
+.dice-notation {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #10b981;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.dice-description {
+    display: block;
+    color: #9ca3af;
+    font-size: 1rem;
+    margin-top: 4px;
+}
+
+.dice-explanation {
+    color: #6b7280;
+    font-size: 0.9rem;
+    line-height: 1.4;
+    margin: 0;
+    padding-top: 12px;
+    border-top: 1px solid #4b5563;
+}
+
+/* Level Color Variants */
+.attribute-card[style*="--level-color: #6b7280"] .attribute-level-name {
+    color: #9ca3af;
+}
+
+.attribute-card[style*="--level-color: #10b981"] .attribute-level-name {
+    color: #10b981;
+}
+
+.attribute-card[style*="--level-color: #3b82f6"] .attribute-level-name {
+    color: #3b82f6;
+}
+
+.attribute-card[style*="--level-color: #8b5cf6"] .attribute-level-name {
+    color: #8b5cf6;
+}
+
+.attribute-card[style*="--level-color: #f59e0b"] .attribute-level-name {
+    color: #f59e0b;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+    .attributes-grid {
+        max-width: 900px;
+        gap: 12px;
+    }
+
+    .attribute-card {
+        padding: 14px;
+        min-height: 180px;
+    }
+
+    .contribution-value {
+        font-size: 1.3rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .attributes-grid {
+        grid-template-columns: repeat(2, 1fr);
+        grid-template-rows: repeat(3, 1fr);
+        gap: 12px;
+        max-width: 600px;
+    }
+
+    .attribute-card {
+        padding: 12px;
+        min-height: 160px;
+    }
+
+    .attribute-header {
+        margin-bottom: 8px;
+    }
+
+    .attribute-name {
+        font-size: 1rem;
+    }
+
+    .attribute-level-badge {
+        padding: 3px 6px;
+        font-size: 0.75rem;
+    }
+
+    .contribution-value {
+        font-size: 1.2rem;
+    }
+
+    .contribution-icon {
+        font-size: 1.5rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .attributes-grid {
+        grid-template-columns: 1fr;
+        grid-template-rows: repeat(6, 1fr);
+        gap: 10px;
+        max-width: 400px;
+    }
+
+    .attribute-card {
+        padding: 12px;
+        min-height: 140px;
+    }
+
+    .attribute-header {
+        flex-direction: row;
+        gap: 8px;
+        text-align: left;
+        justify-content: space-between;
+    }
+
+    .attribute-contribution {
+        padding: 10px;
+        gap: 6px;
+    }
+
+    .contribution-value {
+        font-size: 1.1rem;
+    }
+
+    .breakdown-row {
+        padding: 2px 0;
+    }
+
+    .breakdown-label,
+    .breakdown-value {
+        font-size: 0.8rem;
+    }
+}

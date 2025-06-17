@@ -1,7 +1,9 @@
-// src/contexts/CharacterContext.jsx - Updated with temporary HP support
+// File: src/contexts/CharacterContext.jsx
+// Updated to use the new Character class with dice pools
 
 import { createContext, useContext, useState, useEffect } from 'react';
 import { apiCall } from '../api/habitApi';
+import { Character } from '../components/Character/Character';
 
 const CharacterContext = createContext();
 
@@ -26,9 +28,10 @@ export const CharacterProvider = ({ children }) => {
     const getEffectiveCharacter = () => {
         if (!selectedCharacter) return null;
 
+        const characterData = selectedCharacter.toComponentFormat();
         return {
-            ...selectedCharacter,
-            current_hp: temporaryHp !== null ? temporaryHp : selectedCharacter.current_hp
+            ...characterData,
+            current_hp: temporaryHp !== null ? temporaryHp : characterData.current_hp
         };
     };
 
@@ -66,22 +69,23 @@ export const CharacterProvider = ({ children }) => {
             const response = await apiCall(`/api/character/${characterId}`);
 
             if (response.status === 'success' && response.data) {
-                const characterData = {
+                // Create a Character instance with enhanced functionality
+                const character = new Character({
                     ...response.data,
                     current_hp: response.data.current_hp || response.data.max_hp || 20,
                     max_hp: response.data.max_hp || 20,
                     level: response.data.level || 1,
                     current_xp: response.data.current_xp || 0,
                     inventory: response.data.inventory || {}
-                };
+                });
 
-                setSelectedCharacter(characterData);
+                setSelectedCharacter(character);
                 setTemporaryHp(null); // Reset temporary HP when selecting character
 
                 // Persist selection in localStorage
                 localStorage.setItem('selectedCharacterId', characterId);
 
-                return characterData;
+                return character;
             } else {
                 throw new Error('Failed to load character data');
             }
@@ -105,19 +109,21 @@ export const CharacterProvider = ({ children }) => {
             const response = await apiCall(`/api/character/${selectedCharacter.id}`);
 
             if (response.status === 'success' && response.data) {
-                const characterData = {
+                // Update the existing Character instance with new data
+                selectedCharacter.updateFromData({
                     ...response.data,
                     current_hp: response.data.current_hp || response.data.max_hp || 20,
                     max_hp: response.data.max_hp || 20,
                     level: response.data.level || 1,
                     current_xp: response.data.current_xp || 0,
                     inventory: response.data.inventory || {}
-                };
+                });
 
-                setSelectedCharacter(characterData);
+                // Force a re-render by setting the character again
+                setSelectedCharacter(new Character(selectedCharacter.toComponentFormat()));
                 setTemporaryHp(null); // Reset temporary HP when refreshing
 
-                return characterData;
+                return selectedCharacter;
             } else {
                 throw new Error('Failed to refresh character data');
             }
@@ -147,6 +153,26 @@ export const CharacterProvider = ({ children }) => {
         setTemporaryHp(null);
     };
 
+    // Get character dice pool (new method)
+    const getCharacterDicePool = () => {
+        if (!selectedCharacter) {
+            return {
+                diceCount: 2,
+                bonus: 0,
+                notation: '2d6',
+                details: []
+            };
+        }
+
+        return selectedCharacter.getCombatDicePool();
+    };
+
+    // Get character summary (new method)
+    const getCharacterSummary = () => {
+        if (!selectedCharacter) return null;
+        return selectedCharacter.getCharacterSummary();
+    };
+
     // Auto-load character from localStorage on mount
     useEffect(() => {
         const savedCharacterId = localStorage.getItem('selectedCharacterId');
@@ -164,7 +190,8 @@ export const CharacterProvider = ({ children }) => {
     const value = {
         // Character data
         selectedCharacter: getEffectiveCharacter(), // Returns character with temporary HP if set
-        originalCharacter: selectedCharacter, // Original character data without temporary changes
+        originalCharacter: selectedCharacter ? selectedCharacter.toComponentFormat() : null, // Original character data without temporary changes
+        characterInstance: selectedCharacter, // Access to the Character class instance
         availableCharacters,
 
         // State
@@ -181,7 +208,11 @@ export const CharacterProvider = ({ children }) => {
         // Temporary HP for combat
         updateTemporaryHp,
         clearTemporaryHp,
-        isInCombat: temporaryHp !== null
+        isInCombat: temporaryHp !== null,
+
+        // New dice pool methods
+        getCharacterDicePool,
+        getCharacterSummary
     };
 
     return (

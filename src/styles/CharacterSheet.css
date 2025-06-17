@@ -1,189 +1,218 @@
-/* src/styles/CharacterSheet.css */
+/* File: src/components/Character/CharacterSheet.css */
+/* Component-specific styles for CharacterSheet layout with enhanced attributes */
 
-.character-sheet {
-    max-width: 800px;
-    margin: 0 auto;
-    padding: 20px;
-    color: #eee;
+.character-header-content {
+    display: flex;
+    gap: 24px;
+    align-items: flex-start;
 }
 
-.character-sheet-loading {
-    text-align: center;
-    padding: 60px 20px;
-    color: #eee;
+.character-image-section {
+    flex-shrink: 0;
 }
 
-/* Character Header */
-.character-header {
-    background: #1f2937;
-    border-radius: 12px;
-    padding: 24px;
+.character-avatar-upload {
+    width: 150px;
+    height: 150px;
+}
+
+.character-info {
+    flex: 1;
+}
+
+.character-info h1 {
+    margin-top: 0;
+}
+
+/* Enhanced Character Summary */
+.character-summary-enhanced {
+    margin-top: 16px;
+    padding: 12px;
+    background: rgba(59, 130, 246, 0.1);
+    border-radius: 8px;
+    border: 1px solid rgba(59, 130, 246, 0.2);
+}
+
+.summary-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+}
+
+.summary-item:last-child {
+    margin-bottom: 0;
+}
+
+.summary-label {
+    color: #9ca3af;
+    font-size: 0.9rem;
+}
+
+.summary-value {
+    color: #eee;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+/* Section Headers */
+.section-header {
     margin-bottom: 24px;
     text-align: center;
 }
 
-.character-header h1 {
-    margin: 0 0 16px 0;
+.section-header h2 {
+    margin: 0 0 8px 0;
     color: #a5b4fc;
-    font-size: 2rem;
 }
 
-.character-stats {
-    display: flex;
-    justify-content: center;
+.section-description {
+    color: #9ca3af;
+    font-size: 0.9rem;
+    line-height: 1.4;
+    margin: 0;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+/* Progression Section */
+.progression-section {
+    background: #1f2937;
+    border-radius: 12px;
+    padding: 24px;
+    margin-top: 32px;
+    border: 1px solid #374151;
+}
+
+.progression-section h3 {
+    margin: 0 0 20px 0;
+    color: #a5b4fc;
+    text-align: center;
+}
+
+.progression-info {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
     gap: 32px;
 }
 
-.stat {
-    text-align: center;
-}
-
-.stat label {
-    display: block;
-    color: #9ca3af;
-    font-size: 0.9rem;
-    margin-bottom: 4px;
-}
-
-.stat span {
-    font-size: 1.2rem;
-    font-weight: bold;
+.progression-item h4 {
+    margin: 0 0 16px 0;
     color: #eee;
+    font-size: 1.1rem;
 }
 
-/* Attributes Section */
-.attributes-section {
-    background: #1f2937;
-    border-radius: 12px;
-    padding: 24px;
-    margin-bottom: 24px;
-}
-
-.attributes-section h2 {
-    margin: 0 0 20px 0;
-    color: #a5b4fc;
-    font-size: 1.5rem;
-}
-
-.attributes-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-    gap: 16px;
-}
-
-.attribute-card {
-    background: #374151;
-    border: 2px solid #4b5563;
-    border-radius: 12px;
-    padding: 16px;
-    text-align: center;
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-
-.attribute-card:hover {
-    border-color: #a5b4fc;
-    background: #4b5563;
-    transform: translateY(-2px);
-}
-
-.attribute-card h4 {
-    margin: 0 0 8px 0;
-    color: #a5b4fc;
-    font-size: 0.9rem;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-.attribute-bonus {
-    font-size: 2rem;
-    font-weight: bold;
-    color: #eee;
-    margin-bottom: 4px;
-}
-
-.attribute-total {
-    font-size: 1.2rem;
-    color: #9ca3af;
-    margin-bottom: 8px;
-}
-
-.attribute-breakdown {
-    font-size: 0.8rem;
-    color: #6b7280;
+/* Level Guide */
+.level-guide {
     display: flex;
     flex-direction: column;
-    gap: 2px;
+    gap: 8px;
 }
 
-/* Combat Info */
-.combat-info {
-    background: #1f2937;
-    border-radius: 12px;
-    padding: 24px;
-}
-
-.combat-info h3 {
-    margin: 0 0 16px 0;
-    color: #a5b4fc;
-    font-size: 1.2rem;
-}
-
-.combat-stats {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 16px;
-}
-
-.combat-stat {
+.level-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px;
     background: #374151;
-    border-radius: 8px;
-    padding: 16px;
+    border-radius: 6px;
+}
+
+.level-badge {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: white;
+    min-width: 60px;
     text-align: center;
 }
 
-.combat-stat label {
-    display: block;
-    color: #9ca3af;
-    font-size: 0.9rem;
-    margin-bottom: 8px;
+.level-badge.level-1 { background: #6b7280; }
+.level-badge.level-2 { background: #10b981; }
+.level-badge.level-3 { background: #3b82f6; }
+.level-badge.level-4 { background: #8b5cf6; }
+.level-badge.level-5 { background: #f59e0b; }
+
+.level-name {
+    color: #eee;
+    font-weight: 500;
+    min-width: 80px;
 }
 
-.combat-stat span {
-    font-size: 1.4rem;
-    font-weight: bold;
+.level-requirement {
+    color: #9ca3af;
+    font-size: 0.85rem;
+}
+
+/* Progression Tips */
+.progression-item ul {
+    margin: 0;
+    padding-left: 20px;
+    color: #9ca3af;
+}
+
+.progression-item li {
+    margin-bottom: 8px;
+    line-height: 1.4;
+}
+
+.progression-item strong {
     color: #eee;
 }
 
 .no-attributes {
     grid-column: 1 / -1;
     text-align: center;
-    color: #6b7280;
-    padding: 40px 20px;
+    color: #9ca3af;
+    padding: 32px;
 }
 
-/* Responsive Design */
+/* Responsive design for mobile */
 @media (max-width: 768px) {
-    .character-stats {
+    .character-header-content {
         flex-direction: column;
-        gap: 16px;
+        align-items: center;
+        text-align: center;
     }
 
-    .attributes-grid {
-        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    .character-avatar-upload {
+        width: 120px;
+        height: 120px;
     }
 
-    .combat-stats {
+    .progression-info {
         grid-template-columns: 1fr;
+        gap: 24px;
     }
 
-    .character-sheet {
+    .level-item {
+        flex-direction: column;
+        text-align: center;
+        gap: 4px;
+    }
+
+    .level-badge {
+        min-width: auto;
+    }
+}
+
+@media (max-width: 480px) {
+    .progression-section {
         padding: 16px;
     }
 
-    .character-header,
-    .attributes-section,
-    .combat-info {
-        padding: 16px;
+    .summary-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 2px;
     }
+}-items: center;
+text-align: center;
+}
+
+.character-avatar-upload {
+    width: 120px;
+    height: 120px;
+}
 }
