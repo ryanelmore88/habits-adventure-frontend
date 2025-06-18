@@ -34,6 +34,14 @@ export class CombatEngine {
                 dicePool: "6d4+2",
                 xpReward: 200,
                 lootTable: ["rare_weapon", "gold", "gem"]
+            },
+            dragon: {
+                name: "Young Dragon",
+                level: 5,
+                maxHp: 84,
+                dicePool: "2d12",
+                xpReward: 400,
+                lootTable: ["dragon scale", "gold", "gem"]
             }
         };
     }

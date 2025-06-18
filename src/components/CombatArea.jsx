@@ -1,22 +1,13 @@
-
-// File: src/components/CombatArea.jsx
-// Updated to use character-based dice pool system
+// src/components/CombatArea.jsx
 
 import { useState, useEffect, useRef } from 'react';
 import { useCharacter } from '../contexts/CharacterContext';
 import { useCombat } from '../hooks/useCombat';
-import '../styles/CombatArea.css';
+import '../styles/CombatArea.css'; // Import your styles here
+
 
 const CombatArea = ({ onAdventureComplete }) => {
-    const {
-        selectedCharacter,
-        characterInstance,
-        refreshCharacter,
-        updateTemporaryHp,
-        clearTemporaryHp,
-        getCharacterDicePool
-    } = useCharacter();
-
+    const { selectedCharacter, refreshCharacter, updateTemporaryHp, clearTemporaryHp } = useCharacter();
     const { combatState, startCombat, executeRound, resetCombat, availableEnemies } = useCombat(selectedCharacter);
     const [diceBox, setDiceBox] = useState(null);
     const [isRolling, setIsRolling] = useState(false);
@@ -25,59 +16,6 @@ const CombatArea = ({ onAdventureComplete }) => {
     const diceBoxRef = useRef(null);
     const cleanupTimeoutRef = useRef(null);
 
-    // Hard-coded enemy templates
-    const enemyTemplates = [
-        {
-            id: 'goblin',
-            name: 'Goblin',
-            level: 1,
-            maxHp: 15,
-            currentHp: 15,
-            dicePool: '2d4',
-            description: 'A weak but cunning creature. Good for beginners.',
-            xpReward: 10
-        },
-        {
-            id: 'orc',
-            name: 'Orc',
-            level: 2,
-            maxHp: 25,
-            currentHp: 25,
-            dicePool: '1d6 + 1d4',
-            description: 'A brutal warrior with decent fighting skills.',
-            xpReward: 20
-        },
-        {
-            id: 'skeleton',
-            name: 'Skeleton',
-            level: 2,
-            maxHp: 20,
-            currentHp: 20,
-            dicePool: '2d6',
-            description: 'Undead fighter that feels no pain.',
-            xpReward: 15
-        },
-        {
-            id: 'troll',
-            name: 'Troll',
-            level: 3,
-            maxHp: 40,
-            currentHp: 40,
-            dicePool: '1d8 + 1d6',
-            description: 'A large, regenerating beast. Very dangerous!',
-            xpReward: 35
-        },
-        {
-            id: 'dragon',
-            name: 'Young Dragon',
-            level: 5,
-            maxHp: 80,
-            currentHp: 80,
-            dicePool: '2d12',
-            description: 'A powerful dragon. Only for the most skilled warriors!',
-            xpReward: 100
-        }
-    ];
 
     // Update character HP when selected character changes
     useEffect(() => {
@@ -120,44 +58,79 @@ const CombatArea = ({ onAdventureComplete }) => {
                 }
 
                 // Import DiceBox dynamically
-                const { DiceBox } = await import('@3d-dice/dice-box');
+                const { default: DiceBox } = await import('@3d-dice/dice-box');
 
                 if (!mounted) return;
 
-                // Create new dice box with combat-specific configuration
-                currentDiceBox = new DiceBox(
-                    "#combat-dice-container",
-                    {
-                        id: "combat-dice-box",
-                        assetPath: "/assets/dice-box/",
-                        theme: "default",
-                        themeColor: "#1f2937",
-                        offscreen: false,
-                        scale: 6,
-                        gravity: 1,
-                        mass: 1,
-                        friction: 0.8,
-                        restitution: 0.3,
-                        angularDamping: 0.4,
-                        linearDamping: 0.5
+                const newDiceBox = new DiceBox('#combat-dice-container', {
+                    id: 'combat-dice-canvas',
+                    assetPath: '/assets/dice-box/',
+                    startingHeight: 25,
+                    throwForce: 15,
+                    spinForce: 12,
+                    lightIntensity: 1.5,
+                    scale: 6, // Dice size
+                    shadowIntensity: 0.8,
+                    // Force the canvas to fill the entire viewport
+                    worldWidth: window.innerWidth * 2,
+                    worldHeight: window.innerHeight * 2,
+                    offscreenBuffer: 0,
+                    enableShadows: true,
+                    theme: 'default',
+                    gravity: 1,
+                    settleTimeout: 3000,
+                    delay: 0
+                });
+
+                await newDiceBox.init();
+
+                if (!mounted) {
+                    if (newDiceBox.destroy) {
+                        newDiceBox.destroy();
                     }
-                );
-
-                if (!mounted) return;
-
-                // Initialize the dice box
-                await currentDiceBox.init();
-
-                if (mounted) {
-                    diceBoxRef.current = currentDiceBox;
-                    setDiceBox(currentDiceBox);
+                    return;
                 }
+
+                // DON'T manipulate canvas after offscreen transfer - just set container size
+                const container = document.getElementById('combat-dice-container');
+                if (container) {
+                    container.style.width = '100vw';
+                    container.style.height = '100vh';
+                    container.style.position = 'fixed';
+                    container.style.top = '0';
+                    container.style.left = '0';
+                    container.style.zIndex = '1000';
+                }
+
+                currentDiceBox = newDiceBox;
+                diceBoxRef.current = newDiceBox;
+                setDiceBox(newDiceBox);
+
+                // Set up dice roll completion callback
+                newDiceBox.onRollComplete = (results) => {
+                    console.log('Dice roll completed:', results);
+
+                    // Clear dice after a delay
+                    if (cleanupTimeoutRef.current) {
+                        clearTimeout(cleanupTimeoutRef.current);
+                    }
+
+                    cleanupTimeoutRef.current = setTimeout(() => {
+                        if (mounted && diceBoxRef.current) {
+                            try {
+                                diceBoxRef.current.clear();
+                                diceBoxRef.current.hide();
+                            } catch (e) {
+                                console.warn('Error clearing dice:', e);
+                            }
+                        }
+                        // Set rolling to false after cleanup
+                        setIsRolling(false);
+                    }, 3000);
+                };
 
             } catch (error) {
                 console.error('Failed to initialize dice box:', error);
-                if (mounted) {
-                    setDiceBox(null);
-                }
             }
         };
 
@@ -165,75 +138,167 @@ const CombatArea = ({ onAdventureComplete }) => {
 
         return () => {
             mounted = false;
+
+            // Clear any pending timeouts
             if (cleanupTimeoutRef.current) {
                 clearTimeout(cleanupTimeoutRef.current);
             }
-            if (currentDiceBox) {
+
+            // Clean up dice box
+            if (diceBoxRef.current) {
                 try {
-                    if (currentDiceBox.clear) currentDiceBox.clear();
-                    if (currentDiceBox.destroy) currentDiceBox.destroy();
+                    if (diceBoxRef.current.clear) {
+                        diceBoxRef.current.clear();
+                    }
+                    if (diceBoxRef.current.hide) {
+                        diceBoxRef.current.hide();
+                    }
+                    if (diceBoxRef.current.destroy) {
+                        diceBoxRef.current.destroy();
+                    }
                 } catch (e) {
-                    console.warn('Error during dice box cleanup:', e);
+                    console.warn('Error destroying dice box:', e);
                 }
+                diceBoxRef.current = null;
             }
         };
     }, []);
 
-    // Roll dice for both character and enemy
-    const rollCombatDice = async () => {
-        if (!diceBox || isRolling) return;
+    // Calculate character's dice pool based on attributes
+    const getCharacterDicePool = () => {
+        if (!selectedCharacter?.attributes) {
+            return {
+                dicePool: '1d4',
+                totalDice: 1,
+                description: 'Default (no attributes found)'
+            };
+        }
 
+        const attributeNames = ['strength', 'dexterity', 'intelligence', 'wisdom', 'charisma'];
+        const breakdown = {};
+        let totalDice = 0;
+
+        attributeNames.forEach(attrName => {
+            const attribute = selectedCharacter.attributes[attrName];
+            if (attribute) {
+                const score = attribute.base || 10;
+                const diceCount = Math.max(1, Math.floor((score - 8) / 3));
+                breakdown[attrName] = diceCount;
+                totalDice += diceCount;
+            }
+        });
+
+        return {
+            dicePool: `${totalDice}d4`,
+            totalDice,
+            breakdown,
+            description: `${totalDice} dice from: ${Object.entries(breakdown).map(([attr, count]) => `${attr.slice(0,3)}(${count})`).join(', ')}`
+        };
+    };
+
+    // Roll dice with improved performance
+    const rollDice = async (playerDiceInfo, enemyDicePool) => {
+        if (!diceBox || !diceBoxRef.current || isRolling) {
+            console.warn('Cannot roll - dice not ready or already rolling');
+            return null;
+        }
+
+        // Prevent multiple rolls
         setIsRolling(true);
 
+        // Clear any pending cleanup timeout
+        if (cleanupTimeoutRef.current) {
+            clearTimeout(cleanupTimeoutRef.current);
+            cleanupTimeoutRef.current = null;
+        }
+
+        // Clear any existing dice before rolling
         try {
-            // Clear previous dice
-            diceBox.clear();
+            await diceBoxRef.current.hide();
+            await diceBoxRef.current.clear();
+            // Small delay to ensure cleanup
+            await new Promise(resolve => setTimeout(resolve, 100));
+        } catch (e) {
+            console.warn('Error clearing dice before roll:', e);
+        }
 
-            // Get character dice pool from the Character class
-            const characterDicePool = getCharacterDicePool();
-            const enemyNotation = combatState.enemy.dicePool || '2d6';
+        try {
+            await diceBoxRef.current.show();
 
-            console.log('Character dice pool:', characterDicePool);
+            // Parse dice pools
+            const playerDiceCount = playerDiceInfo.totalDice || 1;
+            const enemyDiceMatch = enemyDicePool.match(/(\d+)d(\d+)/);
+            const enemyDiceCount = enemyDiceMatch ? parseInt(enemyDiceMatch[1]) : 1;
+            const enemyDiceSize = enemyDiceMatch ? parseInt(enemyDiceMatch[2]) : 4;
 
-            // Roll character dice (blue)
-            const characterRoll = await diceBox.roll([{
-                qty: characterDicePool.diceCount,
-                sides: 6,
-                themeColor: '#3b82f6'
-            }]);
+            // Create individual dice objects for both player and enemy
+            const allDice = [];
 
-            // Small delay before enemy dice
-            await new Promise(resolve => setTimeout(resolve, 200));
+            // Player dice (blue)
+            for (let i = 0; i < playerDiceCount; i++) {
+                allDice.push({
+                    qty: 1,
+                    sides: 4,
+                    themeColor: '#3b82f6'
+                });
+            }
 
-            // Roll enemy dice (red)
-            const enemyRoll = await diceBox.roll([{
-                qty: parseInt(enemyNotation.split('d')[0]) || 2,
-                sides: 6,
-                themeColor: '#ef4444'
-            }]);
+            // Enemy dice (red)
+            for (let i = 0; i < enemyDiceCount; i++) {
+                allDice.push({
+                    qty: 1,
+                    sides: enemyDiceSize,
+                    themeColor: '#ef4444'
+                });
+            }
 
-            // Calculate totals
-            const characterTotal = characterRoll.reduce((sum, die) => sum + die.value, 0) + characterDicePool.bonus;
-            const enemyTotal = enemyRoll.reduce((sum, die) => sum + die.value, 0);
+            console.log('Rolling dice:', { playerDiceCount, enemyDiceCount, enemyDiceSize, totalDice: allDice.length });
 
-            const diceResults = {
-                playerTotal: characterTotal,
-                enemyTotal: enemyTotal,
-                characterRoll: characterRoll,
-                enemyRoll: enemyRoll
+            // Roll all dice at once
+            const allRolls = await diceBoxRef.current.roll(allDice);
+
+            console.log('Roll results:', allRolls);
+
+            // Split results between player and enemy
+            const playerRolls = allRolls.slice(0, playerDiceCount);
+            const enemyRolls = allRolls.slice(playerDiceCount);
+
+            const playerTotal = playerRolls.reduce((sum, die) => sum + (die.value || 0), 0);
+            const enemyTotal = enemyRolls.reduce((sum, die) => sum + (die.value || 0), 0);
+
+            console.log('Totals:', { playerTotal, enemyTotal, playerRolls, enemyRolls });
+
+            // Return results immediately - isRolling will be set to false by onRollComplete
+            return {
+                playerTotal,
+                enemyTotal,
+                playerRolls,
+                enemyRolls
             };
-
-            processCombatRound(diceResults, characterDicePool);
 
         } catch (error) {
             console.error('Error rolling dice:', error);
+            // Reset rolling state on error
             setIsRolling(false);
+            return null;
         }
     };
 
-    // Process the results of a combat round
-    const processCombatRound = (diceResults, characterDicePool) => {
+    // Enhanced combat round with local HP tracking
+    const handleCombatRound = async () => {
+        if (isRolling || combatState.phase !== 'active') {
+            console.log('Cannot start combat round - rolling:', isRolling, 'phase:', combatState.phase);
+            return;
+        }
+
+        const characterDiceInfo = getCharacterDicePool();
+
+        // Roll the dice
+        const diceResults = await rollDice(characterDiceInfo, combatState.enemy.dicePool);
+
         if (!diceResults) {
+            // Fallback if dice roll fails
+            console.warn('Dice roll failed, using fallback');
             setIsRolling(false);
             return;
         }
@@ -259,13 +324,12 @@ const CombatArea = ({ onAdventureComplete }) => {
             if (winner === 'enemy') {
                 const newHp = Math.max(0, characterCurrentHp - damage);
                 setCharacterCurrentHp(newHp);
-                // This will trigger the useEffect that updates the context
             }
 
             const roundResult = {
                 characterRoll: playerTotal,
                 enemyRoll: enemyTotal,
-                characterDice: characterDicePool,
+                characterDice: characterDiceInfo,
                 enemyDice: { dicePool: combatState.enemy.dicePool },
                 damage: damage,
                 winner: winner,
@@ -274,7 +338,6 @@ const CombatArea = ({ onAdventureComplete }) => {
             };
 
             executeRound(roundResult);
-            setIsRolling(false);
         }, 1000); // Give dice time to display results
     };
 
@@ -317,8 +380,7 @@ const CombatArea = ({ onAdventureComplete }) => {
         );
     }
 
-    // Get character dice pool info for display
-    const characterDicePool = getCharacterDicePool();
+    const characterDiceInfo = getCharacterDicePool();
 
     return (
         <div className="combat-area">
@@ -335,171 +397,146 @@ const CombatArea = ({ onAdventureComplete }) => {
                     height: '100%',
                     pointerEvents: 'none',
                     zIndex: 9999,
-                    background: isRolling ? 'rgba(0,0,0,0.1)' : 'transparent'
+                    background: isRolling ? 'rgba(0, 0, 0, 0.3)' : 'transparent'
                 }}
-            />
+            ></div>
 
-            {/* Combat UI */}
-            <div className="combat-ui">
-                {combatState.phase === 'idle' && (
-                    <div className="pre-combat">
-                        <h2>Choose Your Enemy</h2>
+            {/* Removed to use the CharacterStatusWithImage component */}
+            {/* Character Status */}
+            {/*<div className="character-status">*/}
+            {/*    <h3>{selectedCharacter.name}</h3>*/}
+            {/*    <div className="hp-bar">*/}
+            {/*        <div*/}
+            {/*            className="hp-fill"*/}
+            {/*            style={{*/}
+            {/*                width: `${(characterCurrentHp / (selectedCharacter.max_hp || 20)) * 100}%`,*/}
+            {/*                backgroundColor: characterCurrentHp > (selectedCharacter.max_hp || 20) * 0.5 ? '#10b981' :*/}
+            {/*                    characterCurrentHp > (selectedCharacter.max_hp || 20) * 0.2 ? '#f59e0b' : '#ef4444'*/}
+            {/*            }}*/}
+            {/*        ></div>*/}
+            {/*        <span className="hp-text">{characterCurrentHp}/{selectedCharacter.max_hp || 20} HP</span>*/}
+            {/*    </div>*/}
+            {/*    <div className="character-dice-info">*/}
+            {/*        <p><strong>Dice Pool:</strong> {characterDiceInfo.dicePool}</p>*/}
+            {/*        <p><strong>Breakdown:</strong> {characterDiceInfo.description}</p>*/}
+            {/*    </div>*/}
+            {/*</div>*/}
 
-                        {/* Character Combat Summary */}
-                        <div className="character-combat-summary">
-                            <h3>{selectedCharacter.name} - Combat Ready</h3>
-                            <div className="combat-stats-summary">
-                                <div className="stat-item">
-                                    <span className="stat-label">Combat Dice:</span>
-                                    <span className="stat-value">{characterDicePool.notation}</span>
+            {/* Enemy Selection */}
+            {combatState.phase === 'selection' && (
+                <div className="enemy-selection">
+                    <h3>Choose your opponent:</h3>
+                    <div className="enemy-buttons">
+                        {availableEnemies.map(enemyType => (
+                            <button
+                                key={enemyType}
+                                onClick={() => startCombat(enemyType)}
+                                className="enemy-button"
+                            >
+                                <div className="enemy-name">{enemyType.charAt(0).toUpperCase() + enemyType.slice(1)}</div>
+                                <div className="enemy-details">
+                                    Level {enemyType === 'goblin' || enemyType === 'skeleton' ? 1 :
+                                    enemyType === 'orc' ? 2 : 5}
                                 </div>
-                                <div className="stat-item">
-                                    <span className="stat-label">HP:</span>
-                                    <span className="stat-value">{characterCurrentHp}/{selectedCharacter.max_hp}</span>
-                                </div>
-                            </div>
+                            </button>
+                        ))}
+                    </div>
+                </div>
+            )}
 
-                            {/* Dice Pool Breakdown */}
-                            <div className="dice-breakdown">
-                                <h4>Dice Pool Breakdown:</h4>
-                                <div className="breakdown-details">
-                                    {characterDicePool.details.map(detail => (
-                                        <div key={detail.name} className="breakdown-item">
-                                            <span className="attr-name">{detail.name.charAt(0).toUpperCase() + detail.name.slice(1)}:</span>
-                                            <span className="attr-contribution">Level {detail.level} ({detail.dice} dice, {detail.bonus >= 0 ? '+' : ''}{detail.bonus} bonus)</span>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
+            {/* Active Combat */}
+            {combatState.phase === 'active' && combatState.enemy && (
+                <div className="active-combat">
+                    <div className="enemy-status">
+                        <h3>{combatState.enemy.name}</h3>
+                        <div className="hp-bar">
+                            <div
+                                className="hp-fill enemy-hp"
+                                style={{
+                                    width: `${(combatState.enemy.currentHp / combatState.enemy.maxHp) * 100}%`
+                                }}
+                            ></div>
+                            <span className="hp-text">{combatState.enemy.currentHp}/{combatState.enemy.maxHp} HP</span>
                         </div>
-
-                        {/* Enemy Selection Grid */}
-                        <div className="enemy-selection">
-                            <h3>Available Enemies</h3>
-                            <div className="enemy-grid">
-                                {enemyTemplates.map(enemy => (
-                                    <div key={enemy.id} className="enemy-card">
-                                        <h4 className="enemy-name">{enemy.name}</h4>
-                                        <div className="enemy-stats">
-                                            <span className="enemy-level">Level {enemy.level}</span>
-                                            <span className="enemy-hp">HP: {enemy.maxHp}</span>
-                                            <span className="enemy-dice">Dice: {enemy.dicePool}</span>
-                                        </div>
-                                        <p className="enemy-description">{enemy.description}</p>
-                                        <div className="enemy-reward">XP Reward: {enemy.xpReward}</div>
-                                        <button
-                                            onClick={() => startCombat(enemy)}
-                                            className="start-combat-btn"
-                                        >
-                                            Fight {enemy.name}
-                                        </button>
-                                    </div>
-                                ))}
-                            </div>
+                        <div className="enemy-dice-info">
+                            <p><strong>Dice Pool:</strong> {combatState.enemy.dicePool}</p>
                         </div>
                     </div>
-                )}
 
-                {(combatState.phase === 'active' || combatState.phase === 'victory' || combatState.phase === 'defeat') && (
-                    <div className="active-combat">
-                        <div className="combat-header">
-                            <h2>Combat vs {combatState.enemy?.name}</h2>
-                        </div>
+                    <div className="combat-controls">
+                        <button
+                            onClick={handleCombatRound}
+                            className="attack-button"
+                            disabled={isRolling}
+                        >
+                            {isRolling ? '🎲 Rolling Dice...' : '🎲 Roll for Combat!'}
+                        </button>
 
-                        <div className="combat-stats">
-                            <div className="character-combat-info">
-                                <h3>{selectedCharacter.name}</h3>
-                                <div className="hp-display">
-                                    HP: {characterCurrentHp}/{selectedCharacter.max_hp}
-                                </div>
-                                <div className="dice-info">
-                                    Dice: {characterDicePool.notation}
-                                </div>
-                            </div>
-
-                            <div className="vs-divider">VS</div>
-
-                            <div className="enemy-combat-info">
-                                <h3>{combatState.enemy?.name}</h3>
-                                <div className="hp-display">
-                                    HP: {combatState.enemy?.currentHp}/{combatState.enemy?.maxHp}
-                                </div>
-                                <div className="dice-info">
-                                    Dice: {combatState.enemy?.dicePool || '2d6'}
-                                </div>
-                            </div>
-                        </div>
-
-                        {combatState.phase === 'active' && (
-                            <div className="combat-actions">
-                                <button
-                                    onClick={rollCombatDice}
-                                    disabled={isRolling}
-                                    className="roll-dice-btn"
-                                >
-                                    {isRolling ? 'Rolling...' : 'Roll for Attack!'}
-                                </button>
-                            </div>
-                        )}
-
-                        {/* Combat Log */}
-                        {combatState.roundHistory.length > 0 && (
-                            <div className="combat-log">
-                                <h4>Combat Log</h4>
-                                <div className="log-entries">
-                                    {combatState.roundHistory.map((round, index) => (
-                                        <div key={index} className="log-entry">
-                                            <span className="round-number">Round {index + 1}:</span>
-                                            <span className="character-roll">You rolled {round.characterRoll}</span>
-                                            <span className="enemy-roll">{combatState.enemy.name} rolled {round.enemyRoll}</span>
-                                            {round.winner === 'character' && (
-                                                <span className="damage-dealt">You deal {round.damage} damage!</span>
-                                            )}
-                                            {round.winner === 'enemy' && (
-                                                <span className="damage-taken">You take {round.damage} damage!</span>
-                                            )}
-                                            {round.winner === 'tie' && (
-                                                <span className="tie">Tie! No damage dealt.</span>
-                                            )}
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
-
-                        {/* Combat End */}
-                        {(combatState.phase === 'victory' || combatState.phase === 'defeat') && (
-                            <div className="combat-end">
-                                {combatState.phase === 'victory' && (
-                                    <div className="victory">
-                                        <h3>Victory!</h3>
-                                        <p>You defeated the {combatState.enemy?.name}!</p>
-                                        <p>Gained {combatState.totalXpGained} XP</p>
-                                        {combatState.totalLoot.length > 0 && (
-                                            <p>Found {combatState.totalLoot.length} items!</p>
-                                        )}
-                                    </div>
-                                )}
-
-                                {combatState.phase === 'defeat' && (
-                                    <div className="defeat">
-                                        <h3>Defeat!</h3>
-                                        <p>You were defeated by the {combatState.enemy?.name}!</p>
-                                        <p>Gained {combatState.totalXpGained} XP for trying</p>
-                                    </div>
-                                )}
-
-                                <button
-                                    onClick={handleAdventureComplete}
-                                    className="complete-adventure-btn"
-                                >
-                                    Complete Adventure
-                                </button>
-                            </div>
+                        {isRolling && (
+                            <p className="rolling-text">Watch the dice fly!</p>
                         )}
                     </div>
-                )}
-            </div>
+
+                    <div className="combat-log">
+                        <h4>Combat Log</h4>
+                        {combatState.combatLog.map((round, index) => (
+                            <div key={index} className="combat-round">
+                                <div className="roll-summary">
+                                    <span className="player-roll">
+                                        🔵 You: {round.characterRoll} ({round.characterDice?.dicePool || 'unknown'})
+                                    </span>
+                                    <span className="vs">vs</span>
+                                    <span className="enemy-roll">
+                                        🔴 {combatState.enemy.name}: {round.enemyRoll} ({round.enemyDice?.dicePool || 'unknown'})
+                                    </span>
+                                </div>
+
+                                {round.winner === 'character' && (
+                                    <p className="victory-text">💥 You deal {round.damage} damage!</p>
+                                )}
+                                {round.winner === 'enemy' && (
+                                    <p className="damage-text">🩸 You take {round.damage} damage!</p>
+                                )}
+                                {round.winner === 'tie' && (
+                                    <p className="tie-text">⚔️ It's a tie! No damage dealt.</p>
+                                )}
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
+
+            {/* Victory Screen */}
+            {combatState.phase === 'victory' && (
+                <div className="victory-screen">
+                    <h2>🎉 Victory!</h2>
+                    <p>You defeated the {combatState.enemy.name}!</p>
+                    <p><strong>XP Gained:</strong> {combatState.totalXpGained}</p>
+                    {combatState.totalLoot.length > 0 && (
+                        <div className="loot">
+                            <h4>Loot Found:</h4>
+                            {combatState.totalLoot.map(item => (
+                                <p key={item.id}>{item.quantity}x {item.type}</p>
+                            ))}
+                        </div>
+                    )}
+                    <button onClick={handleAdventureComplete} className="complete-button">
+                        Complete Adventure
+                    </button>
+                </div>
+            )}
+
+            {/* Defeat Screen */}
+            {combatState.phase === 'defeat' && (
+                <div className="defeat-screen">
+                    <h2>💀 Defeat...</h2>
+                    <p>You have been slain by the {combatState.enemy.name}!</p>
+                    <p>Don't worry, you can heal up and try again.</p>
+                    <button onClick={handleAdventureComplete} className="complete-button">
+                        Return to Town
+                    </button>
+                </div>
+            )}
         </div>
     );
 };

@@ -1,5 +1,8 @@
+// File: src/components/dice/DiceRoller.jsx
+// Updated for full-screen dice rolling support
+
 import "../../styles/App.css";
-import DisplayResults from "@3d-dice/dice-ui/src/displayResults"; // fui index exports are messed up -> going to src
+import DisplayResults from "@3d-dice/dice-ui/src/displayResults";
 import DiceParser from "@3d-dice/dice-parser-interface";
 import { Dice } from "./DiceBox.js";
 import AdvRollBtn from "./AdvRollBtn.jsx";
@@ -10,22 +13,54 @@ const DRP = new DiceParser();
 // create display overlay for final results
 const DiceResults = new DisplayResults("#dice-box");
 
-// initialize the dice Box outside of the component
+// Enhanced initialization for full-screen support
 Dice.init().then(() => {
-    // clear dice on click anywhere on the screen
-    document.addEventListener("mousedown", () => {
+    console.log("Dice initialized for full-screen rolling");
+
+    // Enhanced click handler for full-screen clearing
+    document.addEventListener("mousedown", (event) => {
         const diceBoxCanvas = document.getElementById("dice-canvas");
-        if (window.getComputedStyle(diceBoxCanvas).display !== "none") {
+        const diceBox = document.getElementById("dice-box");
+
+        // Only clear if dice box is visible and not clicking on UI buttons
+        if (diceBoxCanvas &&
+            window.getComputedStyle(diceBoxCanvas).display !== "none" &&
+            !event.target.closest('button') &&
+            !event.target.closest('.dice-ui-results')) {
+
             Dice.hide().clear();
             DiceResults.clear();
+
+            // Hide the full-screen overlay
+            if (diceBox) {
+                diceBox.classList.remove('rolling');
+                diceBox.style.display = 'none';
+            }
+        }
+    });
+
+    // Optional: ESC key to clear dice
+    document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape") {
+            const diceBoxCanvas = document.getElementById("dice-canvas");
+            if (diceBoxCanvas && window.getComputedStyle(diceBoxCanvas).display !== "none") {
+                Dice.hide().clear();
+                DiceResults.clear();
+
+                const diceBox = document.getElementById("dice-box");
+                if (diceBox) {
+                    diceBox.classList.remove('rolling');
+                    diceBox.style.display = 'none';
+                }
+            }
         }
     });
 });
 
 export default function App() {
-    // This method is triggered whenever dice are finished rolling
+    // Enhanced roll complete handler
     Dice.onRollComplete = (results) => {
-        console.log(results);
+        console.log("Full-screen dice roll results:", results);
 
         // handle any rerolls
         const rerolls = DRP.handleRerolls(results);
@@ -33,15 +68,34 @@ export default function App() {
             rerolls.forEach((roll) => Dice.add(roll, roll.groupId));
             return rerolls;
         }
+
         // if no rerolls needed then parse the final results
         const finalResults = DRP.parseFinalResults(results);
 
-        // show the results
+        // show the results with enhanced full-screen display
         DiceResults.showResults(finalResults);
+
+        // Keep dice box visible for result viewing
+        const diceBox = document.getElementById("dice-box");
+        if (diceBox) {
+            diceBox.classList.add('rolling'); // Keep it visible
+        }
     };
 
-    // trigger dice roll
+    // Enhanced dice roll trigger for full-screen
     const rollDice = (notation, group) => {
+        console.log(`Rolling ${notation} in full-screen mode`);
+
+        // Show the full-screen dice box
+        const diceBox = document.getElementById("dice-box");
+        if (diceBox) {
+            diceBox.classList.add('rolling');
+            diceBox.style.display = 'block';
+        }
+
+        // Clear any previous results
+        DiceResults.clear();
+
         // trigger the dice roll using the parser
         Dice.show().roll(DRP.parseNotation(notation));
     };
@@ -49,106 +103,65 @@ export default function App() {
     return (
         <div className="App">
             {/*
-        1) This empty div is where Dice-Box will inject its <canvas>.
-        2) We’ll absolutely/fixed-position it in CSS so it floats over the page.
-      */}
-        <div id="dice-box"/>
-            <h1>Dice Rolling Demo</h1>
-            <p>
-                supports most notations seen at{" "}
-                <a
-                    href="https://wiki.roll20.net/Dice_Reference#Roll20_Dice_Specification"
-                    target="_blank"
-                >
-                    Roll20_Dice_Specification
-                </a>
-            </p>
-            <div className="buttonList">
-                <span className="header">Roll Action</span>
+                This empty div is where Dice-Box will inject its <canvas>.
+                The CSS will position it to fill the entire viewport when rolling.
+            */}
+            <div id="dice-box"></div>
+
+            <h1>Full-Screen Dice Rolling</h1>
+            <p>Click anywhere on the screen (except buttons) or press ESC to clear dice</p>
+
+            <div className="diceButtonList">
+                <span className="header">Standard Dice</span>
                 <span className="header">Notation</span>
-                <span className="header">Explaination</span>
-                <AdvRollBtn
-                    label="d20 Advantage"
-                    notation="2d20kh1"
-                    onRoll={rollDice}
-                />
-                <span className="notation">'2d20kh1'</span>
-                <span className="exp">Roll '2d20' keeping the highest of the two</span>
+                <span className="header">Description</span>
 
-                <AdvRollBtn
-                    label="Attribute Roll"
-                    notation="4d6dl1"
-                    onRoll={rollDice}
-                />
-                <span className="notation">'4d6dl1'</span>
-                <span className="exp">
-          Roll '4d6' and drop the lowest result of the group. A common roll for
-          attributes.
-        </span>
+                <button onClick={() => rollDice("1d4")}>d4</button>
+                <span className="diceNotation">1d4</span>
+                <span>Four-sided die</span>
 
-                <AdvRollBtn label="Exploding Roll" notation="8d6!" onRoll={rollDice}/>
-                <span className="notation">'8d6!'</span>
-                <span className="exp">
-          Roll '8d6' and add a additional 'd6' roll for every die that results
-          in 6
-        </span>
+                <button onClick={() => rollDice("1d6")}>d6</button>
+                <span className="diceNotation">1d6</span>
+                <span>Six-sided die</span>
 
-                <AdvRollBtn
-                    label="Great Weapon Fighting"
-                    notation="2d10ro<2"
-                    onRoll={rollDice}
-                />
-                <span className="notation">'2d10ro&lt;2'</span>
-                <span className="exp">
-          Roll '2d10' and reroll only once results that are a 2 or 1.
-        </span>
+                <button onClick={() => rollDice("1d8")}>d8</button>
+                <span className="diceNotation">1d8</span>
+                <span>Eight-sided die</span>
 
-                <AdvRollBtn label="Target > 7" notation="10d10>7" onRoll={rollDice}/>
-                <span className="notation">'10d10&gt;7'</span>
-                <span className="exp">
-          Roll '10d10' and count up the number of rolls that are 7 or greater
-        </span>
+                <button onClick={() => rollDice("1d10")}>d10</button>
+                <span className="diceNotation">1d10</span>
+                <span>Ten-sided die</span>
 
-                <AdvRollBtn
-                    label="Colossus Slayer + Hunter's Mark"
-                    notation="1d8+1d8+1d6"
-                    onRoll={rollDice}
-                />
-                <span className="notation">'1d8+1d8+1d6'</span>
-                <span className="exp">
-          Roll '1d8' + '1d8' + '1d6' and add the results together
-        </span>
+                <button onClick={() => rollDice("1d12")}>d12</button>
+                <span className="diceNotation">1d12</span>
+                <span>Twelve-sided die</span>
 
-                <AdvRollBtn
-                    label="Spot Check 60% - Normal"
-                    notation="1d100<60"
-                    onRoll={rollDice}
-                />
-                <span className="notation">'1d100&lt;60'</span>
-                <span className="exp">
-          Roll a '1d100' and note success if the result is less than 60
-        </span>
+                <button onClick={() => rollDice("1d20")}>d20</button>
+                <span className="diceNotation">1d20</span>
+                <span>Twenty-sided die</span>
 
-                <AdvRollBtn
-                    label="Spot Check 60% - Hard"
-                    notation="1d100<(60/2)"
-                    onRoll={rollDice}
-                />
-                <span className="notation">'1d100&lt;(60/2)'</span>
-                <span className="exp">
-          Roll a '1d100' and note success if the result is less than 30
-        </span>
+                <button onClick={() => rollDice("1d100")}>d100</button>
+                <span className="diceNotation">1d100</span>
+                <span>Hundred-sided die</span>
 
-                <AdvRollBtn
-                    label="Spot Check 60% - Extreme"
-                    notation="1d100<(60/5)"
-                    onRoll={rollDice}
-                />
-                <span className="notation">'1d100&lt;(60/5)'</span>
-                <span className="exp">
-          Roll a '1d100' and note success if the result is less than 12
-        </span>
+                <span className="header">Multiple Dice</span>
+                <span className="header">Notation</span>
+                <span className="header">Description</span>
+
+                <button onClick={() => rollDice("2d6")}>2d6</button>
+                <span className="diceNotation">2d6</span>
+                <span>Two six-sided dice</span>
+
+                <button onClick={() => rollDice("3d6")}>3d6</button>
+                <span className="diceNotation">3d6</span>
+                <span>Three six-sided dice</span>
+
+                <button onClick={() => rollDice("4d6")}>4d6</button>
+                <span className="diceNotation">4d6</span>
+                <span>Four six-sided dice</span>
             </div>
+
+            <AdvRollBtn onRoll={rollDice} />
         </div>
     );
 }
