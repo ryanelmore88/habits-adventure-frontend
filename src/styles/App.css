@@ -204,7 +204,7 @@
 
   .header-character-status.full-width-header .character-avatar,
   .header-character-status.full-width-header .character-avatar-placeholder {
-    width: 80px;
+    width: 400px;
     height: 80px;
   }
 
@@ -292,5 +292,23 @@
 
   .equipment-slot {
     padding: 16px 12px;
+  }
+}
+
+/* Full-width header HP bar - make it much longer */
+.header-character-status.full-width-header .hp-bar-container {
+  min-width: 600px !important; /* Increased from 400px */
+}
+
+/* Responsive overrides for larger HP bars */
+@media (max-width: 768px) {
+  .header-character-status.full-width-header .hp-bar-container {
+    min-width: 250px !important; /* Increased from 120px */
+  }
+}
+
+@media (max-width: 480px) {
+  .header-character-status.full-width-header .hp-bar-container {
+    min-width: 180px !important; /* Increased from 100px */
   }
 }

@@ -1,5 +1,5 @@
 // File: src/components/Character/CharacterStatusWithImage.jsx
-// Updated to be bigger and include total dice pool with HP bar restored
+// Rewritten with longer HP bar and better positioning
 
 import React from 'react';
 import { useCharacter } from '../../contexts/CharacterContext';
@@ -28,6 +28,7 @@ const CharacterStatusWithImage = ({ character, className = "" }) => {
                 <div className="character-image-container">
                     {/* Character Image */}
                     <div className="character-avatar-wrapper">
+                        <div className="character-image-section">
                         {character.image_data ? (
                             <img
                                 src={character.image_data}
@@ -39,13 +40,14 @@ const CharacterStatusWithImage = ({ character, className = "" }) => {
                                 <span className="placeholder-icon">⚔️</span>
                             </div>
                         )}
+                        </div>
                     </div>
 
-                    {/* HP Bar that starts from the image edge */}
-                    <div className="hp-bar-container">
-                        <div className="hp-bar-background">
+                    {/* HP Bar that starts from the image edge - LONGER VERSION */}
+                    <div className="hp-bar-container-new">
+                        <div className="hp-bar-background-new">
                             <div
-                                className="hp-bar-fill"
+                                className="hp-bar-fill-new"
                                 style={{
                                     width: `${hpPercentage}%`,
                                     backgroundColor: getHPColor()
@@ -53,14 +55,15 @@ const CharacterStatusWithImage = ({ character, className = "" }) => {
                             />
                         </div>
 
-                        {/* HP Text */}
-                        <div className="hp-text-display">
+                        {/* HP Text positioned beneath the bar */}
+                        <div className="hp-text-display-new">
                             <span className="hp-current">{character.current_hp || 0}</span>
                             <span className="hp-separator">/</span>
                             <span className="hp-max">{character.max_hp || 20}</span>
                         </div>
                     </div>
                 </div>
+
                 <div className="character-details">
                     <h3 className="character-name">{character.name}</h3>
                     <div className="character-stats">

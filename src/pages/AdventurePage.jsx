@@ -125,10 +125,10 @@ export default function AdventurePage() {
             </div>
 
             {/* Character Status */}
-            <CharacterStatusWithImage
-                character={selectedCharacter}
-                className="adventure-character-status"
-            />
+            {/*<CharacterStatusWithImage*/}
+            {/*    character={selectedCharacter}*/}
+            {/*    className="adventure-character-status"*/}
+            {/*/>*/}
 
             {/* Adventure Mode Selection */}
             <div className="adventure-modes">

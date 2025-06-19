@@ -54,57 +54,57 @@ const CharacterSheet = () => {
     return (
         <div className="character-sheet">
             {/* Character Header with Image */}
-            <div className="character-header">
-                <div className="character-header-content">
-                    {/* Character Image Section */}
-                    <div className="character-image-section">
-                        <CharacterImageUpload
-                            character={selectedCharacter}
-                            onImageUpdate={handleImageUpdate}
-                            className="character-avatar-upload"
-                        />
-                    </div>
+            {/*<div className="character-header">*/}
+            {/*    <div className="character-header-content">*/}
+            {/*        /!* Character Image Section *!/*/}
+            {/*        <div className="character-image-section">*/}
+            {/*            <CharacterImageUpload*/}
+            {/*                character={selectedCharacter}*/}
+            {/*                onImageUpdate={handleImageUpdate}*/}
+            {/*                className="character-avatar-upload"*/}
+            {/*            />*/}
+            {/*        </div>*/}
 
-                    {/* Character Basic Info */}
-                    <div className="character-info">
-                        <h1>{selectedCharacter.name}</h1>
-                        <div className="character-stats">
-                            <div className="stat">
-                                <label>Level</label>
-                                <span>{selectedCharacter.level || 1}</span>
-                            </div>
-                            <div className="stat">
-                                <label>HP</label>
-                                <span>{selectedCharacter.current_hp || 0}/{selectedCharacter.max_hp || 20}</span>
-                            </div>
-                            <div className="stat">
-                                <label>XP</label>
-                                <span>{selectedCharacter.current_xp || 0}</span>
-                            </div>
-                        </div>
+            {/*        /!* Character Basic Info *!/*/}
+            {/*        <div className="character-info">*/}
+            {/*            <h1>{selectedCharacter.name}</h1>*/}
+            {/*            <div className="character-stats">*/}
+            {/*                <div className="stat">*/}
+            {/*                    <label>Level</label>*/}
+            {/*                    <span>{selectedCharacter.level || 1}</span>*/}
+            {/*                </div>*/}
+            {/*                <div className="stat">*/}
+            {/*                    <label>HP</label>*/}
+            {/*                    <span>{selectedCharacter.current_hp || 0}/{selectedCharacter.max_hp || 20}</span>*/}
+            {/*                </div>*/}
+            {/*                <div className="stat">*/}
+            {/*                    <label>XP</label>*/}
+            {/*                    <span>{selectedCharacter.current_xp || 0}</span>*/}
+            {/*                </div>*/}
+            {/*            </div>*/}
 
-                        {/* Enhanced Character Summary */}
-                        {characterSummary && (
-                            <div className="character-summary-enhanced">
-                                <div className="summary-item">
-                                    <span className="summary-label">Combat Dice:</span>
-                                    <span className="summary-value">{characterSummary.combatDice}</span>
-                                </div>
-                                <div className="summary-item">
-                                    <span className="summary-label">Highest Attribute:</span>
-                                    <span className="summary-value">
-                                        {characterSummary.highestAttribute.name} (Level {characterSummary.highestAttribute.level} - {characterSummary.highestAttribute.levelName})
-                                    </span>
-                                </div>
-                                <div className="summary-item">
-                                    <span className="summary-label">Constitution Bonus:</span>
-                                    <span className="summary-value">+{characterSummary.constitution.hpBonus} HP</span>
-                                </div>
-                            </div>
-                        )}
-                    </div>
-                </div>
-            </div>
+            {/*            /!* Enhanced Character Summary *!/*/}
+            {/*            {characterSummary && (*/}
+            {/*                <div className="character-summary-enhanced">*/}
+            {/*                    <div className="summary-item">*/}
+            {/*                        <span className="summary-label">Combat Dice:</span>*/}
+            {/*                        <span className="summary-value">{characterSummary.combatDice}</span>*/}
+            {/*                    </div>*/}
+            {/*                    <div className="summary-item">*/}
+            {/*                        <span className="summary-label">Highest Attribute:</span>*/}
+            {/*                        <span className="summary-value">*/}
+            {/*                            {characterSummary.highestAttribute.name} (Level {characterSummary.highestAttribute.level} - {characterSummary.highestAttribute.levelName})*/}
+            {/*                        </span>*/}
+            {/*                    </div>*/}
+            {/*                    <div className="summary-item">*/}
+            {/*                        <span className="summary-label">Constitution Bonus:</span>*/}
+            {/*                        <span className="summary-value">+{characterSummary.constitution.hpBonus} HP</span>*/}
+            {/*                    </div>*/}
+            {/*                </div>*/}
+            {/*            )}*/}
+            {/*        </div>*/}
+            {/*    </div>*/}
+            {/*</div>*/}
 
             {/* Enhanced Attributes Section */}
             <div className="attributes-section">

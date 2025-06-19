@@ -1,5 +1,5 @@
 /* File: src/styles/CharacterStatusWithImage.css */
-/* Character Status with Image component styling - Enhanced for main header use */
+/* Complete rewrite with longer HP bars - REPLACE ENTIRE FILE */
 
 /* Base Character Status Styling */
 .character-status-with-image {
@@ -68,19 +68,21 @@
     display: flex;
     align-items: center;
     flex-shrink: 0;
+    gap: 0; /* Remove gap so HP bar touches the image */
 }
 
 .character-avatar-wrapper {
     position: relative;
     z-index: 2;
+    flex-shrink: 0;
 }
 
 .character-avatar,
 .character-avatar-placeholder {
-    width: 100px;  /* Increased from 60px */
-    height: 100px; /* Increased from 60px */
+    width: 200px;
+    height: 200px;
     border-radius: 50%;
-    border: 3px solid #374151; /* Increased border from 2px to 3px for better proportion */
+    border: 3px solid #374151;
     object-fit: cover;
 }
 
@@ -93,54 +95,52 @@
 }
 
 .placeholder-icon {
-    font-size: 2.5rem; /* Increased from 1.5rem to match larger avatar */
+    font-size: 2.5rem;
 }
 
-/* HP Bar Implementation */
-.hp-bar-container {
+/* NEW LONGER HP BAR IMPLEMENTATION */
+.hp-bar-container-new {
     position: relative;
     display: flex;
-    align-items: center;
-    height: 100px;
-    width: 400px; /* Long HP bar */
-    padding-top: 10px;
-    bottom: -50px;
+    flex-direction: column;
+    align-items: flex-start;
+    width: 300px; /* Much longer base width */
+    margin-left: -10px; /* Negative margin to overlap/touch the image edge */
 }
 
-.hp-bar-background {
+.hp-bar-background-new {
     width: 100%;
-    height: 100%;
+    height: 16px;
     background: #374151;
-    border-radius: 9px;
+    border-radius: 8px;
     position: relative;
     box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
-    /* Create curved left edge that matches avatar */
-    clip-path: ellipse(50px 9px at 0px 50%);
+    overflow: hidden;
+    /* Add curved left edge to connect with circular avatar */
+    /*clip-path: polygon(20px 0%, 100% 0%, 100% 100%, 20px 100%, 0% 50%);*/
 }
 
-.hp-bar-fill {
+.hp-bar-fill-new {
     position: absolute;
     left: 0;
     top: 0;
     height: 100%;
     background: #10b981;
     transition: width 0.3s ease, background-color 0.3s ease;
-    border-radius: 9px;
+    border-radius: 8px;
     box-shadow: 0 0 12px rgba(16, 185, 129, 0.5);
-    /* Create curved left edge that matches avatar */
-    clip-path: ellipse(50px 9px at 0px 50%);
+    /* Match the curved left edge */
+    /*clip-path: polygon(20px 0%, 100% 0%, 100% 100%, 20px 100%, 0% 50%);*/
 }
 
-.hp-text-display {
-    position: absolute;
-    left: 20px;
-    top: 50%;
-    transform: translateY(-50%);
+.hp-text-display-new {
+    margin-top: 4px;
+    text-align: center;
+    width: 100%;
     font-size: 0.75rem;
     font-weight: 600;
     color: #eee;
     text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
-    z-index: 3;
 }
 
 .hp-separator {
@@ -155,7 +155,7 @@
     backdrop-filter: blur(10px);
     padding: 16px 20px !important;
     border-radius: 12px;
-    min-width: 300px;
+    min-width: 400px; /* Increased from 300px */
 }
 
 .header-character-status .character-name {
@@ -164,11 +164,11 @@
     font-weight: 600;
 }
 
-/* Character Avatar Size */
+/* Character Avatar Size for headers */
 .header-character-status .character-avatar,
 .header-character-status .character-avatar-placeholder {
-    width: 175px;
-    height: 175px;
+    width: 150px;
+    height: 150px;
 }
 
 .header-character-status .character-stats {
@@ -185,34 +185,23 @@
     font-size: 0.9rem;
 }
 
-.header-character-status .hp-bar-container {
-    min-width: 120px;
-    margin-left: -20px;
-    height: 80px;
+/* Header HP Bar - LONGER VERSION */
+.header-character-status .hp-bar-container-new {
+    width: 400px; /* Much longer for headers */
 }
 
-.header-character-status .hp-bar-background {
-    height: 12px;
-    clip-path: circle(40px at 0px 50%);
+.header-character-status .hp-bar-background-new {
+    height: 14px;
 }
 
-.header-character-status .hp-bar-fill {
-    clip-path: circle(40px at 0px 50%);
-}
-
-.header-character-status .hp-text-display {
-    font-size: 0.8rem;
-    font-weight: 600;
-}
-
-/* Enhanced Main Header styling - Larger and more prominent */
+/* Enhanced Main Header styling */
 .header-character-status.main-header {
     background: rgba(55, 65, 81, 0.8) !important;
     border: 1px solid rgba(75, 85, 99, 0.8) !important;
     backdrop-filter: blur(12px);
     padding: 20px 24px !important;
     border-radius: 16px;
-    min-width: 350px;
+    min-width: 450px; /* Increased */
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     transition: all 0.3s ease;
 }
@@ -233,40 +222,40 @@
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
-.header-character-status.main-header .character-stats {
-    gap: 14px;
+.header-character-status.main-header .hp-bar-container-new {
+    width: 450px; /* Even longer for main header */
 }
 
-.header-character-status.main-header .stat-item {
-    max-width: 150px;
-    gap: 10px;
+.header-character-status.main-header .hp-bar-background-new {
+    height: 16px;
 }
 
-.header-character-status.main-header .stat-label,
-.header-character-status.main-header .stat-value {
-    font-size: 0.95rem;
+/* Full-width header HP bar - LONGEST VERSION */
+.header-character-status.full-width-header {
+    background: #1f2937 !important;
+    border: none !important;
+    border-bottom: 1px solid #374151 !important;
+    border-radius: 0 !important;
+    width: 100% !important;
+    padding: 20px 24px !important;
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
-.header-character-status.main-header .hp-bar-container {
-    min-width: 130px;
-    margin-left: -25px;
-    height: 90px;
+.header-character-status.full-width-header .character-info {
+    max-width: 1200px;
+    margin: 0 auto;
+    justify-content: center;
 }
 
-.header-character-status.main-header .hp-bar-background {
-    height: 14px;
-    clip-path: circle(45px at 0px 50%);
+.header-character-status.full-width-header .hp-bar-container-new {
+    width: 600px; /* LONGEST HP bar */
 }
 
-.header-character-status.main-header .hp-bar-fill {
-    clip-path: circle(45px at 0px 50%);
-    box-shadow: 0 0 8px rgba(16, 185, 129, 0.4);
-}
-
-.header-character-status.main-header .hp-text-display {
-    font-size: 0.9rem;
-    font-weight: 700;
-    margin-left: 35px;
+.header-character-status.full-width-header .hp-bar-background-new {
+    height: 18px;
 }
 
 /* Dice Pool Styling */
@@ -293,6 +282,20 @@
     text-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
 }
 
+/* Low HP Visual Effects */
+.character-status-with-image.low-hp .hp-bar-fill-new {
+    animation: pulse-red 2s infinite;
+}
+
+@keyframes pulse-red {
+    0%, 100% {
+        box-shadow: 0 0 5px rgba(239, 68, 68, 0.5);
+    }
+    50% {
+        box-shadow: 0 0 15px rgba(239, 68, 68, 0.8);
+    }
+}
+
 /* Enhanced hover effects for main header */
 .header-character-status.main-header:hover {
     background: rgba(55, 65, 81, 0.9) !important;
@@ -301,18 +304,8 @@
     box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
 }
 
-.header-character-status.main-header:hover .hp-bar-fill {
+.header-character-status.main-header:hover .hp-bar-fill-new {
     box-shadow: 0 0 15px rgba(16, 185, 129, 0.7);
-}
-
-.header-character-status.main-header:hover .dice-notation {
-    color: #93c5fd !important;
-}
-
-.header-character-status.main-header:hover .character-avatar,
-.header-character-status.main-header:hover .character-avatar-placeholder {
-    border-color: #6b7280;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 /* Responsive Design */
@@ -331,96 +324,51 @@
         height: 80px;
     }
 
-    .hp-bar-container {
-        min-width: 120px;
-        height: 70px;
-        padding-top: 15px;
+    .hp-bar-container-new {
+        width: 250px; /* Responsive but still longer */
     }
 
-    .hp-bar-background {
-        height: 10px;
-        clip-path: circle(30px at 0px 50%);
+    .header-character-status .hp-bar-container-new {
+        width: 300px;
     }
 
-    .hp-bar-fill {
-        clip-path: circle(30px at 0px 50%);
+    .header-character-status.main-header .hp-bar-container-new {
+        width: 350px;
     }
 
-    .hp-text-display {
-        margin-left: 25px;
-        font-size: 0.7rem;
+    .header-character-status.full-width-header .hp-bar-container-new {
+        width: 400px;
     }
 
-    .header-character-status.main-header {
-        min-width: 300px;
-        padding: 16px 20px !important;
-    }
-
-    .header-character-status.main-header .character-name {
-        font-size: 1.2rem;
-    }
-
-    .header-character-status.main-header .character-avatar,
-    .header-character-status.main-header .character-avatar-placeholder {
-        width: 100px;
-        height: 100px;
-    }
-
-    .header-character-status.main-header .hp-bar-container {
-        min-width: 110px;
-        margin-left: -20px;
-        height: 70px;
-    }
-
-    .header-character-status.main-header .hp-bar-background {
-        height: 12px;
-        clip-path: circle(35px at 0px 50%);
-    }
-
-    .header-character-status.main-header .hp-bar-fill {
-        clip-path: circle(35px at 0px 50%);
-    }
-
-    .header-character-status.main-header .hp-text-display {
-        font-size: 0.8rem;
-        margin-left: 25px;
+    /* Character Avatar Size for headers */
+    .header-character-status .character-avatar,
+    .header-character-status .character-avatar-placeholder {
+        width: 150px;
+        height: 150px;
     }
 }
 
-/* Low HP Visual Effects */
-.character-status-with-image.low-hp .hp-bar-fill {
-    animation: pulse-red 2s infinite;
-}
-
-/* Full-width header HP bar - even longer for header mode */
-.header-character-status.full-width-header .hp-bar-container {
-    min-width: 400px; /* Much longer for full-width header */
-    margin-left: -25px; /* Adjust connection for larger avatar */
-    height: 90px;
-}
-
-/* Enhanced styling for longer HP bar */
-.header-character-status.full-width-header .hp-bar-background {
-    height: 16px; /* Slightly taller for better visibility */
-    clip-path: circle(50px at 0px 50%); /* Larger connection circle for bigger avatar */
-}
-
-.header-character-status.full-width-header .hp-bar-fill {
-    clip-path: circle(50px at 0px 50%); /* Larger connection circle for bigger avatar */
-}
-
-
-@keyframes pulse-red {
-    0%, 100% {
-        box-shadow: 0 0 5px rgba(239, 68, 68, 0.5);
+@media (max-width: 480px) {
+    .hp-bar-container-new {
+        width: 200px;
     }
-    50% {
-        box-shadow: 0 0 15px rgba(239, 68, 68, 0.8);
-    }
-}
 
-/* Adventure Page Specific Styling */
-.character-status-display {
-    margin: 20px auto;
-    max-width: 400px;
+    .header-character-status .hp-bar-container-new {
+        width: 250px;
+    }
+
+    .header-character-status.main-header .hp-bar-container-new {
+        width: 280px;
+    }
+
+    .header-character-status.full-width-header .hp-bar-container-new {
+        width: 300px;
+    }
+
+    /* Character Avatar Size for headers */
+    .header-character-status .character-avatar,
+    .header-character-status .character-avatar-placeholder {
+        width: 150px;
+        height: 150px;
+    }
 }
