@@ -65,7 +65,7 @@ const CombatArea = ({ onAdventureComplete }) => {
                 const newDiceBox = new DiceBox('#combat-dice-container', {
                     id: 'combat-dice-canvas',
                     assetPath: '/assets/dice-box/',
-                    startingHeight: 25,
+                    startingHeight: 20,
                     throwForce: 15,
                     spinForce: 12,
                     lightIntensity: 1.5,
@@ -425,6 +425,7 @@ const CombatArea = ({ onAdventureComplete }) => {
             {/* Enemy Selection */}
             {combatState.phase === 'selection' && (
                 <div className="enemy-selection">
+                    <h3>⚔️ Skirmish Combat</h3>
                     <h3>Choose your opponent:</h3>
                     <div className="enemy-buttons">
                         {availableEnemies.map(enemyType => (

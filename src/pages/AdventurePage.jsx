@@ -97,15 +97,8 @@ export default function AdventurePage() {
                     >
                         ← Back to Adventure Overview
                     </button>
-                    <h1>⚔️ Skirmish Combat</h1>
-                    <p>Choose an enemy to fight and test your combat skills!</p>
                 </div>
 
-                {/* Character Status */}
-                <CharacterStatusWithImage
-                    character={selectedCharacter}
-                    className="skirmish-character-status"
-                />
 
                 {/* Combat System */}
                 <CombatArea
@@ -123,12 +116,6 @@ export default function AdventurePage() {
                 <h1>🏰 Adventure Hub</h1>
                 <p>Choose your path and begin your adventure!</p>
             </div>
-
-            {/* Character Status */}
-            {/*<CharacterStatusWithImage*/}
-            {/*    character={selectedCharacter}*/}
-            {/*    className="adventure-character-status"*/}
-            {/*/>*/}
 
             {/* Adventure Mode Selection */}
             <div className="adventure-modes">
