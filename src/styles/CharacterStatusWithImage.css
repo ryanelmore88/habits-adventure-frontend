@@ -77,10 +77,10 @@
 
 .character-avatar,
 .character-avatar-placeholder {
-    width: 60px;
-    height: 60px;
+    width: 100px;  /* Increased from 60px */
+    height: 100px; /* Increased from 60px */
     border-radius: 50%;
-    border: 2px solid #374151;
+    border: 3px solid #374151; /* Increased border from 2px to 3px for better proportion */
     object-fit: cover;
 }
 
@@ -93,7 +93,7 @@
 }
 
 .placeholder-icon {
-    font-size: 1.5rem;
+    font-size: 2.5rem; /* Increased from 1.5rem to match larger avatar */
 }
 
 /* HP Bar Implementation */
@@ -101,34 +101,34 @@
     position: relative;
     display: flex;
     align-items: center;
-    min-width: 100px;
-    height: 60px;
-    margin-left: -15px;
+    height: 100px;
+    width: 400px; /* Long HP bar */
     padding-top: 10px;
+    bottom: -50px;
 }
 
 .hp-bar-background {
-    position: absolute;
-    left: 0;
-    top: 50%;
-    transform: translateY(-50%);
     width: 100%;
-    height: 8px;
+    height: 100%;
     background: #374151;
-    clip-path: circle(30px at 0px 50%);
-    border-radius: 0 20px 20px 0;
+    border-radius: 9px;
+    position: relative;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
+    /* Create curved left edge that matches avatar */
+    clip-path: ellipse(50px 9px at 0px 50%);
 }
 
 .hp-bar-fill {
     position: absolute;
     left: 0;
-    top: 50%;
-    transform: translateY(-50%);
-    height: 8px;
+    top: 0;
+    height: 100%;
     background: #10b981;
-    clip-path: circle(30px at 0px 50%);
-    border-radius: 0 20px 20px 0;
     transition: width 0.3s ease, background-color 0.3s ease;
+    border-radius: 9px;
+    box-shadow: 0 0 12px rgba(16, 185, 129, 0.5);
+    /* Create curved left edge that matches avatar */
+    clip-path: ellipse(50px 9px at 0px 50%);
 }
 
 .hp-text-display {
@@ -164,10 +164,11 @@
     font-weight: 600;
 }
 
+/* Character Avatar Size */
 .header-character-status .character-avatar,
 .header-character-status .character-avatar-placeholder {
-    width: 80px;
-    height: 80px;
+    width: 175px;
+    height: 175px;
 }
 
 .header-character-status .character-stats {
@@ -326,8 +327,8 @@
 
     .character-avatar,
     .character-avatar-placeholder {
-        width: 50px;
-        height: 50px;
+        width: 80px;
+        height: 80px;
     }
 
     .hp-bar-container {
@@ -361,8 +362,8 @@
 
     .header-character-status.main-header .character-avatar,
     .header-character-status.main-header .character-avatar-placeholder {
-        width: 70px;
-        height: 70px;
+        width: 100px;
+        height: 100px;
     }
 
     .header-character-status.main-header .hp-bar-container {
@@ -390,6 +391,24 @@
 .character-status-with-image.low-hp .hp-bar-fill {
     animation: pulse-red 2s infinite;
 }
+
+/* Full-width header HP bar - even longer for header mode */
+.header-character-status.full-width-header .hp-bar-container {
+    min-width: 400px; /* Much longer for full-width header */
+    margin-left: -25px; /* Adjust connection for larger avatar */
+    height: 90px;
+}
+
+/* Enhanced styling for longer HP bar */
+.header-character-status.full-width-header .hp-bar-background {
+    height: 16px; /* Slightly taller for better visibility */
+    clip-path: circle(50px at 0px 50%); /* Larger connection circle for bigger avatar */
+}
+
+.header-character-status.full-width-header .hp-bar-fill {
+    clip-path: circle(50px at 0px 50%); /* Larger connection circle for bigger avatar */
+}
+
 
 @keyframes pulse-red {
     0%, 100% {

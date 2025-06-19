@@ -25,24 +25,6 @@ const CharacterStatusWithImage = ({ character, className = "" }) => {
     return (
         <div className={`character-status-with-image ${className} ${hpPercentage <= 25 ? 'low-hp' : ''}`}>
             <div className="character-info">
-                <div className="character-details">
-                    <h3 className="character-name">{character.name}</h3>
-                    <div className="character-stats">
-                        <div className="stat-item">
-                            <span className="stat-label">Level:</span>
-                            <span className="stat-value">{character.level || 1}</span>
-                        </div>
-                        <div className="stat-item">
-                            <span className="stat-label">XP:</span>
-                            <span className="stat-value">{character.current_xp || 0}</span>
-                        </div>
-                        <div className="stat-item dice-pool-stat">
-                            <span className="stat-label">Dice Pool:</span>
-                            <span className="stat-value dice-notation">{dicePool.notation || '2d6'}</span>
-                        </div>
-                    </div>
-                </div>
-
                 <div className="character-image-container">
                     {/* Character Image */}
                     <div className="character-avatar-wrapper">
@@ -76,6 +58,23 @@ const CharacterStatusWithImage = ({ character, className = "" }) => {
                             <span className="hp-current">{character.current_hp || 0}</span>
                             <span className="hp-separator">/</span>
                             <span className="hp-max">{character.max_hp || 20}</span>
+                        </div>
+                    </div>
+                </div>
+                <div className="character-details">
+                    <h3 className="character-name">{character.name}</h3>
+                    <div className="character-stats">
+                        <div className="stat-item">
+                            <span className="stat-label">Level:</span>
+                            <span className="stat-value">{character.level || 1}</span>
+                        </div>
+                        <div className="stat-item">
+                            <span className="stat-label">XP:</span>
+                            <span className="stat-value">{character.current_xp || 0}</span>
+                        </div>
+                        <div className="stat-item dice-pool-stat">
+                            <span className="stat-label">Dice Pool:</span>
+                            <span className="stat-value dice-notation">{dicePool.notation || '2d6'}</span>
                         </div>
                     </div>
                 </div>

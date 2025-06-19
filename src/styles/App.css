@@ -10,16 +10,12 @@
 }
 
 .app-header {
-  /* Remove old header styles since we're using full-width character status */
   display: none;
 }
 
 .header-content {
-  /* Remove old header content styles */
   display: none;
 }
-
-/* Remove the old app-title styles since we no longer have a title */
 
 .header-character-section {
   display: flex;
