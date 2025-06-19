@@ -6,7 +6,7 @@ import { useCharacter } from '../contexts/CharacterContext';
 import { useCombat } from '../hooks/useCombat';
 import CombatArea from '../components/CombatArea';
 import CharacterStatusWithImage from '../components/Character/CharacterStatusWithImage.jsx';
-import { apiCall } from '../api/habitApi.js';
+import QuestAdventure from '../components/QuestAdventure/QuestAdventure';
 import '../styles/Adventure.css';
 
 export default function AdventurePage() {
@@ -109,6 +109,25 @@ export default function AdventurePage() {
         );
     }
 
+    // Render quest section
+    if (currentSection === 'quests') {
+        return (
+            <div className="adventure-page quest-mode">
+                <div className="quest-header">
+                    <button
+                        className="back-button"
+                        onClick={() => setCurrentSection('overview')}
+                    >
+                        ← Back to Adventure Overview
+                    </button>
+                </div>
+
+                {/* Quest Adventure System */}
+                <QuestAdventure onAdventureComplete={handleAdventureComplete} />
+            </div>
+        );
+    }
+
     // Main adventure overview page
     return (
         <div className="adventure-page">
@@ -137,17 +156,20 @@ export default function AdventurePage() {
                         <button className="mode-button">Enter Skirmish</button>
                     </div>
 
-                    {/* Quest Mode (Coming Soon) */}
-                    <div className="adventure-mode quest-mode disabled">
+                    {/* Quest Mode */}
+                    <div
+                        className="adventure-mode quest-mode"
+                        onClick={() => setCurrentSection('quests')}
+                    >
                         <div className="mode-icon">📜</div>
                         <h3>Quest Adventures</h3>
-                        <p>Structured adventures with stories, objectives, and larger rewards.</p>
+                        <p>Multi-room adventures with exploration, choices, and storytelling.</p>
                         <div className="mode-details">
-                            <span className="detail-item">📖 Story-driven</span>
-                            <span className="detail-item">🎯 Multiple objectives</span>
-                            <span className="detail-item">💰 Better rewards</span>
+                            <span className="detail-item">🏛️ Multi-room exploration</span>
+                            <span className="detail-item">🎯 Player choices matter</span>
+                            <span className="detail-item">📖 Story-driven content</span>
                         </div>
-                        <button className="mode-button disabled">Coming Soon</button>
+                        <button className="mode-button">Enter Quest</button>
                     </div>
 
                     {/* Expedition Mode (Coming Soon) */}
