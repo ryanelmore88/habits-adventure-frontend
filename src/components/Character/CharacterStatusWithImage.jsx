@@ -43,6 +43,20 @@ const CharacterStatusWithImage = ({ character, className = "" }) => {
                         </div>
                     </div>
 
+                    <div className="hp-bar-info-overlay">
+                        <div className="character-name-overlay">{character.name}</div>
+                        <div className="character-stats-overlay">
+                            <span className="stat-item-overlay">
+                                <span className="stat-label-overlay">Level:</span>
+                                <span className="stat-value-overlay">{character.level || 1}</span>
+                            </span>
+                                                <span className="stat-item-overlay dice-pool-overlay">
+                                <span className="stat-label-overlay">Dice Pool:</span>
+                                <span className="stat-value-overlay dice-notation-overlay">{dicePool.notation || '2d6'}</span>
+                            </span>
+                        </div>
+                    </div>
+
                     {/* HP Bar that starts from the image edge - LONGER VERSION */}
                     <div className="hp-bar-container-new">
                         <div className="hp-bar-background-new">
@@ -64,23 +78,23 @@ const CharacterStatusWithImage = ({ character, className = "" }) => {
                     </div>
                 </div>
 
-                <div className="character-details">
-                    <h3 className="character-name">{character.name}</h3>
-                    <div className="character-stats">
-                        <div className="stat-item">
-                            <span className="stat-label">Level:</span>
-                            <span className="stat-value">{character.level || 1}</span>
-                        </div>
-                        <div className="stat-item">
-                            <span className="stat-label">XP:</span>
-                            <span className="stat-value">{character.current_xp || 0}</span>
-                        </div>
-                        <div className="stat-item dice-pool-stat">
-                            <span className="stat-label">Dice Pool:</span>
-                            <span className="stat-value dice-notation">{dicePool.notation || '2d6'}</span>
-                        </div>
-                    </div>
-                </div>
+                {/*<div className="character-details">*/}
+                {/*    <h3 className="character-name">{character.name}</h3>*/}
+                {/*    <div className="character-stats">*/}
+                {/*        <div className="stat-item">*/}
+                {/*            <span className="stat-label">Level:</span>*/}
+                {/*            <span className="stat-value">{character.level || 1}</span>*/}
+                {/*        </div>*/}
+                {/*        <div className="stat-item">*/}
+                {/*            <span className="stat-label">XP:</span>*/}
+                {/*            <span className="stat-value">{character.current_xp || 0}</span>*/}
+                {/*        </div>*/}
+                {/*        <div className="stat-item dice-pool-stat">*/}
+                {/*            <span className="stat-label">Dice Pool:</span>*/}
+                {/*            <span className="stat-value dice-notation">{dicePool.notation || '2d6'}</span>*/}
+                {/*        </div>*/}
+                {/*    </div>*/}
+                {/*</div>*/}
             </div>
         </div>
     );

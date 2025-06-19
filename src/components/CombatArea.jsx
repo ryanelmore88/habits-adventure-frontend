@@ -1,14 +1,14 @@
 // src/components/CombatArea.jsx
 
-import { useState, useEffect, useRef } from 'react';
-import { useCharacter } from '../contexts/CharacterContext';
-import { useCombat } from '../hooks/useCombat';
+import {useState, useEffect, useRef} from 'react';
+import {useCharacter} from '../contexts/CharacterContext';
+import {useCombat} from '../hooks/useCombat';
 import '../styles/CombatArea.css'; // Import your styles here
 
 
-const CombatArea = ({ onAdventureComplete }) => {
-    const { selectedCharacter, refreshCharacter, updateTemporaryHp, clearTemporaryHp } = useCharacter();
-    const { combatState, startCombat, executeRound, resetCombat, availableEnemies } = useCombat(selectedCharacter);
+const CombatArea = ({onAdventureComplete}) => {
+    const {selectedCharacter, refreshCharacter, updateTemporaryHp, clearTemporaryHp} = useCharacter();
+    const {combatState, startCombat, executeRound, resetCombat, availableEnemies} = useCombat(selectedCharacter);
     const [diceBox, setDiceBox] = useState(null);
     const [isRolling, setIsRolling] = useState(false);
     const [characterCurrentHp, setCharacterCurrentHp] = useState(selectedCharacter?.current_hp || 20);
@@ -58,7 +58,7 @@ const CombatArea = ({ onAdventureComplete }) => {
                 }
 
                 // Import DiceBox dynamically
-                const { default: DiceBox } = await import('@3d-dice/dice-box');
+                const {default: DiceBox} = await import('@3d-dice/dice-box');
 
                 if (!mounted) return;
 
@@ -192,7 +192,7 @@ const CombatArea = ({ onAdventureComplete }) => {
             dicePool: `${totalDice}d4`,
             totalDice,
             breakdown,
-            description: `${totalDice} dice from: ${Object.entries(breakdown).map(([attr, count]) => `${attr.slice(0,3)}(${count})`).join(', ')}`
+            description: `${totalDice} dice from: ${Object.entries(breakdown).map(([attr, count]) => `${attr.slice(0, 3)}(${count})`).join(', ')}`
         };
     };
 
@@ -252,7 +252,7 @@ const CombatArea = ({ onAdventureComplete }) => {
                 });
             }
 
-            console.log('Rolling dice:', { playerDiceCount, enemyDiceCount, enemyDiceSize, totalDice: allDice.length });
+            console.log('Rolling dice:', {playerDiceCount, enemyDiceCount, enemyDiceSize, totalDice: allDice.length});
 
             // Roll all dice at once
             const allRolls = await diceBoxRef.current.roll(allDice);
@@ -266,7 +266,7 @@ const CombatArea = ({ onAdventureComplete }) => {
             const playerTotal = playerRolls.reduce((sum, die) => sum + (die.value || 0), 0);
             const enemyTotal = enemyRolls.reduce((sum, die) => sum + (die.value || 0), 0);
 
-            console.log('Totals:', { playerTotal, enemyTotal, playerRolls, enemyRolls });
+            console.log('Totals:', {playerTotal, enemyTotal, playerRolls, enemyRolls});
 
             // Return results immediately - isRolling will be set to false by onRollComplete
             return {
@@ -305,7 +305,7 @@ const CombatArea = ({ onAdventureComplete }) => {
 
         // Wait a bit for dice to settle before processing results
         setTimeout(() => {
-            const { playerTotal, enemyTotal } = diceResults;
+            const {playerTotal, enemyTotal} = diceResults;
 
             let damage = 0;
             let winner = null;
@@ -330,7 +330,7 @@ const CombatArea = ({ onAdventureComplete }) => {
                 characterRoll: playerTotal,
                 enemyRoll: enemyTotal,
                 characterDice: characterDiceInfo,
-                enemyDice: { dicePool: combatState.enemy.dicePool },
+                enemyDice: {dicePool: combatState.enemy.dicePool},
                 damage: damage,
                 winner: winner,
                 diceResults: diceResults,
@@ -434,7 +434,8 @@ const CombatArea = ({ onAdventureComplete }) => {
                                 onClick={() => startCombat(enemyType)}
                                 className="enemy-button"
                             >
-                                <div className="enemy-name">{enemyType.charAt(0).toUpperCase() + enemyType.slice(1)}</div>
+                                <div
+                                    className="enemy-name">{enemyType.charAt(0).toUpperCase() + enemyType.slice(1)}</div>
                                 <div className="enemy-details">
                                     Level {enemyType === 'goblin' || enemyType === 'skeleton' ? 1 :
                                     enemyType === 'orc' ? 2 : 5}

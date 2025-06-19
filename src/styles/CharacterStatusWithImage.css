@@ -104,6 +104,7 @@
     display: flex;
     flex-direction: column;
     align-items: flex-start;
+    padding-top: 40px;
     width: 300px; /* Much longer base width */
     margin-left: -10px; /* Negative margin to overlap/touch the image edge */
 }
@@ -308,6 +309,67 @@
     box-shadow: 0 0 15px rgba(16, 185, 129, 0.7);
 }
 
+/* Character info overlay above HP bar */
+.hp-bar-info-overlay {
+    position: absolute;
+    bottom: 100%; /* Position above the HP bar */
+    left: 50%;
+    transform: translateX(-25%) translateY(60%);
+    text-align: center;
+    margin-bottom: 0px;
+    z-index: 5;
+    white-space: nowrap;
+}
+
+.character-name-overlay {
+    color: #a5b4fc;
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-top: 4px;
+    padding-top: 40px;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
+}
+
+.character-stats-overlay {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    align-items: center;
+}
+
+.stat-item-overlay {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px;
+    background: rgba(31, 41, 55, 0.8);
+    border-radius: 4px;
+    border: 1px solid rgba(75, 85, 99, 0.5);
+}
+
+.stat-label-overlay {
+    color: #9ca3af;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.stat-value-overlay {
+    color: #eee;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.dice-pool-overlay {
+    border-color: rgba(59, 130, 246, 0.5);
+    background: rgba(59, 130, 246, 0.1);
+}
+
+.dice-notation-overlay {
+    color: #3b82f6 !important;
+    font-weight: 700 !important;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
     .character-status-with-image {
@@ -346,6 +408,17 @@
         width: 150px;
         height: 150px;
     }
+    /* Character info overlay above HP bar */
+    .hp-bar-info-overlay {
+        position: absolute;
+        bottom: 100%; /* Position above the HP bar */
+        left: 50%;
+        transform: translateX(-25%) translateY(40%);
+        text-align: center;
+        margin-bottom: 0px;
+        z-index: 5;
+        white-space: nowrap;
+    }
 }
 
 @media (max-width: 480px) {
@@ -370,5 +443,17 @@
     .header-character-status .character-avatar-placeholder {
         width: 150px;
         height: 150px;
+    }
+
+    /* Character info overlay above HP bar */
+    .hp-bar-info-overlay {
+        position: absolute;
+        bottom: 100%; /* Position above the HP bar */
+        left: 50%;
+        transform: translateX(-25%) translateY(40%);
+        text-align: center;
+        margin-bottom: 0px;
+        z-index: 5;
+        white-space: nowrap;
     }
 }
