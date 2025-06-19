@@ -1,5 +1,5 @@
 /* File: src/styles/App.css */
-/* Main app layout styles moved from styled-jsx */
+/* Main app layout styles - Updated for CharacterStatusWithImage as main header */
 
 .app {
   min-height: 100vh;
@@ -10,33 +10,96 @@
 }
 
 .app-header {
-  background: #1f2937;
-  border-bottom: 1px solid #374151;
-  padding: 16px 20px;
-  position: sticky;
-  top: 0;
-  z-index: 50;
+  /* Remove old header styles since we're using full-width character status */
+  display: none;
 }
 
 .header-content {
-  max-width: 1200px;
-  margin: 0 auto;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+  /* Remove old header content styles */
+  display: none;
 }
 
-.app-title {
-  margin: 0;
-  color: #a5b4fc;
-  font-size: 1.5rem;
-  font-weight: bold;
-}
+/* Remove the old app-title styles since we no longer have a title */
 
 .header-character-section {
   display: flex;
   align-items: center;
-  gap: 16px;
+  justify-content: center;
+  width: 100%;
+}
+
+/* Full-width header character status */
+.header-character-status.full-width-header {
+  background: #1f2937 !important;
+  border: none !important;
+  border-bottom: 1px solid #374151 !important;
+  border-radius: 0 !important;
+  width: 100% !important;
+  padding: 20px 24px !important;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.header-character-status.full-width-header .character-info {
+  max-width: 1200px;
+  margin: 0 auto;
+  justify-content: center;
+}
+
+.header-character-status.main-header .character-name {
+  font-size: 1.4rem;
+  margin-bottom: 14px;
+  font-weight: 700;
+  color: #a5b4fc;
+}
+
+.header-character-status.main-header .character-avatar,
+.header-character-status.main-header .character-avatar-placeholder {
+  width: 90px;
+  height: 90px;
+  border: 3px solid #4b5563;
+}
+
+.header-character-status.main-header .character-stats {
+  gap: 14px;
+}
+
+.header-character-status.main-header .stat-item {
+  max-width: 150px;
+  gap: 10px;
+}
+
+.header-character-status.main-header .stat-label,
+.header-character-status.main-header .stat-value {
+  font-size: 0.95rem;
+}
+
+.header-character-status.main-header .hp-bar-container {
+  min-width: 130px;
+  margin-left: -25px;
+  height: 90px;
+}
+
+.header-character-status.main-header .hp-bar-background {
+  height: 14px;
+  clip-path: circle(45px at 0px 50%);
+}
+
+.header-character-status.main-header .hp-bar-fill {
+  clip-path: circle(45px at 0px 50%);
+}
+
+.header-character-status.main-header .hp-text-display {
+  font-size: 0.9rem;
+  font-weight: 700;
+  margin-left: 35px;
+}
+
+.header-character-status.main-header .dice-notation {
+  font-size: 1.1rem !important;
+  color: #60a5fa !important;
 }
 
 .main-content {
@@ -135,22 +198,38 @@
 
 /* Responsive design */
 @media (max-width: 768px) {
-  .header-content {
-    padding: 0 16px;
-    flex-direction: column;
-    gap: 12px;
-    align-items: stretch;
+  .header-character-status.full-width-header {
+    padding: 16px 20px !important;
   }
 
-  .app-title {
-    font-size: 1.2rem;
-    text-align: center;
+  .header-character-status.full-width-header .character-name {
+    font-size: 1.3rem;
   }
 
-  .header-character-section {
-    justify-content: center;
-    flex-direction: column;
-    gap: 12px;
+  .header-character-status.full-width-header .character-avatar,
+  .header-character-status.full-width-header .character-avatar-placeholder {
+    width: 80px;
+    height: 80px;
+  }
+
+  .header-character-status.full-width-header .hp-bar-container {
+    min-width: 120px;
+    margin-left: -25px;
+    height: 80px;
+  }
+
+  .header-character-status.full-width-header .hp-bar-background {
+    height: 14px;
+    clip-path: circle(40px at 0px 50%);
+  }
+
+  .header-character-status.full-width-header .hp-bar-fill {
+    clip-path: circle(40px at 0px 50%);
+  }
+
+  .header-character-status.full-width-header .hp-text-display {
+    font-size: 0.9rem;
+    margin-left: 30px;
   }
 
   .main-content {
@@ -176,8 +255,38 @@
 }
 
 @media (max-width: 480px) {
-  .app-header {
-    padding: 12px 16px;
+  .header-character-status.full-width-header {
+    padding: 12px 16px !important;
+  }
+
+  .header-character-status.full-width-header .character-name {
+    font-size: 1.1rem;
+  }
+
+  .header-character-status.full-width-header .character-avatar,
+  .header-character-status.full-width-header .character-avatar-placeholder {
+    width: 70px;
+    height: 70px;
+  }
+
+  .header-character-status.full-width-header .hp-bar-container {
+    min-width: 100px;
+    margin-left: -20px;
+    height: 70px;
+  }
+
+  .header-character-status.full-width-header .hp-bar-background {
+    height: 12px;
+    clip-path: circle(35px at 0px 50%);
+  }
+
+  .header-character-status.full-width-header .hp-bar-fill {
+    clip-path: circle(35px at 0px 50%);
+  }
+
+  .header-character-status.full-width-header .hp-text-display {
+    font-size: 0.8rem;
+    margin-left: 25px;
   }
 
   .placeholder-content {

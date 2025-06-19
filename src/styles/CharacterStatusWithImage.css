@@ -1,5 +1,5 @@
 /* File: src/styles/CharacterStatusWithImage.css */
-/* Character Status with Image component styling with complete HP bar implementation */
+/* Character Status with Image component styling - Enhanced for main header use */
 
 /* Base Character Status Styling */
 .character-status-with-image {
@@ -89,83 +89,66 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.5rem;
+    color: #9ca3af;
 }
 
 .placeholder-icon {
-    color: #9ca3af;
+    font-size: 1.5rem;
 }
 
-/* HP Bar Container */
+/* HP Bar Implementation */
 .hp-bar-container {
     position: relative;
-    margin-left: -10px;
-    min-width: 1400px;
-    height: 80px;
     display: flex;
-    flex-direction: column;
-    justify-content: flex-start;
-    z-index: 1;
-    padding-top: 20px;
+    align-items: center;
+    min-width: 100px;
+    height: 60px;
+    margin-left: -15px;
+    padding-top: 10px;
 }
 
-/* HP Bar Background */
 .hp-bar-background {
-    position: relative;
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
     width: 100%;
-    height: 12px; /* You can increase this for a thicker bar */
+    height: 8px;
     background: #374151;
-    border-radius: 0 6px 6px 0;
-    overflow: hidden;
-    clip-path: circle(35px at 0px 50%); /* Adjusted for longer bar */
-    margin-bottom: 8px; /* Space between bar and text */
+    clip-path: circle(30px at 0px 50%);
+    border-radius: 0 20px 20px 0;
 }
 
-/* HP Bar Fill */
 .hp-bar-fill {
     position: absolute;
-    top: 0;
     left: 0;
-    height: 100%;
-    transition: width 0.5s ease, background-color 0.3s ease;
-    border-radius: 0 6px 6px 0;
-    clip-path: circle(35px at 0px 50%); /* Adjusted for longer bar */
-    box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.2);
+    top: 50%;
+    transform: translateY(-50%);
+    height: 8px;
+    background: #10b981;
+    clip-path: circle(30px at 0px 50%);
+    border-radius: 0 20px 20px 0;
+    transition: width 0.3s ease, background-color 0.3s ease;
 }
 
-/* HP Text Display */
 .hp-text-display {
-    position: relative; /* Changed from absolute */
-    top: auto; /* Reset absolute positioning */
-    right: auto; /* Reset absolute positioning */
-    transform: none; /* Remove transform */
-
-    /* New positioning - underneath the bar */
-    text-align: center;
-    margin-left: 30px; /* Offset to align with visible part of bar */
-
+    position: absolute;
+    left: 20px;
+    top: 50%;
+    transform: translateY(-50%);
     font-size: 0.75rem;
-    font-weight: 700;
+    font-weight: 600;
     color: #eee;
-    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
     z-index: 3;
-    pointer-events: none;
-}
-
-.hp-current {
-    color: #eee;
 }
 
 .hp-separator {
-    color: #9ca3af;
     margin: 0 2px;
-}
-
-.hp-max {
     color: #9ca3af;
 }
 
-/* Header-specific styling - Made bigger and enhanced */
+/* Header-specific styling - Standard size */
 .header-character-status {
     background: rgba(55, 65, 81, 0.5) !important;
     border: 1px solid rgba(75, 85, 99, 0.5) !important;
@@ -203,7 +186,7 @@
 
 .header-character-status .hp-bar-container {
     min-width: 120px;
-    margin-left: -20px; /* Adjusted for larger header image */
+    margin-left: -20px;
     height: 80px;
 }
 
@@ -219,6 +202,70 @@
 .header-character-status .hp-text-display {
     font-size: 0.8rem;
     font-weight: 600;
+}
+
+/* Enhanced Main Header styling - Larger and more prominent */
+.header-character-status.main-header {
+    background: rgba(55, 65, 81, 0.8) !important;
+    border: 1px solid rgba(75, 85, 99, 0.8) !important;
+    backdrop-filter: blur(12px);
+    padding: 20px 24px !important;
+    border-radius: 16px;
+    min-width: 350px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    transition: all 0.3s ease;
+}
+
+.header-character-status.main-header .character-name {
+    font-size: 1.5rem;
+    margin-bottom: 14px;
+    font-weight: 700;
+    color: #a5b4fc;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.header-character-status.main-header .character-avatar,
+.header-character-status.main-header .character-avatar-placeholder {
+    width: 90px;
+    height: 90px;
+    border: 3px solid #4b5563;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.header-character-status.main-header .character-stats {
+    gap: 14px;
+}
+
+.header-character-status.main-header .stat-item {
+    max-width: 150px;
+    gap: 10px;
+}
+
+.header-character-status.main-header .stat-label,
+.header-character-status.main-header .stat-value {
+    font-size: 0.95rem;
+}
+
+.header-character-status.main-header .hp-bar-container {
+    min-width: 130px;
+    margin-left: -25px;
+    height: 90px;
+}
+
+.header-character-status.main-header .hp-bar-background {
+    height: 14px;
+    clip-path: circle(45px at 0px 50%);
+}
+
+.header-character-status.main-header .hp-bar-fill {
+    clip-path: circle(45px at 0px 50%);
+    box-shadow: 0 0 8px rgba(16, 185, 129, 0.4);
+}
+
+.header-character-status.main-header .hp-text-display {
+    font-size: 0.9rem;
+    font-weight: 700;
+    margin-left: 35px;
 }
 
 /* Dice Pool Styling */
@@ -239,20 +286,32 @@
     font-size: 1rem !important;
 }
 
-/* Enhanced hover effects for header */
-.header-character-status:hover {
-    background: rgba(55, 65, 81, 0.7) !important;
-    border-color: rgba(75, 85, 99, 0.7) !important;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+.header-character-status.main-header .dice-notation {
+    font-size: 1.1rem !important;
+    color: #60a5fa !important;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
 }
 
-.header-character-status:hover .hp-bar-fill {
+/* Enhanced hover effects for main header */
+.header-character-status.main-header:hover {
+    background: rgba(55, 65, 81, 0.9) !important;
+    border-color: rgba(75, 85, 99, 0.9) !important;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+}
+
+.header-character-status.main-header:hover .hp-bar-fill {
     box-shadow: 0 0 15px rgba(16, 185, 129, 0.7);
 }
 
-.header-character-status:hover .dice-notation {
-    color: #60a5fa !important;
+.header-character-status.main-header:hover .dice-notation {
+    color: #93c5fd !important;
+}
+
+.header-character-status.main-header:hover .character-avatar,
+.header-character-status.main-header:hover .character-avatar-placeholder {
+    border-color: #6b7280;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 /* Responsive Design */
@@ -272,7 +331,7 @@
     }
 
     .hp-bar-container {
-        min-width: 120px; /* Shorter on mobile but still longer than before */
+        min-width: 120px;
         height: 70px;
         padding-top: 15px;
     }
@@ -291,10 +350,39 @@
         font-size: 0.7rem;
     }
 
-    .header-character-status .character-avatar,
-    .header-character-status .character-avatar-placeholder {
-        width: 60px;
-        height: 60px;
+    .header-character-status.main-header {
+        min-width: 300px;
+        padding: 16px 20px !important;
+    }
+
+    .header-character-status.main-header .character-name {
+        font-size: 1.2rem;
+    }
+
+    .header-character-status.main-header .character-avatar,
+    .header-character-status.main-header .character-avatar-placeholder {
+        width: 70px;
+        height: 70px;
+    }
+
+    .header-character-status.main-header .hp-bar-container {
+        min-width: 110px;
+        margin-left: -20px;
+        height: 70px;
+    }
+
+    .header-character-status.main-header .hp-bar-background {
+        height: 12px;
+        clip-path: circle(35px at 0px 50%);
+    }
+
+    .header-character-status.main-header .hp-bar-fill {
+        clip-path: circle(35px at 0px 50%);
+    }
+
+    .header-character-status.main-header .hp-text-display {
+        font-size: 0.8rem;
+        margin-left: 25px;
     }
 }
 
