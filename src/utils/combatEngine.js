@@ -2,6 +2,7 @@
 
 export class CombatEngine {
     constructor() {
+
         this.enemyTemplates = {
             goblin: {
                 name: "Goblin",

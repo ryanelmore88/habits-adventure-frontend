@@ -38,6 +38,8 @@ const CombatArea = ({onAdventureComplete}) => {
     // Initialize dice box
     useEffect(() => {
         let mounted = true;
+        // Reference to the current dice box instance is assigned, after the newDiceBox is created
+        // eslint-disable-next-line no-unused-vars
         let currentDiceBox = null;
 
         const initDiceBox = async () => {
@@ -379,8 +381,6 @@ const CombatArea = ({onAdventureComplete}) => {
             </div>
         );
     }
-
-    const characterDiceInfo = getCharacterDicePool();
 
     return (
         <div className="combat-area">
