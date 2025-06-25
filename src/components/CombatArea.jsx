@@ -1,20 +1,23 @@
 // src/components/CombatArea.jsx
-
+// This is the component that candles dice rolling as well as the combat logic that also manaage character HP and combat state.
 import {useState, useEffect, useRef} from 'react';
 import {useCharacter} from '../contexts/CharacterContext';
 import {useCombat} from '../hooks/useCombat';
+import {useEnemyData} from '../hooks/useEnemyData';
 import '../styles/CombatArea.css'; // Import your styles here
 
 
 const CombatArea = ({onAdventureComplete}) => {
     const {selectedCharacter, refreshCharacter, updateTemporaryHp, clearTemporaryHp} = useCharacter();
-    const {combatState, startCombat, executeRound, resetCombat, availableEnemies} = useCombat(selectedCharacter);
+    const {combatState, startCombat, executeRound, resetCombat} = useCombat(selectedCharacter);
     const [diceBox, setDiceBox] = useState(null);
     const [isRolling, setIsRolling] = useState(false);
     const [characterCurrentHp, setCharacterCurrentHp] = useState(selectedCharacter?.current_hp || 20);
     const diceContainerRef = useRef(null);
     const diceBoxRef = useRef(null);
     const cleanupTimeoutRef = useRef(null);
+    // Use the custom hook for enemy data management
+    const {availableEnemies, enemyTemplates, loading, error, refreshEnemyData, getEnemyTemplate, hasData} = useEnemyData();
 
 
     // Update character HP when selected character changes
