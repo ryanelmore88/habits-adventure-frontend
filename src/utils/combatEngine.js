@@ -1,14 +1,15 @@
-// src/utils/combatEngine.js
+// File: src/utils/combatEngine.js
+// Cleaned CombatEngine focused only on combat calculations and logic
 
 export class CombatEngine {
     constructor() {
-
+        // Keep minimal enemy templates as fallback only
         this.enemyTemplates = {
             goblin: {
                 name: "Goblin",
                 level: 1,
                 maxHp: 7,
-                dicePool: "2d4", // Simple dice pool for enemies
+                dicePool: "2d4",
                 xpReward: 25,
                 lootTable: ["potion", "coins"]
             },
@@ -90,7 +91,8 @@ export class CombatEngine {
             return {
                 dicePool: "1d4",
                 totalDice: 1,
-                breakdown: { default: 1 }
+                breakdown: { default: 1 },
+                description: "Default dice pool (no character attributes)"
             };
         }
 
@@ -102,9 +104,9 @@ export class CombatEngine {
         attributeNames.forEach(attrName => {
             const attribute = character.attributes[attrName];
             if (attribute) {
-                // Use base score to determine dice count (could also use total with bonuses)
+                // Use base score to determine dice count
                 const score = attribute.base || 10;
-                // Simple formula: every 3 points above 8 gives 1d4, minimum 1d4
+                // Every 3 points above 8 gives 1d4, minimum 1d4
                 const diceCount = Math.max(1, Math.floor((score - 8) / 3));
                 breakdown[attrName] = diceCount;
                 totalDice += diceCount;
@@ -122,114 +124,109 @@ export class CombatEngine {
         };
     }
 
-    // Alternative method using the getDiceNotation utility (if you prefer that approach)
-    getCharacterDicePoolFromNotation(character) {
-        // Import the utility function if available
-        try {
-            const { getDiceNotation } = require('./getDiceNotation');
-            const notation = getDiceNotation(character);
-
-            // Combine all attribute dice into one pool
-            const allDice = Object.values(notation).join('+');
-            return {
-                dicePool: allDice || "1d4",
-                notation: notation,
-                description: `Dice from attributes: ${Object.entries(notation).map(([attr, dice]) => `${attr}(${dice})`).join(', ')}`
-            };
-        } catch (error) {
-            console.warn('getDiceNotation not available, using simple calculation');
-            return this.getCharacterDicePool(character);
-        }
-    }
-
-    // Create enemy instance
+    // Create enemy instance (FALLBACK ONLY - prefer external enemy data)
     createEnemy(type = 'goblin') {
         const template = this.enemyTemplates[type] || this.enemyTemplates.goblin;
+        console.warn(`Using fallback enemy template for: ${type}`);
+
         return {
             ...template,
-            currentHp: template.maxHp,
-            id: `enemy_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+            currentHp: template.maxHp
         };
     }
 
-    // Execute one combat round with dice pool system
+    // Execute a round of combat between character and enemy
     executeCombatRound(character, enemy) {
-        // Get character dice pool
-        const charDiceInfo = this.getCharacterDicePool(character);
-        const charRoll = this.rollDice(charDiceInfo.dicePool);
-
-        // Enemy roll
-        const enemyRoll = this.rollDice(enemy.dicePool);
-
-        // Determine winner and apply damage
-        let result = {
-            characterRoll: charRoll,
-            enemyRoll: enemyRoll,
-            characterDice: charDiceInfo,
-            enemyDice: { dicePool: enemy.dicePool },
-            damage: 0,
-            winner: null,
-            newCharacterHp: character.current_hp || character.currentHp,
-            newEnemyHp: enemy.currentHp
-        };
-
-        if (charRoll > enemyRoll) {
-            // Character wins
-            result.damage = charRoll - enemyRoll;
-            result.winner = 'character';
-            result.newEnemyHp = Math.max(0, enemy.currentHp - result.damage);
-        } else if (enemyRoll > charRoll) {
-            // Enemy wins
-            result.damage = enemyRoll - charRoll;
-            result.winner = 'enemy';
-            result.newCharacterHp = Math.max(0, (character.current_hp || character.currentHp) - result.damage);
-        } else {
-            // Tie
-            result.winner = 'tie';
+        if (!character || !enemy) {
+            return {
+                error: 'Missing character or enemy',
+                combatEnded: true,
+                victory: false,
+                defeat: true
+            };
         }
 
-        result.combatEnded = result.newCharacterHp <= 0 || result.newEnemyHp <= 0;
-        result.victory = result.newEnemyHp <= 0 && result.newCharacterHp > 0;
-        result.defeat = result.newCharacterHp <= 0;
+        // Roll dice for character
+        const characterDiceInfo = this.getCharacterDicePool(character);
+        const characterRoll = this.rollDice(characterDiceInfo.dicePool);
 
-        return result;
+        // Roll dice for enemy
+        const enemyRoll = this.rollDice(enemy.dicePool || '2d4');
+
+        // Determine winner and damage
+        let winner, damage, description;
+
+        if (characterRoll > enemyRoll) {
+            winner = 'character';
+            damage = Math.max(1, characterRoll - enemyRoll);
+            description = `You rolled ${characterRoll}, ${enemy.name} rolled ${enemyRoll}. You deal ${damage} damage!`;
+        } else if (enemyRoll > characterRoll) {
+            winner = 'enemy';
+            damage = Math.max(1, enemyRoll - characterRoll);
+            description = `${enemy.name} rolled ${enemyRoll}, you rolled ${characterRoll}. You take ${damage} damage!`;
+        } else {
+            winner = 'tie';
+            damage = 0;
+            description = `Both rolled ${characterRoll}. No damage dealt this round.`;
+        }
+
+        // Calculate new HP values
+        const currentCharacterHp = character.current_hp || character.max_hp || 20;
+        const newCharacterHp = winner === 'enemy' ?
+            Math.max(0, currentCharacterHp - damage) : currentCharacterHp;
+        const newEnemyHp = winner === 'character' ?
+            Math.max(0, enemy.currentHp - damage) : enemy.currentHp;
+
+        // Check for combat end
+        const combatEnded = newCharacterHp <= 0 || newEnemyHp <= 0;
+        const victory = newEnemyHp <= 0 && newCharacterHp > 0;
+        const defeat = newCharacterHp <= 0;
+
+        return {
+            winner,
+            damage,
+            description,
+            characterRoll,
+            enemyRoll,
+            newCharacterHp,
+            newEnemyHp,
+            combatEnded,
+            victory,
+            defeat
+        };
     }
 
-    // Generate loot when enemy is defeated
+    // Generate loot after victory
     generateLoot(enemy) {
-        const loot = [];
-        const lootTable = enemy.lootTable || [];
+        if (!enemy || !enemy.lootTable || enemy.lootTable.length === 0) {
+            return [];
+        }
 
-        lootTable.forEach(item => {
-            if (Math.random() < 0.3) { // 30% chance per item
-                loot.push({
-                    type: item,
-                    quantity: Math.floor(Math.random() * 3) + 1,
-                    id: `loot_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-                });
-            }
-        });
+        const loot = [];
+        const numItems = Math.floor(Math.random() * 3) + 1; // 1-3 items
+
+        for (let i = 0; i < numItems; i++) {
+            const randomItem = enemy.lootTable[Math.floor(Math.random() * enemy.lootTable.length)];
+            loot.push(randomItem);
+        }
 
         return loot;
     }
 
-    // Utility method to simulate dice rolls for testing
-    simulateRolls(dicePool, numRolls = 10) {
-        const results = [];
-        for (let i = 0; i < numRolls; i++) {
-            results.push(this.rollDice(dicePool));
+    // Calculate experience gain with potential bonuses
+    calculateExperienceGain(enemy, characterLevel = 1) {
+        if (!enemy) return 0;
+
+        let baseXp = enemy.xpReward || 0;
+
+        // Level difference modifier
+        const levelDiff = enemy.level - characterLevel;
+        if (levelDiff > 2) {
+            baseXp = Math.floor(baseXp * 1.5); // Bonus for fighting higher level enemies
+        } else if (levelDiff < -2) {
+            baseXp = Math.floor(baseXp * 0.5); // Reduced XP for fighting lower level enemies
         }
 
-        const average = results.reduce((a, b) => a + b, 0) / results.length;
-        const min = Math.min(...results);
-        const max = Math.max(...results);
-
-        return {
-            results,
-            average: Math.round(average * 100) / 100,
-            min,
-            max,
-            dicePool
-        };
+        return Math.max(1, baseXp);
     }
 }
