@@ -4,6 +4,8 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { useState } from 'react';
 import { CharacterProvider, useCharacter } from './contexts/CharacterContext';
+import { AuthProvider } from './contexts/AuthContext';
+import ProtectedRoute from './components/Auth/ProtectedRoute';
 import CharacterPicker from './components/CharacterPicker';
 import CharacterSwitcher from './components/CharacterSwitcher';
 import CharacterStatusWithImage from './components/Character/CharacterStatusWithImage';
@@ -12,16 +14,17 @@ import HabitsPage from './pages/HabitsPage';
 import AdventurePage from './pages/AdventurePage';
 import './styles/App.css';
 
+// Replace by the Standalone ProtectedRoute component
 // Component that requires character selection
-function ProtectedRoute({ children }) {
-    const { isCharacterSelected } = useCharacter();
-
-    if (!isCharacterSelected) {
-        return <Navigate to="/characters" replace />;
-    }
-
-    return children;
-}
+// function ProtectedRoute({ children }) {
+//     const { isCharacterSelected } = useCharacter();
+//
+//     if (!isCharacterSelected) {
+//         return <Navigate to="/characters" replace />;
+//     }
+//
+//     return children;
+// }
 
 // Header Character Status Component - Now the main header
 function HeaderCharacterStatus() {
@@ -76,107 +79,146 @@ function Navigation() {
 }
 
 // Main App component
-function AppContent() {
-    return (
-        <div className="app">
-            {/* Full-width Character Status Header */}
-            <HeaderCharacterStatus />
-
-            {/* Main Content Area */}
-            <main className="main-content">
-                <Routes>
-                    {/* Character selection route */}
-                    <Route path="/characters" element={<CharacterPicker />} />
-
-                    {/* Protected routes that require character selection */}
-                    <Route path="/character" element={
-                        <ProtectedRoute>
-                            <CharacterSheet />
-                        </ProtectedRoute>
-                    } />
-
-                    <Route path="/habits" element={
-                        <ProtectedRoute>
-                            <HabitsPage />
-                        </ProtectedRoute>
-                    } />
-
-                    <Route path="/equipment" element={
-                        <ProtectedRoute>
-                            <div className="placeholder-page">
-                                <h1>Equipment</h1>
-                                <p>Equipment management coming soon!</p>
-                                <div className="placeholder-content">
-                                    <div className="equipment-slot">
-                                        <div className="slot-icon">⚔️</div>
-                                        <div className="slot-label">Weapon</div>
-                                    </div>
-                                    <div className="equipment-slot">
-                                        <div className="slot-icon">🛡️</div>
-                                        <div className="slot-label">Shield</div>
-                                    </div>
-                                    <div className="equipment-slot">
-                                        <div className="slot-icon">👕</div>
-                                        <div className="slot-label">Armor</div>
-                                    </div>
-                                    <div className="equipment-slot">
-                                        <div className="slot-icon">💍</div>
-                                        <div className="slot-label">Ring</div>
-                                    </div>
-                                </div>
-                            </div>
-                        </ProtectedRoute>
-                    } />
-
-                    <Route path="/adventure" element={
-                        <ProtectedRoute>
-                            <AdventurePage />
-                        </ProtectedRoute>
-                    } />
-
-                    {/* Redirect root to character picker */}
-                    <Route path="/" element={<Navigate to="/characters" replace />} />
-
-                    {/* Catch all route */}
-                    <Route path="*" element={<Navigate to="/characters" replace />} />
-                </Routes>
-            </main>
-
-            {/* Bottom Navigation - only show when character is selected */}
-            <ProtectedRouteNavigation />
-        </div>
-    );
-}
+// function AppContent() {
+//     return (
+//         <div className="app">
+//             {/* Full-width Character Status Header */}
+//             <HeaderCharacterStatus />
+//
+//             {/* Main Content Area */}
+//             <main className="main-content">
+//                 <Routes>
+//                     {/* Character selection route */}
+//                     <Route path="/characters" element={<CharacterPicker />} />
+//
+//                     {/* Protected routes that require character selection */}
+//                     <Route path="/character" element={
+//                         <ProtectedRoute>
+//                             <CharacterSheet />
+//                         </ProtectedRoute>
+//                     } />
+//
+//                     <Route path="/habits" element={
+//                         <ProtectedRoute>
+//                             <HabitsPage />
+//                         </ProtectedRoute>
+//                     } />
+//
+//                     <Route path="/equipment" element={
+//                         <ProtectedRoute>
+//                             <div className="placeholder-page">
+//                                 <h1>Equipment</h1>
+//                                 <p>Equipment management coming soon!</p>
+//                                 <div className="placeholder-content">
+//                                     <div className="equipment-slot">
+//                                         <div className="slot-icon">⚔️</div>
+//                                         <div className="slot-label">Weapon</div>
+//                                     </div>
+//                                     <div className="equipment-slot">
+//                                         <div className="slot-icon">🛡️</div>
+//                                         <div className="slot-label">Shield</div>
+//                                     </div>
+//                                     <div className="equipment-slot">
+//                                         <div className="slot-icon">👕</div>
+//                                         <div className="slot-label">Armor</div>
+//                                     </div>
+//                                     <div className="equipment-slot">
+//                                         <div className="slot-icon">💍</div>
+//                                         <div className="slot-label">Ring</div>
+//                                     </div>
+//                                 </div>
+//                             </div>
+//                         </ProtectedRoute>
+//                     } />
+//
+//                     <Route path="/adventure" element={
+//                         <ProtectedRoute>
+//                             <AdventurePage />
+//                         </ProtectedRoute>
+//                     } />
+//
+//                     {/* Redirect root to character picker */}
+//                     <Route path="/" element={<Navigate to="/characters" replace />} />
+//
+//                     {/* Catch all route */}
+//                     <Route path="*" element={<Navigate to="/characters" replace />} />
+//                 </Routes>
+//             </main>
+//
+//             {/* Bottom Navigation - only show when character is selected */}
+//             <ProtectedRouteNavigation />
+//         </div>
+//     );
+// }
 
 // Navigation that only shows when character is selected
-function ProtectedRouteNavigation() {
-    const { isCharacterSelected } = useCharacter();
-
-    if (!isCharacterSelected) {
-        return null;
-    }
-
-    return <Navigation />;
-}
+// function ProtectedRouteNavigation() {
+//     const { isCharacterSelected } = useCharacter();
+//
+//     if (!isCharacterSelected) {
+//         return null;
+//     }
+//
+//     return <Navigation />;
+// }
 
 // Root App component with providers
+// function App() {
+//     return (
+//         <CharacterProvider>
+//             <Router>
+//                 <AppContent />
+//                 {/* Dice container for 3D dice */}
+//                 <div id="dice-box" style={{
+//                     position: 'fixed',
+//                     top: 0,
+//                     left: 0,
+//                     width: '100%',
+//                     height: '100%',
+//                     pointerEvents: 'none',
+//                     zIndex: 9999
+//                 }}></div>
+//             </Router>
+//         </CharacterProvider>
+//     );
+// }
+
 function App() {
     return (
-        <CharacterProvider>
-            <Router>
-                <AppContent />
-                {/* Dice container for 3D dice */}
-                <div id="dice-box" style={{
-                    position: 'fixed',
-                    top: 0,
-                    left: 0,
-                    width: '100%',
-                    height: '100%',
-                    pointerEvents: 'none',
-                    zIndex: 9999
-                }}></div>
-            </Router>
-        </CharacterProvider>
+        <Router>
+            <AuthProvider>
+                <CharacterProvider>
+                    <div className="App">
+                        <NavBar />
+                        <Routes>
+                            {/* Public routes */}
+                            <Route path="/login" element={<LoginPage />} />
+                            <Route path="/register" element={<RegisterPage />} />
+
+                            {/* Protected routes */}
+                            <Route path="/characters" element={
+                                <ProtectedRoute>
+                                    <CharacterPage />
+                                </ProtectedRoute>
+                            } />
+                            <Route path="/habits" element={
+                                <ProtectedRoute>
+                                    <HabitsPage />
+                                </ProtectedRoute>
+                            } />
+                            <Route path="/adventure" element={
+                                <ProtectedRoute>
+                                    <AdventurePage />
+                                </ProtectedRoute>
+                            } />
+
+                            {/* Default redirect */}
+                            <Route path="/" element={<Navigate to="/characters" replace />} />
+                        </Routes>
+                    </div>
+                </CharacterProvider>
+            </AuthProvider>
+        </Router>
     );
 }
 

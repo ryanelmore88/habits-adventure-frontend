@@ -1,16 +1,52 @@
-// src/components/NavBar.jsx
+/* File: frontend/src/components/Common/NavBar.jsx */
+/* Update NavBar to include auth status */
+
 import React from 'react';
-import { Link } from 'react-router-dom';
-import '../../styles/NavBar.css';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../../contexts/AuthContext';
+import './NavBar.css';
 
 const NavBar = () => {
+    const { isAuthenticated, user, logout } = useAuth();
+    const navigate = useNavigate();
+
+    const handleLogout = async () => {
+        await logout();
+        navigate('/login');
+    };
+
     return (
-        <nav className="bottom-nav">
-            <Link to="/character">Character</Link>
-            <Link to="/habits">Habits</Link>
-            <Link to="/equipment">Equipment</Link>
-            <Link to="/adventure">Adventure</Link>
-            <Link to="/Dice">Dice</Link>
+        <nav className="navbar">
+            <div className="navbar-brand">
+                <Link to="/">⚔️ Habits Adventure</Link>
+            </div>
+
+            {isAuthenticated ? (
+                <>
+                    <div className="navbar-links">
+                        <Link to="/characters" className="nav-link">Characters</Link>
+                        <Link to="/habits" className="nav-link">Habits</Link>
+                        <Link to="/adventure" className="nav-link">Adventure</Link>
+                    </div>
+
+                    <div className="navbar-user">
+                        <span className="user-email">{user?.email}</span>
+                        {user?.is_premium && (
+                            <span className="premium-badge">Premium</span>
+                        )}
+                        <button onClick={handleLogout} className="logout-btn">
+                            Logout
+                        </button>
+                    </div>
+                </>
+            ) : (
+                <div className="navbar-auth">
+                    <Link to="/login" className="nav-link">Login</Link>
+                    <Link to="/register" className="nav-link register-btn">
+                        Start Adventure
+                    </Link>
+                </div>
+            )}
         </nav>
     );
 };
