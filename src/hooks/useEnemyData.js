@@ -1,261 +1,212 @@
 // File: frontend/src/hooks/useEnemyData.js
-// Custom hook for managing enemy data and backend integration
+// Updated enemy data hook using authenticated API
 
-import { useState, useEffect, useCallback } from 'react';
-import {
-    getAvailableEnemies,
-    getEnemiesByDifficulty,
-    getEnemiesByEnvironment,
-    getAllEnemyTemplates
-} from '../api/enemyApi';
+import { useState, useEffect } from 'react';
+import { enemyApi } from '../api';
 
-/**
- * Custom hook for managing enemy data from backend
- * @returns {Object} Enemy data state and management functions
- */
-export const useEnemyData = () => {
-    // State for available enemies
-    const [availableEnemies, setAvailableEnemies] = useState([]);
-    const [enemyTemplates, setEnemyTemplates] = useState({});
-
-    // Loading and error states
+const useEnemyData = (enemyType) => {
+    const [enemyData, setEnemyData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
-    // Cache to avoid repeated API calls
-    const [lastFetch, setLastFetch] = useState(null);
-    const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+    useEffect(() => {
+        const fetchEnemyData = async () => {
+            if (!enemyType) {
+                setLoading(false);
+                return;
+            }
 
-    /**
-     * Load available enemies from backend with caching
-     */
-    const loadAvailableEnemies = useCallback(async (forceRefresh = false) => {
-        // Check cache validity
-        const now = Date.now();
-        const isCacheValid = lastFetch && (now - lastFetch) < CACHE_DURATION;
+            try {
+                setLoading(true);
+                setError(null);
 
-        if (!forceRefresh && isCacheValid && availableEnemies.length > 0) {
-            console.log('Using cached enemy data');
-            return;
-        }
+                // First try to get the specific enemy template
+                const response = await enemyApi.getEnemyTemplate(enemyType);
 
-        try {
-            setLoading(true);
-            setError(null);
-
-            console.log('Fetching enemies from backend...');
-            const {
-                availableEnemies: enemies,
-                enemyTemplates: templates
-            } = await getAvailableEnemies();
-
-            console.log('Successfully loaded enemies:', enemies);
-            console.log('Enemy templates:', Object.keys(templates));
-
-            setAvailableEnemies(enemies);
-            setEnemyTemplates(templates);
-            setLastFetch(now);
-
-        } catch (err) {
-            console.error('Failed to load enemies:', err);
-            setError(err.message);
-
-            // Set fallback data to keep the app functional
-            const fallbackEnemies = ['goblin', 'orc', 'skeleton', 'dire_wolf'];
-            const fallbackTemplates = {
-                'goblin': {
-                    name: 'Goblin',
-                    level: 1,
-                    maxHp: 8,
-                    dicePool: '2d6',
-                    xpReward: 25,
-                    lootTable: ['copper coins', 'rusty dagger'],
-                    description: 'A small, cunning creature with sharp teeth.'
-                },
-                'orc': {
-                    name: 'Orc',
-                    level: 2,
-                    maxHp: 15,
-                    dicePool: '3d6',
-                    xpReward: 50,
-                    lootTable: ['silver coins', 'orcish axe'],
-                    description: 'A brutish warrior with crude weapons.'
-                },
-                'skeleton': {
-                    name: 'Skeleton',
-                    level: 1,
-                    maxHp: 6,
-                    dicePool: '2d6',
-                    xpReward: 30,
-                    lootTable: ['bone fragments', 'tattered cloak'],
-                    description: 'An animated skeleton wielding ancient weapons.'
-                },
-                'dire_wolf': {
-                    name: 'Dire Wolf',
-                    level: 3,
-                    maxHp: 20,
-                    dicePool: '4d6',
-                    xpReward: 75,
-                    lootTable: ['wolf pelt', 'sharp fang'],
-                    description: 'A massive wolf with glowing eyes.'
+                if (response.status === 'success' && response.data) {
+                    setEnemyData(response.data);
+                } else {
+                    // If no data from backend, fall back to local defaults
+                    setEnemyData(getDefaultEnemyData(enemyType));
                 }
-            };
+            } catch (err) {
+                console.error(`Failed to fetch enemy data for ${enemyType}:`, err);
 
-            setAvailableEnemies(fallbackEnemies);
-            setEnemyTemplates(fallbackTemplates);
-
-        } finally {
-            setLoading(false);
-        }
-    }, [availableEnemies.length, lastFetch]);
-
-    /**
-     * Get enemies filtered by difficulty
-     */
-    const getEnemiesForDifficulty = useCallback(async (difficulty) => {
-        try {
-            console.log(`Fetching ${difficulty} difficulty enemies...`);
-            const enemies = await getEnemiesByDifficulty(difficulty);
-            return enemies;
-        } catch (err) {
-            console.error(`Failed to fetch ${difficulty} enemies:`, err);
-
-            // Return filtered fallback data
-            const difficultyMap = {
-                'Easy': ['goblin', 'skeleton'],
-                'Medium': ['orc'],
-                'Hard': ['dire_wolf'],
-                'Legendary': []
-            };
-
-            const fallbackIds = difficultyMap[difficulty] || [];
-            return fallbackIds
-                .filter(id => enemyTemplates[id])
-                .map(id => ({
-                    enemy_id: `template_${id}`,
-                    ...enemyTemplates[id]
-                }));
-        }
-    }, [enemyTemplates]);
-
-    /**
-     * Get enemies filtered by environment
-     */
-    const getEnemiesForEnvironment = useCallback(async (environment) => {
-        try {
-            console.log(`Fetching enemies for ${environment} environment...`);
-            const enemies = await getEnemiesByEnvironment(environment);
-            return enemies;
-        } catch (err) {
-            console.error(`Failed to fetch ${environment} enemies:`, err);
-
-            // Return filtered fallback data based on environment
-            const environmentMap = {
-                'forest': ['goblin', 'dire_wolf'],
-                'caves': ['skeleton', 'orc'],
-                'ruins': ['skeleton', 'orc'],
-                'mountains': ['dire_wolf', 'orc'],
-                'swamps': ['goblin'],
-                'crypts': ['skeleton']
-            };
-
-            const fallbackIds = environmentMap[environment] || availableEnemies;
-            return fallbackIds
-                .filter(id => enemyTemplates[id])
-                .map(id => ({
-                    enemy_id: `template_${id}`,
-                    ...enemyTemplates[id]
-                }));
-        }
-    }, [availableEnemies, enemyTemplates]);
-
-    /**
-     * Get all detailed enemy templates
-     */
-    const getAllTemplates = useCallback(async () => {
-        try {
-            console.log('Fetching all enemy templates...');
-            const templates = await getAllEnemyTemplates();
-            return templates;
-        } catch (err) {
-            console.error('Failed to fetch all templates:', err);
-
-            // Return current templates as fallback
-            return Object.entries(enemyTemplates).map(([id, template]) => ({
-                enemy_id: `template_${id}`,
-                ...template
-            }));
-        }
-    }, [enemyTemplates]);
-
-    /**
-     * Get enemy template by ID
-     */
-    const getEnemyTemplate = useCallback((enemyId) => {
-        const template = enemyTemplates[enemyId];
-        if (!template) {
-            console.warn(`Enemy template not found: ${enemyId}`);
-            return null;
-        }
-        return template;
-    }, [enemyTemplates]);
-
-    /**
-     * Refresh enemy data from backend
-     */
-    const refreshEnemyData = useCallback(() => {
-        return loadAvailableEnemies(true);
-    }, [loadAvailableEnemies]);
-
-    /**
-     * Check if enemy data is stale and needs refresh
-     */
-    const isDataStale = useCallback(() => {
-        if (!lastFetch) return true;
-        const now = Date.now();
-        return (now - lastFetch) > CACHE_DURATION;
-    }, [lastFetch]);
-
-    // Load enemies on mount
-    useEffect(() => {
-        loadAvailableEnemies();
-    }, [loadAvailableEnemies]);
-
-    // Auto-refresh stale data when component becomes visible
-    useEffect(() => {
-        const handleVisibilityChange = () => {
-            if (!document.hidden && isDataStale()) {
-                console.log('Refreshing stale enemy data...');
-                loadAvailableEnemies(true);
+                // If it's a 404, use default data
+                if (err.response?.status === 404) {
+                    console.log(`Enemy template ${enemyType} not found, using defaults`);
+                    setEnemyData(getDefaultEnemyData(enemyType));
+                } else if (err.response?.status === 401) {
+                    // Authentication error - the interceptor will handle redirect
+                    setError('Authentication required');
+                } else {
+                    // For other errors, still provide default data so the game can continue
+                    setError(err.message || 'Failed to load enemy data');
+                    setEnemyData(getDefaultEnemyData(enemyType));
+                }
+            } finally {
+                setLoading(false);
             }
         };
 
-        document.addEventListener('visibilitychange', handleVisibilityChange);
-        return () => {
-            document.removeEventListener('visibilitychange', handleVisibilityChange);
-        };
-    }, [loadAvailableEnemies, isDataStale]);
+        fetchEnemyData();
+    }, [enemyType]);
 
-    return {
-        // Data state
-        availableEnemies,
-        enemyTemplates,
-        loading,
-        error,
+    return { enemyData, loading, error };
+};
 
-        // Data management functions
-        loadAvailableEnemies,
-        refreshEnemyData,
-        getEnemyTemplate,
+// Default enemy data for fallback
+const getDefaultEnemyData = (enemyType) => {
+    const defaultEnemies = {
+        goblin: {
+            name: "Goblin",
+            level: 1,
+            maxHp: 7,
+            attackBonus: 4,
+            damageDice: "1d6+2",
+            xpReward: 25,
+            description: "A small, green-skinned creature with sharp teeth and a nasty disposition.",
+            imageUrl: "/enemies/goblin.png"
+        },
+        skeleton: {
+            name: "Skeleton",
+            level: 1,
+            maxHp: 8,
+            attackBonus: 3,
+            damageDice: "1d6+1",
+            xpReward: 30,
+            description: "An animated skeleton warrior, its bones held together by dark magic.",
+            imageUrl: "/enemies/skeleton.png"
+        },
+        orc: {
+            name: "Orc",
+            level: 2,
+            maxHp: 15,
+            attackBonus: 5,
+            damageDice: "1d8+3",
+            xpReward: 50,
+            description: "A brutish humanoid with greenish skin, prominent tusks, and a love for violence.",
+            imageUrl: "/enemies/orc.png"
+        },
+        wolf: {
+            name: "Wolf",
+            level: 1,
+            maxHp: 10,
+            attackBonus: 4,
+            damageDice: "2d4+2",
+            xpReward: 35,
+            description: "A fierce predator with sharp fangs and keen senses.",
+            imageUrl: "/enemies/wolf.png"
+        },
+        bandit: {
+            name: "Bandit",
+            level: 2,
+            maxHp: 12,
+            attackBonus: 4,
+            damageDice: "1d8+2",
+            xpReward: 40,
+            description: "A lawless rogue who preys on travelers.",
+            imageUrl: "/enemies/bandit.png"
+        },
+        giant_spider: {
+            name: "Giant Spider",
+            level: 2,
+            maxHp: 14,
+            attackBonus: 5,
+            damageDice: "1d8+3",
+            xpReward: 45,
+            description: "An enormous arachnid with venomous fangs.",
+            imageUrl: "/enemies/giant_spider.png"
+        },
+        troll: {
+            name: "Troll",
+            level: 3,
+            maxHp: 25,
+            attackBonus: 6,
+            damageDice: "2d6+4",
+            xpReward: 100,
+            description: "A massive, regenerating monster with incredible strength.",
+            imageUrl: "/enemies/troll.png"
+        },
+        dark_knight: {
+            name: "Dark Knight",
+            level: 4,
+            maxHp: 30,
+            attackBonus: 7,
+            damageDice: "2d8+4",
+            xpReward: 150,
+            description: "A fallen warrior clad in cursed armor.",
+            imageUrl: "/enemies/dark_knight.png"
+        },
+        dragon_wyrmling: {
+            name: "Dragon Wyrmling",
+            level: 5,
+            maxHp: 40,
+            attackBonus: 8,
+            damageDice: "2d10+5",
+            xpReward: 250,
+            description: "A young dragon, small but still incredibly dangerous.",
+            imageUrl: "/enemies/dragon_wyrmling.png"
+        }
+    };
 
-        // Filtered data functions
-        getEnemiesForDifficulty,
-        getEnemiesForEnvironment,
-        getAllTemplates,
-
-        // Utility functions
-        isDataStale,
-        hasData: availableEnemies.length > 0,
-        cacheAge: lastFetch ? Date.now() - lastFetch : null
+    return defaultEnemies[enemyType] || {
+        name: "Unknown Enemy",
+        level: 1,
+        maxHp: 10,
+        attackBonus: 3,
+        damageDice: "1d6",
+        xpReward: 20,
+        description: "A mysterious foe.",
+        imageUrl: "/enemies/unknown.png"
     };
 };
+
+// Export a helper to get all available enemy types
+export const getAllEnemyTypes = async () => {
+    try {
+        const response = await enemyApi.getEnemyTemplates();
+        if (response.status === 'success' && response.data) {
+            // Map backend enemy data to a simplified format
+            return response.data.map(enemy => ({
+                type: enemy.enemy_id || enemy.type,
+                name: enemy.name,
+                level: enemy.level,
+                difficulty: enemy.difficulty
+            }));
+        }
+    } catch (err) {
+        console.error('Failed to fetch enemy types:', err);
+    }
+
+    // Return default enemy types as fallback
+    return [
+        { type: 'goblin', name: 'Goblin', level: 1, difficulty: 'Easy' },
+        { type: 'skeleton', name: 'Skeleton', level: 1, difficulty: 'Easy' },
+        { type: 'orc', name: 'Orc', level: 2, difficulty: 'Medium' },
+        { type: 'wolf', name: 'Wolf', level: 1, difficulty: 'Easy' },
+        { type: 'bandit', name: 'Bandit', level: 2, difficulty: 'Medium' },
+        { type: 'giant_spider', name: 'Giant Spider', level: 2, difficulty: 'Medium' },
+        { type: 'troll', name: 'Troll', level: 3, difficulty: 'Hard' },
+        { type: 'dark_knight', name: 'Dark Knight', level: 4, difficulty: 'Hard' },
+        { type: 'dragon_wyrmling', name: 'Dragon Wyrmling', level: 5, difficulty: 'Legendary' }
+    ];
+};
+
+// Export a helper to get enemies by difficulty
+export const getEnemiesByDifficulty = async (difficulty) => {
+    try {
+        const response = await enemyApi.getEnemiesByDifficulty(difficulty);
+        if (response.status === 'success' && response.data) {
+            return response.data;
+        }
+    } catch (err) {
+        console.error(`Failed to fetch enemies by difficulty ${difficulty}:`, err);
+    }
+
+    // Return filtered default enemies as fallback
+    const allEnemies = await getAllEnemyTypes();
+    return allEnemies.filter(enemy => enemy.difficulty === difficulty);
+};
+
+export default useEnemyData;

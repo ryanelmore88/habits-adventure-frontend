@@ -52,3 +52,35 @@ export const getEnemyByType = async (enemyType) => {
     const response = await enemyApi.getEnemyTemplate(enemyType);
     return response.data;
 };
+
+/**
+ * Get all enemy templates from the backend
+ * @returns {Promise<Object[]>}
+ */
+export const getAllEnemyTemplates = async () => {
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/enemy/templates`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(errorData.detail || `HTTP ${response.status}: Failed to fetch enemy templates`);
+        }
+
+        const data = await response.json();
+
+        if (data.status !== 'success') {
+            throw new Error(data.message || 'Failed to fetch enemy templates');
+        }
+
+        return data.data || [];
+
+    } catch (error) {
+        console.error('Error fetching enemy templates:', error);
+        throw error;
+    }
+};

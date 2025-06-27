@@ -2,6 +2,14 @@
 // Complete habit API with authentication
 
 import authClient from './authApi';
+import { getLocalTodayDate, getCurrentWeekDatesSundayStart, isValidDate } from '../utils/dateUtils.js';
+
+// Validate date format (YYYY-MM-DD)
+const validateDate = (dateString) => {
+    if (!isValidDate(dateString)) {
+        throw new Error('Invalid date format. Expected YYYY-MM-DD');
+    }
+};
 
 export const habitApi = {
     // Create a new habit
@@ -77,6 +85,39 @@ export const deleteHabit = async (habitId) => {
 export const getWeeklyCompletions = async (characterId) => {
     const response = await habitApi.getWeekCompletions(characterId);
     return response.data;
+};
+
+// Fetch all habits for a character (daily view)
+export const fetchHabitsForDate = async (characterId, date = null) => {
+    // Input validation
+    if (!characterId || !characterId.trim()) {
+        throw new Error('Character ID is required');
+    }
+
+    // Use today's date if none provided
+    const targetDate = date || getLocalTodayDate();
+    validateDate(targetDate);
+
+    try {
+        const response = await apiCall(`/api/character/${characterId.trim()}/habits`);
+
+        // Handle both array responses and { data: array } responses
+        const habits = response.data || response;
+
+        if (!Array.isArray(habits)) {
+            return [];
+        }
+
+        // TODO: Filter by date when backend supports it
+        // For now, return all habits - you might want to add date filtering logic here
+        return habits;
+
+    } catch (error) {
+        if (error.status === 404) {
+            return []; // No habits found is not an error
+        }
+        handleApiError(error, 'Fetch habits for date');
+    }
 };
 
 // Remove or update the old apiCall function
