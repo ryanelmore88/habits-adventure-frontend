@@ -1,10 +1,10 @@
-/* File: frontend/src/components/Common/NavBar.jsx */
-/* Update NavBar to include auth status */
+// File: frontend/src/components/Common/NavBar.jsx
+// Navigation bar with authentication status
 
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-import './NavBar.css';
+import '../../styles/NavBar.css';
 
 const NavBar = () => {
     const { isAuthenticated, user, logout } = useAuth();

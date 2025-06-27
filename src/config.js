@@ -1,2 +1,1 @@
-// src/config.js
-export const BACKEND_URL = "http://192.168.0.76:8000/api";
+export const BACKEND_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000/api";
