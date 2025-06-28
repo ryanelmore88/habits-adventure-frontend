@@ -42,7 +42,7 @@ export const CharacterProvider = ({ children }) => {
             setError(null);
 
             // Use your actual endpoint - returns array directly, not wrapped in data
-            const response = await apiCall('/api/characters');
+            const response = await apiCall('/character/user/characters');
 
             // Your endpoint returns the array directly (not wrapped in response.data)
             if (Array.isArray(response)) {
@@ -66,7 +66,7 @@ export const CharacterProvider = ({ children }) => {
             setLoading(true);
             setError(null);
 
-            const response = await apiCall(`/api/character/${characterId}`);
+            const response = await apiCall(`/character/${characterId}`);
 
             if (response.status === 'success' && response.data) {
                 // Create a Character instance with enhanced functionality
@@ -106,7 +106,7 @@ export const CharacterProvider = ({ children }) => {
             setLoading(true);
             setError(null);
 
-            const response = await apiCall(`/api/character/${selectedCharacter.id}`);
+            const response = await apiCall(`/character/${selectedCharacter.id}`);
 
             if (response.status === 'success' && response.data) {
                 // Update the existing Character instance with new data

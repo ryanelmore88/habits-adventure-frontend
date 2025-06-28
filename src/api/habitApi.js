@@ -99,7 +99,7 @@ export const fetchHabitsForDate = async (characterId, date = null) => {
     validateDate(targetDate);
 
     try {
-        const response = await apiCall(`/api/character/${characterId.trim()}/habits`);
+        const response = await apiCall(`/character/${characterId.trim()}/habits`);
 
         // Handle both array responses and { data: array } responses
         const habits = response.data || response;

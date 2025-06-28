@@ -4,7 +4,7 @@
 import { useState, useEffect } from 'react';
 import { enemyApi } from '../api';
 
-const useEnemyData = (enemyType) => {
+export const useEnemyData = (enemyType) => {
     const [enemyData, setEnemyData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
