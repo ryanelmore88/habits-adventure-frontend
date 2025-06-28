@@ -1,52 +1,98 @@
-// File: frontend/src/components/Common/NavBar.jsx
-// Navigation bar with authentication status
+// File: src/components/Common/NavBar.jsx
+// Updated NavBar for bottom navigation with mobile-first design
 
 import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import { useCharacter } from '../../contexts/CharacterContext';
 import '../../styles/NavBar.css';
 
 const NavBar = () => {
     const { isAuthenticated, user, logout } = useAuth();
+    const { isCharacterSelected } = useCharacter();
     const navigate = useNavigate();
+    const location = useLocation();
 
     const handleLogout = async () => {
         await logout();
         navigate('/login');
     };
 
+    // Don't show nav if not authenticated
+    if (!isAuthenticated) {
+        return null;
+    }
+
+    // Navigation items for bottom nav
+    const navItems = [
+        {
+            path: '/characters',
+            icon: '👤',
+            label: 'Characters',
+            requiresCharacter: false
+        },
+        {
+            path: '/habits',
+            icon: '📋',
+            label: 'Habits',
+            requiresCharacter: true
+        },
+        {
+            path: '/adventure',
+            icon: '⚔️',
+            label: 'Adventure',
+            requiresCharacter: true
+        },
+        {
+            path: '/character',
+            icon: '📊',
+            label: 'Sheet',
+            requiresCharacter: true
+        }
+    ];
+
+    // Filter items based on character selection
+    const filteredNavItems = navItems.filter(item =>
+        !item.requiresCharacter || isCharacterSelected
+    );
+
     return (
-        <nav className="navbar">
-            <div className="navbar-brand">
-                <Link to="/">⚔️ Habits Adventure</Link>
-            </div>
+        <nav className="bottom-navbar">
+            <div className="bottom-nav-container">
+                {/* Main Navigation Items */}
+                <div className="bottom-nav-main">
+                    {filteredNavItems.map((item) => (
+                        <Link
+                            key={item.path}
+                            to={item.path}
+                            className={`bottom-nav-item ${
+                                location.pathname === item.path ? 'active' : ''
+                            }`}
+                        >
+                            <span className="nav-item-icon">{item.icon}</span>
+                            <span className="nav-item-label">{item.label}</span>
+                        </Link>
+                    ))}
+                </div>
 
-            {isAuthenticated ? (
-                <>
-                    <div className="navbar-links">
-                        <Link to="/characters" className="nav-link">Characters</Link>
-                        <Link to="/habits" className="nav-link">Habits</Link>
-                        <Link to="/adventure" className="nav-link">Adventure</Link>
-                    </div>
-
-                    <div className="navbar-user">
-                        <span className="user-email">{user?.email}</span>
-                        {user?.is_premium && (
-                            <span className="premium-badge">Premium</span>
-                        )}
-                        <button onClick={handleLogout} className="logout-btn">
-                            Logout
+                {/* User Menu */}
+                <div className="bottom-nav-user">
+                    <div className="user-menu">
+                        <div className="user-info">
+                            <span className="user-email-short">
+                                {user?.email?.split('@')[0] || 'User'}
+                            </span>
+                            {user?.is_premium && (
+                                <span className="premium-indicator">✨</span>
+                            )}
+                        </div>
+                        <button onClick={handleLogout} className="logout-btn-bottom">
+                            <span className="nav-item-icon">🚪</span>
+                            <span className="nav-item-label">Logout</span>
                         </button>
                     </div>
-                </>
-            ) : (
-                <div className="navbar-auth">
-                    <Link to="/login" className="nav-link">Login</Link>
-                    <Link to="/register" className="nav-link register-btn">
-                        Start Adventure
-                    </Link>
                 </div>
-            )}
+            </div>
         </nav>
     );
 };

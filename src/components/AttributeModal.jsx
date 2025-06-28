@@ -1,6 +1,9 @@
+// File: src/components/AttributeModal.jsx
+// Fixed imports and function calls
+
 import { useState, useEffect } from 'react';
 import { useCharacter } from '../contexts/CharacterContext';
-import { createHabit, fetchHabitsForAttribute, markHabitComplete } from '../api/habitApi';
+import { habitApi, markHabitComplete } from '../api/habitApi';
 import '../styles/AttributeModal.css';
 
 const AttributeModal = ({
@@ -30,11 +33,22 @@ const AttributeModal = ({
     const loadHabits = async () => {
         try {
             setLoading(true);
-            const habitData = await fetchHabitsForAttribute(selectedCharacter.id, attributeName);
-            setHabits(habitData || []);
+            setError('');
+
+            // Use the correct API function to get all habits for character
+            const response = await habitApi.getHabits(selectedCharacter.id);
+            const allHabits = response.data || response || [];
+
+            // Filter habits by the selected attribute
+            const attributeHabits = allHabits.filter(habit =>
+                habit.attribute && habit.attribute.toLowerCase() === attributeName.toLowerCase()
+            );
+
+            setHabits(attributeHabits);
         } catch (err) {
             console.error('Error loading habits:', err);
             setError('Failed to load habits');
+            setHabits([]); // Set empty array on error
         } finally {
             setLoading(false);
         }
@@ -50,7 +64,7 @@ const AttributeModal = ({
             setLoading(true);
             setError('');
 
-            await createHabit({
+            await habitApi.createHabit({
                 character_id: selectedCharacter.id,
                 habit_name: newHabitName.trim(),
                 attribute: attributeName.toLowerCase(),
@@ -67,7 +81,7 @@ const AttributeModal = ({
             setIsAddingHabit(false);
         } catch (err) {
             console.error('Error creating habit:', err);
-            setError('Failed to create habit: ' + err.message);
+            setError('Failed to create habit: ' + (err.response?.data?.detail || err.message));
         } finally {
             setLoading(false);
         }
@@ -86,7 +100,7 @@ const AttributeModal = ({
             alert('Habit marked as complete!');
         } catch (err) {
             console.error('Error marking habit complete:', err);
-            setError('Failed to mark habit complete: ' + err.message);
+            setError('Failed to mark habit complete: ' + (err.response?.data?.detail || err.message));
         } finally {
             setLoading(false);
         }
@@ -126,34 +140,34 @@ const AttributeModal = ({
                 )}
 
                 <div className="habits-section">
-                    <h3>Habits for {attributeName}</h3>
+                    <h3>Habits for {attributeName.charAt(0).toUpperCase() + attributeName.slice(1)}</h3>
 
-                    {loading && <p>Loading...</p>}
-
-                    {habits.length === 0 && !loading && (
-                        <p>No habits created yet for this attribute.</p>
+                    {loading && !isAddingHabit && (
+                        <div className="loading-message">Loading habits...</div>
                     )}
 
                     <div className="habits-list">
-                        {habits.map(habit => (
-                            <div key={habit.habit_id} className="habit-item">
-                                <div className="habit-info">
-                                    <h4>{habit.habit_name}</h4>
-                                    {habit.description && (
-                                        <p className="habit-description">{habit.description}</p>
-                                    )}
-                                </div>
-                                <div className="habit-actions">
+                        {habits.length > 0 ? (
+                            habits.map((habit) => (
+                                <div key={habit.habit_id || habit.id} className="habit-item">
+                                    <div className="habit-info">
+                                        <h4>{habit.habit_name || habit.name}</h4>
+                                        {habit.description && (
+                                            <p className="habit-description">{habit.description}</p>
+                                        )}
+                                    </div>
                                     <button
-                                        onClick={() => handleMarkComplete(habit.habit_id)}
-                                        disabled={loading}
+                                        onClick={() => handleMarkComplete(habit.habit_id || habit.id)}
                                         className="complete-btn"
+                                        disabled={loading}
                                     >
-                                        ✓ Mark Complete Today
+                                        Complete Today
                                     </button>
                                 </div>
-                            </div>
-                        ))}
+                            ))
+                        ) : !loading && (
+                            <p className="no-habits">No habits for this attribute yet. Create your first one!</p>
+                        )}
                     </div>
                 </div>
 
@@ -168,7 +182,7 @@ const AttributeModal = ({
                         </button>
                     ) : (
                         <div className="habit-form">
-                            <h4>Create New Habit</h4>
+                            <h4>Create New {attributeName.charAt(0).toUpperCase() + attributeName.slice(1)} Habit</h4>
                             <div className="form-group">
                                 <label>Habit Name *</label>
                                 <input

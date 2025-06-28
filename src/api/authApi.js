@@ -1,5 +1,5 @@
 // File: frontend/src/api/authApi.js
-// API client for authentication endpoints
+// Updated API client for authentication endpoints
 
 import axios from 'axios';
 import { BACKEND_URL } from '../config';
@@ -34,12 +34,18 @@ authClient.interceptors.response.use(
 
             try {
                 const refreshToken = localStorage.getItem('refresh_token');
+                if (!refreshToken) {
+                    throw new Error('No refresh token available');
+                }
+
                 const response = await axios.post(`${BACKEND_URL}/auth/refresh`, {
                     refresh_token: refreshToken
                 });
 
                 localStorage.setItem('access_token', response.data.access_token);
-                localStorage.setItem('refresh_token', response.data.refresh_token);
+                if (response.data.refresh_token) {
+                    localStorage.setItem('refresh_token', response.data.refresh_token);
+                }
 
                 originalRequest.headers.Authorization = `Bearer ${response.data.access_token}`;
                 return authClient(originalRequest);
@@ -76,7 +82,13 @@ export const authApi = {
                 'Content-Type': 'multipart/form-data'
             }
         });
-        return response.data;
+
+        // Note: Backend currently doesn't provide refresh_token
+        // You may want to add refresh token support later
+        return {
+            ...response.data,
+            refresh_token: null // Placeholder for future refresh token implementation
+        };
     },
 
     logout: async () => {

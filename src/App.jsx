@@ -1,11 +1,13 @@
 // File: src/App.jsx
-// Updated App.jsx with character creation route and proper auth flow
+// Updated App.jsx with CharacterStatusWithImage as header when character is selected
 
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { CharacterProvider } from './contexts/CharacterContext';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { useCharacter } from './contexts/CharacterContext';
 import NavBar from './components/Common/NavBar';
+import CharacterStatusWithImage from './components/Character/CharacterStatusWithImage';
 import LoginPage from './components/Auth/LoginPage';
 import RegisterPage from './components/Auth/RegisterPage';
 import CharacterPicker from './components/CharacterPicker';
@@ -14,9 +16,12 @@ import CharacterPage from './pages/CharacterPage';
 import HabitsPage from './pages/HabitsPage';
 import AdventurePage from './pages/AdventurePage';
 import './styles/App.css';
+import './styles/CharacterHeader.css';
+import './styles/NavBar.css';
 
 function AppContent() {
     const { isAuthenticated, loading } = useAuth();
+    const { selectedCharacter, isCharacterSelected } = useCharacter();
 
     if (loading) {
         return (
@@ -39,8 +44,18 @@ function AppContent() {
 
     return (
         <Router>
-            <div className="App">
-                <NavBar />
+            <div className="app">
+                {/* Character Header - Only show when character is selected */}
+                {isCharacterSelected && selectedCharacter && (
+                    <div className="character-header-section">
+                        <CharacterStatusWithImage
+                            character={selectedCharacter}
+                            className="header-character-status main-header"
+                        />
+                    </div>
+                )}
+
+                {/* Main Content */}
                 <main className="main-content">
                     <Routes>
                         {/* Character Management Routes */}
@@ -59,6 +74,9 @@ function AppContent() {
                         <Route path="*" element={<Navigate to="/characters" replace />} />
                     </Routes>
                 </main>
+
+                {/* Bottom Navigation Bar */}
+                <NavBar />
             </div>
         </Router>
     );

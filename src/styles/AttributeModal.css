@@ -1,4 +1,5 @@
-/* src/styles/AttributeModal.css */
+/* File: src/styles/AttributeModal.css */
+/* Updated with all necessary styles for the AttributeModal */
 
 .modal-overlay {
     position: fixed;
@@ -90,6 +91,30 @@
     color: #eee;
 }
 
+/* Error and Loading Messages */
+.error-message {
+    background: #dc2626;
+    color: white;
+    padding: 12px;
+    border-radius: 8px;
+    margin-bottom: 16px;
+    font-size: 0.9rem;
+}
+
+.loading-message {
+    color: #9ca3af;
+    text-align: center;
+    padding: 16px;
+    font-style: italic;
+}
+
+.no-habits {
+    color: #9ca3af;
+    text-align: center;
+    padding: 24px;
+    font-style: italic;
+}
+
 /* Habits Section */
 .habits-section {
     margin-bottom: 24px;
@@ -168,10 +193,16 @@
     background: #2563eb;
 }
 
+.add-habit-btn:disabled {
+    background: #6b7280;
+    cursor: not-allowed;
+}
+
+/* Habit Form */
 .habit-form {
     background: #374151;
+    padding: 20px;
     border-radius: 8px;
-    padding: 16px;
 }
 
 .habit-form h4 {
@@ -185,32 +216,41 @@
 
 .form-group label {
     display: block;
-    margin-bottom: 4px;
-    color: #9ca3af;
+    margin-bottom: 6px;
+    color: #e5e7eb;
     font-weight: 500;
 }
 
 .form-group input,
 .form-group textarea {
     width: 100%;
-    padding: 8px 12px;
+    padding: 10px 12px;
     background: #1f2937;
     border: 1px solid #4b5563;
     border-radius: 6px;
     color: #eee;
-    font-size: 1rem;
-    box-sizing: border-box;
+    font-size: 0.9rem;
+    resize: vertical;
 }
 
 .form-group input:focus,
 .form-group textarea:focus {
     outline: none;
     border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.form-group input:disabled,
+.form-group textarea:disabled {
+    background: #374151;
+    color: #9ca3af;
+    cursor: not-allowed;
 }
 
 .form-actions {
     display: flex;
     gap: 12px;
+    margin-top: 20px;
 }
 
 .save-btn {
@@ -224,7 +264,7 @@
     flex: 1;
 }
 
-.save-btn:hover {
+.save-btn:hover:not(:disabled) {
     background: #059669;
 }
 
@@ -240,17 +280,46 @@
     padding: 10px 20px;
     border-radius: 6px;
     cursor: pointer;
-    flex: 1;
+    font-weight: 500;
 }
 
-.cancel-btn:hover {
+.cancel-btn:hover:not(:disabled) {
     background: #4b5563;
 }
 
-.error-message {
-    background: #dc2626;
-    color: white;
-    padding: 12px;
-    border-radius: 6px;
-    margin-bottom: 16px;
+.cancel-btn:disabled {
+    cursor: not-allowed;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .modal-content {
+        width: 95%;
+        padding: 20px;
+        max-height: 85vh;
+    }
+
+    .attribute-details {
+        grid-template-columns: 1fr;
+        gap: 8px;
+    }
+
+    .habit-item {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+    }
+
+    .complete-btn {
+        width: 100%;
+    }
+
+    .form-actions {
+        flex-direction: column;
+    }
+
+    .save-btn,
+    .cancel-btn {
+        width: 100%;
+    }
 }

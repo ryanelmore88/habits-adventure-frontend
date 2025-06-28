@@ -1,10 +1,207 @@
 // File: frontend/src/hooks/useEnemyData.js
-// Updated enemy data hook using authenticated API
+// Updated to provide what CombatArea expects
 
-import { useState, useEffect } from 'react';
-import { enemyApi } from '../api';
+import { useState, useEffect, useCallback } from 'react';
+import { enemyApi } from '../api/enemyApi';
 
-export const useEnemyData = (enemyType) => {
+export const useEnemyData = () => {
+    const [enemyTemplates, setEnemyTemplates] = useState({});
+    const [availableEnemies, setAvailableEnemies] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+    const [hasData, setHasData] = useState(false);
+
+    // Function to get a specific enemy template
+    const getEnemyTemplate = useCallback((enemyType) => {
+        if (enemyTemplates[enemyType]) {
+            return enemyTemplates[enemyType];
+        }
+
+        // Return fallback data if not found
+        return getDefaultEnemyData(enemyType);
+    }, [enemyTemplates]);
+
+    // Function to refresh enemy data
+    const refreshEnemyData = useCallback(async () => {
+        try {
+            setLoading(true);
+            setError(null);
+
+            const response = await enemyApi.getEnemyTemplates();
+
+            if (response && response.status === 'success' && response.data) {
+                // Convert array to object with enemy type as key
+                const templates = {};
+                const enemyTypes = [];
+
+                response.data.forEach(enemy => {
+                    const enemyType = enemy.enemy_id || enemy.type || enemy.name?.toLowerCase();
+                    if (enemyType) {
+                        templates[enemyType] = {
+                            name: enemy.name,
+                            level: enemy.level,
+                            maxHp: enemy.max_hp || enemy.maxHp,
+                            dicePool: enemy.dice_pool || enemy.dicePool,
+                            xpReward: enemy.xp_reward || enemy.xpReward,
+                            lootTable: enemy.loot_table || enemy.lootTable || [],
+                            description: enemy.description,
+                            difficulty: enemy.difficulty
+                        };
+                        enemyTypes.push(enemyType);
+                    }
+                });
+
+                setEnemyTemplates(templates);
+                setAvailableEnemies(enemyTypes);
+                setHasData(true);
+                console.log('Loaded enemy templates from backend:', templates);
+            } else {
+                throw new Error('Invalid response format');
+            }
+        } catch (err) {
+            console.error('Failed to fetch enemy templates:', err);
+            setError(err.message);
+
+            // Fall back to default enemies
+            const defaultTemplates = getDefaultEnemyTemplates();
+            setEnemyTemplates(defaultTemplates);
+            setAvailableEnemies(Object.keys(defaultTemplates));
+            setHasData(false);
+            console.log('Using fallback enemy templates:', defaultTemplates);
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
+    // Load enemy data on mount
+    useEffect(() => {
+        refreshEnemyData();
+    }, [refreshEnemyData]);
+
+    return {
+        enemyTemplates,
+        availableEnemies,
+        loading,
+        error,
+        hasData,
+        getEnemyTemplate,
+        refreshEnemyData
+    };
+};
+
+// Default enemy data for fallback
+const getDefaultEnemyData = (enemyType) => {
+    const defaultEnemies = getDefaultEnemyTemplates();
+    return defaultEnemies[enemyType] || {
+        name: "Unknown Enemy",
+        level: 1,
+        maxHp: 10,
+        dicePool: "1d6",
+        xpReward: 20,
+        lootTable: [],
+        description: "A mysterious foe.",
+        difficulty: "Easy"
+    };
+};
+
+// Complete set of default enemy templates
+const getDefaultEnemyTemplates = () => {
+    return {
+        goblin: {
+            name: "Goblin",
+            level: 1,
+            maxHp: 7,
+            dicePool: "1d6+2",
+            xpReward: 25,
+            lootTable: [{ type: "gold", quantity: 5 }],
+            description: "A small, green-skinned creature with sharp teeth and a nasty disposition.",
+            difficulty: "Easy"
+        },
+        skeleton: {
+            name: "Skeleton",
+            level: 1,
+            maxHp: 13,
+            dicePool: "2d4+1",
+            xpReward: 30,
+            lootTable: [{ type: "gold", quantity: 8 }],
+            description: "An animated skeleton warrior, its bones held together by dark magic.",
+            difficulty: "Easy"
+        },
+        orc: {
+            name: "Orc",
+            level: 2,
+            maxHp: 15,
+            dicePool: "3d4",
+            xpReward: 50,
+            lootTable: [{ type: "gold", quantity: 12 }],
+            description: "A brutish humanoid with tusks and a fierce temper.",
+            difficulty: "Medium"
+        },
+        wolf: {
+            name: "Wolf",
+            level: 1,
+            maxHp: 11,
+            dicePool: "2d4+1",
+            xpReward: 25,
+            lootTable: [{ type: "fur", quantity: 1 }],
+            description: "A wild wolf with keen senses and sharp fangs.",
+            difficulty: "Easy"
+        },
+        bandit: {
+            name: "Bandit",
+            level: 2,
+            maxHp: 16,
+            dicePool: "2d6",
+            xpReward: 50,
+            lootTable: [{ type: "gold", quantity: 15 }],
+            description: "A human outlaw wielding a curved sword.",
+            difficulty: "Medium"
+        },
+        giant_spider: {
+            name: "Giant Spider",
+            level: 2,
+            maxHp: 18,
+            dicePool: "2d6+1",
+            xpReward: 60,
+            lootTable: [{ type: "web", quantity: 2 }],
+            description: "A massive arachnid with venomous fangs.",
+            difficulty: "Medium"
+        },
+        troll: {
+            name: "Troll",
+            level: 5,
+            maxHp: 84,
+            dicePool: "6d4+2",
+            xpReward: 200,
+            lootTable: [{ type: "gold", quantity: 50 }],
+            description: "A huge, regenerating creature with incredible strength.",
+            difficulty: "Hard"
+        },
+        dark_knight: {
+            name: "Dark Knight",
+            level: 4,
+            maxHp: 65,
+            dicePool: "4d6",
+            xpReward: 150,
+            lootTable: [{ type: "armor", quantity: 1 }],
+            description: "A fallen paladin clad in blackened plate armor.",
+            difficulty: "Hard"
+        },
+        dragon: {
+            name: "Ancient Dragon",
+            level: 10,
+            maxHp: 200,
+            dicePool: "2d12",
+            xpReward: 400,
+            lootTable: [{ type: "gold", quantity: 200 }, { type: "treasure", quantity: 1 }],
+            description: "A massive, ancient dragon with scales like molten metal.",
+            difficulty: "Legendary"
+        }
+    };
+};
+
+// Single enemy data hook (for backward compatibility)
+export const useEnemyDataSingle = (enemyType) => {
     const [enemyData, setEnemyData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -20,27 +217,19 @@ export const useEnemyData = (enemyType) => {
                 setLoading(true);
                 setError(null);
 
-                // First try to get the specific enemy template
                 const response = await enemyApi.getEnemyTemplate(enemyType);
 
-                if (response.status === 'success' && response.data) {
+                if (response && response.status === 'success' && response.data) {
                     setEnemyData(response.data);
                 } else {
-                    // If no data from backend, fall back to local defaults
                     setEnemyData(getDefaultEnemyData(enemyType));
                 }
             } catch (err) {
                 console.error(`Failed to fetch enemy data for ${enemyType}:`, err);
 
-                // If it's a 404, use default data
                 if (err.response?.status === 404) {
-                    console.log(`Enemy template ${enemyType} not found, using defaults`);
                     setEnemyData(getDefaultEnemyData(enemyType));
-                } else if (err.response?.status === 401) {
-                    // Authentication error - the interceptor will handle redirect
-                    setError('Authentication required');
                 } else {
-                    // For other errors, still provide default data so the game can continue
                     setError(err.message || 'Failed to load enemy data');
                     setEnemyData(getDefaultEnemyData(enemyType));
                 }
@@ -53,160 +242,6 @@ export const useEnemyData = (enemyType) => {
     }, [enemyType]);
 
     return { enemyData, loading, error };
-};
-
-// Default enemy data for fallback
-const getDefaultEnemyData = (enemyType) => {
-    const defaultEnemies = {
-        goblin: {
-            name: "Goblin",
-            level: 1,
-            maxHp: 7,
-            attackBonus: 4,
-            damageDice: "1d6+2",
-            xpReward: 25,
-            description: "A small, green-skinned creature with sharp teeth and a nasty disposition.",
-            imageUrl: "/enemies/goblin.png"
-        },
-        skeleton: {
-            name: "Skeleton",
-            level: 1,
-            maxHp: 8,
-            attackBonus: 3,
-            damageDice: "1d6+1",
-            xpReward: 30,
-            description: "An animated skeleton warrior, its bones held together by dark magic.",
-            imageUrl: "/enemies/skeleton.png"
-        },
-        orc: {
-            name: "Orc",
-            level: 2,
-            maxHp: 15,
-            attackBonus: 5,
-            damageDice: "1d8+3",
-            xpReward: 50,
-            description: "A brutish humanoid with greenish skin, prominent tusks, and a love for violence.",
-            imageUrl: "/enemies/orc.png"
-        },
-        wolf: {
-            name: "Wolf",
-            level: 1,
-            maxHp: 10,
-            attackBonus: 4,
-            damageDice: "2d4+2",
-            xpReward: 35,
-            description: "A fierce predator with sharp fangs and keen senses.",
-            imageUrl: "/enemies/wolf.png"
-        },
-        bandit: {
-            name: "Bandit",
-            level: 2,
-            maxHp: 12,
-            attackBonus: 4,
-            damageDice: "1d8+2",
-            xpReward: 40,
-            description: "A lawless rogue who preys on travelers.",
-            imageUrl: "/enemies/bandit.png"
-        },
-        giant_spider: {
-            name: "Giant Spider",
-            level: 2,
-            maxHp: 14,
-            attackBonus: 5,
-            damageDice: "1d8+3",
-            xpReward: 45,
-            description: "An enormous arachnid with venomous fangs.",
-            imageUrl: "/enemies/giant_spider.png"
-        },
-        troll: {
-            name: "Troll",
-            level: 3,
-            maxHp: 25,
-            attackBonus: 6,
-            damageDice: "2d6+4",
-            xpReward: 100,
-            description: "A massive, regenerating monster with incredible strength.",
-            imageUrl: "/enemies/troll.png"
-        },
-        dark_knight: {
-            name: "Dark Knight",
-            level: 4,
-            maxHp: 30,
-            attackBonus: 7,
-            damageDice: "2d8+4",
-            xpReward: 150,
-            description: "A fallen warrior clad in cursed armor.",
-            imageUrl: "/enemies/dark_knight.png"
-        },
-        dragon_wyrmling: {
-            name: "Dragon Wyrmling",
-            level: 5,
-            maxHp: 40,
-            attackBonus: 8,
-            damageDice: "2d10+5",
-            xpReward: 250,
-            description: "A young dragon, small but still incredibly dangerous.",
-            imageUrl: "/enemies/dragon_wyrmling.png"
-        }
-    };
-
-    return defaultEnemies[enemyType] || {
-        name: "Unknown Enemy",
-        level: 1,
-        maxHp: 10,
-        attackBonus: 3,
-        damageDice: "1d6",
-        xpReward: 20,
-        description: "A mysterious foe.",
-        imageUrl: "/enemies/unknown.png"
-    };
-};
-
-// Export a helper to get all available enemy types
-export const getAllEnemyTypes = async () => {
-    try {
-        const response = await enemyApi.getEnemyTemplates();
-        if (response.status === 'success' && response.data) {
-            // Map backend enemy data to a simplified format
-            return response.data.map(enemy => ({
-                type: enemy.enemy_id || enemy.type,
-                name: enemy.name,
-                level: enemy.level,
-                difficulty: enemy.difficulty
-            }));
-        }
-    } catch (err) {
-        console.error('Failed to fetch enemy types:', err);
-    }
-
-    // Return default enemy types as fallback
-    return [
-        { type: 'goblin', name: 'Goblin', level: 1, difficulty: 'Easy' },
-        { type: 'skeleton', name: 'Skeleton', level: 1, difficulty: 'Easy' },
-        { type: 'orc', name: 'Orc', level: 2, difficulty: 'Medium' },
-        { type: 'wolf', name: 'Wolf', level: 1, difficulty: 'Easy' },
-        { type: 'bandit', name: 'Bandit', level: 2, difficulty: 'Medium' },
-        { type: 'giant_spider', name: 'Giant Spider', level: 2, difficulty: 'Medium' },
-        { type: 'troll', name: 'Troll', level: 3, difficulty: 'Hard' },
-        { type: 'dark_knight', name: 'Dark Knight', level: 4, difficulty: 'Hard' },
-        { type: 'dragon_wyrmling', name: 'Dragon Wyrmling', level: 5, difficulty: 'Legendary' }
-    ];
-};
-
-// Export a helper to get enemies by difficulty
-export const getEnemiesByDifficulty = async (difficulty) => {
-    try {
-        const response = await enemyApi.getEnemiesByDifficulty(difficulty);
-        if (response.status === 'success' && response.data) {
-            return response.data;
-        }
-    } catch (err) {
-        console.error(`Failed to fetch enemies by difficulty ${difficulty}:`, err);
-    }
-
-    // Return filtered default enemies as fallback
-    const allEnemies = await getAllEnemyTypes();
-    return allEnemies.filter(enemy => enemy.difficulty === difficulty);
 };
 
 export default useEnemyData;

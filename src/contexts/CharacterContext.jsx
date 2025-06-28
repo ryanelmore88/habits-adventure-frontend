@@ -1,5 +1,5 @@
-// File: src/contexts/CharacterContext.jsx
-// Updated to use the new Character class with dice pools
+// File: frontend/src/contexts/CharacterContext.jsx
+// Fixed to handle wrapped backend responses
 
 import { createContext, useContext, useState, useEffect } from 'react';
 import { apiCall } from '../api/habitApi';
@@ -41,13 +41,20 @@ export const CharacterProvider = ({ children }) => {
             setLoading(true);
             setError(null);
 
-            // Use your actual endpoint - returns array directly, not wrapped in data
+            console.log('Loading characters...');
             const response = await apiCall('/character/user/characters');
+            console.log('Characters response:', response);
 
-            // Your endpoint returns the array directly (not wrapped in response.data)
-            if (Array.isArray(response)) {
+            // Handle wrapped response: {"status": "success", "data": [...]}
+            if (response && response.status === 'success' && Array.isArray(response.data)) {
+                setAvailableCharacters(response.data);
+                console.log('Characters loaded successfully:', response.data);
+            } else if (Array.isArray(response)) {
+                // Fallback: handle direct array response
                 setAvailableCharacters(response);
+                console.log('Characters loaded (direct array):', response);
             } else {
+                console.error('Unexpected response format:', response);
                 throw new Error('Unexpected response format from characters endpoint');
             }
         } catch (err) {
@@ -68,7 +75,7 @@ export const CharacterProvider = ({ children }) => {
 
             const response = await apiCall(`/character/${characterId}`);
 
-            if (response.status === 'success' && response.data) {
+            if (response && response.status === 'success' && response.data) {
                 // Create a Character instance with enhanced functionality
                 const character = new Character({
                     ...response.data,
@@ -108,7 +115,7 @@ export const CharacterProvider = ({ children }) => {
 
             const response = await apiCall(`/character/${selectedCharacter.id}`);
 
-            if (response.status === 'success' && response.data) {
+            if (response && response.status === 'success' && response.data) {
                 // Update the existing Character instance with new data
                 selectedCharacter.updateFromData({
                     ...response.data,
