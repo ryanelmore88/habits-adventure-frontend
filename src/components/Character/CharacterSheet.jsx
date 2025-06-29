@@ -1,5 +1,5 @@
 // File: src/components/Character/CharacterSheet.jsx
-// Updated to show habit streak instead of AC
+// Fixed HP calculation to be consistent with Character.js
 
 import { useState, useEffect } from 'react';
 import { useCharacter } from '../../contexts/CharacterContext';
@@ -72,12 +72,35 @@ const CharacterSheet = () => {
         return dexMod >= 0 ? `+${dexMod}` : `${dexMod}`;
     };
 
-    // Calculate max HP (base 10 + con modifier * level)
+    // FIXED: Use consistent HP calculation with Character.js
+    // If the character has max_hp from backend, use that. Otherwise calculate it.
     const getMaxHP = () => {
+        // First, try to use the max_hp from the character data (calculated by backend/Character.js)
+        if (selectedCharacter.max_hp && selectedCharacter.max_hp > 0) {
+            return selectedCharacter.max_hp;
+        }
+
+        // Fallback calculation that matches the backend logic
         const conScore = getAttributeScore('constitution');
         const conMod = Math.floor((conScore - 10) / 2);
         const level = selectedCharacter.level || 1;
-        return 10 + (conMod * level);
+
+        // Use the same formula as backend: 10 + constitution modifier
+        // Note: Backend only adds con modifier once, not per level for simplicity
+        return Math.max(1, 10 + conMod);
+    };
+
+    const getCurrentHP = () => {
+        // Use current_hp from character data, or fall back to max HP
+        const currentHp = selectedCharacter.current_hp;
+        const maxHp = getMaxHP();
+
+        // If current HP is invalid or higher than max, cap it at max HP
+        if (currentHp == null || currentHp > maxHp) {
+            return maxHp;
+        }
+
+        return Math.max(0, currentHp);
     };
 
     const handleImageUpdate = async () => {
@@ -154,9 +177,9 @@ const CharacterSheet = () => {
                     />
                 </div>
 
-                {/* Hit Points */}
+                {/* Hit Points - FIXED */}
                 <div className="stat-card hit-points">
-                    <div className="stat-value">{selectedCharacter.current_hp || getMaxHP()}/{getMaxHP()}</div>
+                    <div className="stat-value">{getCurrentHP()}/{getMaxHP()}</div>
                     <div className="stat-label">HIT POINTS</div>
                 </div>
             </div>

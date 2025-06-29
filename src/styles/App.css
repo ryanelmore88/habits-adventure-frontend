@@ -1,5 +1,5 @@
 /* File: src/styles/App.css */
-/* Main app layout styles - Updated for CharacterStatusWithImage as main header */
+/* Updated to handle different layouts with/without character header */
 
 .app {
   min-height: 100vh;
@@ -9,6 +9,7 @@
   flex-direction: column;
 }
 
+/* Hide old header styles since we're using character header */
 .app-header {
   display: none;
 }
@@ -17,11 +18,45 @@
   display: none;
 }
 
-.header-character-section {
+/* Character header section styling */
+.character-header-section {
+  background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
+  border-bottom: 2px solid #374151;
+  padding: 16px 24px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(10px);
   display: flex;
-  align-items: center;
   justify-content: center;
-  width: 100%;
+  align-items: center;
+  min-height: 140px;
+}
+
+/* Main content layout adjustments */
+.main-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  transition: all 0.3s ease;
+}
+
+/* When there's a header, add some spacing adjustments */
+.main-content.with-header {
+  /* Header already provides spacing, so minimal top margin */
+  margin-top: 0;
+}
+
+/* When there's no header (like on character sheet), add top padding */
+.main-content.no-header {
+  padding-top: 20px;
+}
+
+/* Character sheet specific adjustments when no header */
+.main-content.no-header .dnd-character-sheet {
+  margin-top: 0;
+  padding-top: 0;
 }
 
 /* Full-width header character status */
@@ -72,243 +107,80 @@
   font-size: 0.95rem;
 }
 
-.header-character-status.main-header .hp-bar-container {
-  min-width: 130px;
-  margin-left: -25px;
-  height: 90px;
-}
-
-.header-character-status.main-header .hp-bar-background {
-  height: 14px;
-  clip-path: circle(45px at 0px 50%);
-}
-
-.header-character-status.main-header .hp-bar-fill {
-  clip-path: circle(45px at 0px 50%);
-}
-
-.header-character-status.main-header .hp-text-display {
-  font-size: 0.9rem;
-  font-weight: 700;
-  margin-left: 35px;
-}
-
-.header-character-status.main-header .dice-notation {
-  font-size: 1.1rem !important;
-  color: #60a5fa !important;
-}
-
-.main-content {
-  flex: 1;
-  overflow-y: auto;
-}
-
-.placeholder-page {
-  text-align: center;
-  padding: 60px 20px;
-  color: #eee;
-}
-
-.placeholder-content {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-  gap: 20px;
-  max-width: 600px;
-  margin: 40px auto 0;
-}
-
-.equipment-slot {
-  background: #1f2937;
-  border: 2px dashed #4b5563;
-  border-radius: 12px;
-  padding: 24px 16px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-}
-
-.slot-icon {
-  font-size: 2rem;
-  opacity: 0.6;
-}
-
-.slot-label {
-  color: #9ca3af;
-  font-size: 0.9rem;
-  font-weight: 500;
-}
-
-/* Bottom Navigation */
-.bottom-navigation {
-  background: #1f2937;
-  border-top: 1px solid #374151;
-  padding: 8px 0;
-  position: sticky;
-  bottom: 0;
-  z-index: 50;
-}
-
-.nav-container {
-  max-width: 1200px;
+/* Enhanced main header styling */
+.character-header-section .header-character-status.main-header {
   margin: 0 auto;
-  display: flex;
-  justify-content: center;
-  gap: 8px;
-  padding: 0 20px;
+  background: rgba(55, 65, 81, 0.9) !important;
+  border: 1px solid rgba(75, 85, 99, 0.8) !important;
+  backdrop-filter: blur(12px);
+  padding: 20px 32px !important;
+  border-radius: 16px;
+  min-width: 500px;
+  max-width: 800px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+  transition: all 0.3s ease;
 }
 
-.nav-item {
+/* Enhanced hover effects for header */
+.character-header-section .header-character-status.main-header:hover {
+  background: rgba(55, 65, 81, 1) !important;
+  border-color: rgba(99, 102, 241, 0.6) !important;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+}
+
+/* App loading state */
+.app-loading {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: 4px;
-  padding: 8px 16px;
-  background: none;
-  border: none;
-  color: #9ca3af;
-  cursor: pointer;
-  border-radius: 8px;
-  transition: all 0.2s ease;
-  min-width: 60px;
+  justify-content: center;
+  min-height: 100vh;
+  background: #111827;
+  color: #ffffff;
 }
 
-.nav-item:hover {
-  background: #374151;
-  color: #eee;
-}
-
-.nav-item.active {
-  background: #4b5563;
-  color: #a5b4fc;
-}
-
-.nav-icon {
-  font-size: 1.2rem;
-}
-
-.nav-label {
-  font-size: 0.75rem;
-  font-weight: 500;
+.app-loading h2 {
+  color: #ffffff;
+  font-size: 24px;
+  text-align: center;
 }
 
 /* Responsive design */
 @media (max-width: 768px) {
-  .header-character-status.full-width-header {
+  .character-header-section {
+    padding: 12px 16px;
+    min-height: 120px;
+  }
+
+  .character-header-section .header-character-status.main-header {
+    min-width: auto;
+    width: 100%;
+    max-width: none;
     padding: 16px 20px !important;
+    border-radius: 12px;
   }
 
-  .header-character-status.full-width-header .character-name {
-    font-size: 1.3rem;
+  .main-content.no-header {
+    padding-top: 16px;
   }
 
-  .header-character-status.full-width-header .character-avatar,
-  .header-character-status.full-width-header .character-avatar-placeholder {
-    width: 400px;
-    height: 80px;
-  }
-
-  .header-character-status.full-width-header .hp-bar-container {
-    min-width: 120px;
-    margin-left: -25px;
-    height: 80px;
-  }
-
-  .header-character-status.full-width-header .hp-bar-background {
-    height: 14px;
-    clip-path: circle(40px at 0px 50%);
-  }
-
-  .header-character-status.full-width-header .hp-bar-fill {
-    clip-path: circle(40px at 0px 50%);
-  }
-
-  .header-character-status.full-width-header .hp-text-display {
-    font-size: 0.9rem;
-    margin-left: 30px;
-  }
-
-  .main-content {
-    padding-bottom: 70px;
-  }
-
-  .nav-container {
-    padding: 0 16px;
-  }
-
-  .nav-item {
-    min-width: 50px;
-    padding: 6px 12px;
-  }
-
-  .nav-icon {
-    font-size: 1.1rem;
-  }
-
-  .nav-label {
-    font-size: 0.7rem;
+  .main-content.with-header {
+    margin-top: 0;
   }
 }
 
 @media (max-width: 480px) {
-  .header-character-status.full-width-header {
+  .character-header-section {
+    padding: 8px 12px;
+    min-height: 100px;
+  }
+
+  .character-header-section .header-character-status.main-header {
     padding: 12px 16px !important;
+    border-radius: 8px;
   }
 
-  .header-character-status.full-width-header .character-name {
-    font-size: 1.1rem;
-  }
-
-  .header-character-status.full-width-header .character-avatar,
-  .header-character-status.full-width-header .character-avatar-placeholder {
-    width: 70px;
-    height: 70px;
-  }
-
-  .header-character-status.full-width-header .hp-bar-container {
-    min-width: 100px;
-    margin-left: -20px;
-    height: 70px;
-  }
-
-  .header-character-status.full-width-header .hp-bar-background {
-    height: 12px;
-    clip-path: circle(35px at 0px 50%);
-  }
-
-  .header-character-status.full-width-header .hp-bar-fill {
-    clip-path: circle(35px at 0px 50%);
-  }
-
-  .header-character-status.full-width-header .hp-text-display {
-    font-size: 0.8rem;
-    margin-left: 25px;
-  }
-
-  .placeholder-content {
-    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
-    gap: 16px;
-  }
-
-  .equipment-slot {
-    padding: 16px 12px;
-  }
-}
-
-/* Full-width header HP bar - make it much longer */
-.header-character-status.full-width-header .hp-bar-container {
-  min-width: 600px !important; /* Increased from 400px */
-}
-
-/* Responsive overrides for larger HP bars */
-@media (max-width: 768px) {
-  .header-character-status.full-width-header .hp-bar-container {
-    min-width: 250px !important; /* Increased from 120px */
-  }
-}
-
-@media (max-width: 480px) {
-  .header-character-status.full-width-header .hp-bar-container {
-    min-width: 180px !important; /* Increased from 100px */
+  .main-content.no-header {
+    padding-top: 12px;
   }
 }

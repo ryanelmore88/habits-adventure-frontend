@@ -1,0 +1,449 @@
+/* File: src/styles/DiceResultsModal.css */
+/* Dice results popup modal styling */
+
+.dice-results-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.85);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+    animation: fadeIn 0.3s ease-out;
+}
+
+.dice-results-modal {
+    background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
+    border-radius: 16px;
+    border: 2px solid #374151;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+    max-width: 600px;
+    width: 90%;
+    max-height: 80vh;
+    overflow-y: auto;
+    animation: slideInUp 0.4s ease-out;
+    position: relative;
+}
+
+.dice-results-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 24px 16px;
+    border-bottom: 1px solid #374151;
+}
+
+.dice-results-header h2 {
+    margin: 0;
+    color: #a5b4fc;
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+
+.close-btn {
+    background: #374151;
+    border: none;
+    color: #eee;
+    font-size: 1.5rem;
+    cursor: pointer;
+    border-radius: 8px;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.close-btn:hover {
+    background: #4b5563;
+    transform: scale(1.1);
+}
+
+.dice-results-content {
+    padding: 24px;
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 20px;
+    align-items: start;
+}
+
+.section-title {
+    margin: 0 0 16px 0;
+    font-size: 1.2rem;
+    font-weight: 600;
+    text-align: center;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.section-title.player {
+    color: #3b82f6;
+    text-shadow: 0 0 10px rgba(59, 130, 246, 0.3);
+}
+
+.section-title.enemy {
+    color: #ef4444;
+    text-shadow: 0 0 10px rgba(239, 68, 68, 0.3);
+}
+
+.dice-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    justify-content: center;
+    margin-bottom: 20px;
+    min-height: 80px;
+    align-items: center;
+}
+
+.die-result {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 12px;
+    border-radius: 12px;
+    min-width: 60px;
+    transition: all 0.3s ease;
+    animation: diceRollIn 0.6s ease-out;
+    border: 2px solid transparent;
+}
+
+.die-result.player-die {
+    background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+    border-color: #60a5fa;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.die-result.enemy-die {
+    background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);
+    border-color: #f87171;
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+}
+
+.die-result:hover {
+    transform: translateY(-2px) scale(1.05);
+}
+
+.die-icon {
+    font-size: 1.2rem;
+    margin-bottom: 4px;
+}
+
+.die-value {
+    font-size: 1.8rem;
+    font-weight: 900;
+    color: white;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+    margin-bottom: 2px;
+}
+
+.die-type {
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.8);
+    font-weight: 500;
+}
+
+.total-section {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    padding: 12px;
+    border-radius: 8px;
+    font-weight: 700;
+}
+
+.total-section.player {
+    background: rgba(59, 130, 246, 0.2);
+    border: 1px solid #3b82f6;
+    color: #60a5fa;
+}
+
+.total-section.enemy {
+    background: rgba(239, 68, 68, 0.2);
+    border: 1px solid #ef4444;
+    color: #f87171;
+}
+
+.total-label {
+    font-size: 1rem;
+}
+
+.total-value {
+    font-size: 1.5rem;
+    font-weight: 900;
+}
+
+.vs-divider {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    min-height: 120px;
+}
+
+.vs-text {
+    background: linear-gradient(135deg, #fbbf24, #f59e0b);
+    color: #111827;
+    padding: 12px 16px;
+    border-radius: 50%;
+    font-weight: 900;
+    font-size: 1.2rem;
+    box-shadow: 0 4px 12px rgba(251, 191, 36, 0.4);
+    animation: pulse 2s ease-in-out infinite;
+}
+
+.winner-announcement {
+    padding: 20px 24px;
+    text-align: center;
+    border-top: 1px solid #374151;
+    border-bottom: 1px solid #374151;
+}
+
+.winner-announcement.victory {
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(5, 150, 105, 0.1));
+    border-color: #10b981;
+}
+
+.winner-announcement.defeat {
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(220, 38, 38, 0.1));
+    border-color: #ef4444;
+}
+
+.winner-announcement.tie {
+    background: linear-gradient(135deg, rgba(156, 163, 175, 0.2), rgba(107, 114, 128, 0.1));
+    border-color: #9ca3af;
+}
+
+.winner-text {
+    margin: 0 0 12px 0;
+    font-size: 2rem;
+    font-weight: 900;
+    animation: victoryGlow 1s ease-in-out;
+}
+
+.winner-announcement.victory .winner-text {
+    color: #10b981;
+    text-shadow: 0 0 20px rgba(16, 185, 129, 0.5);
+}
+
+.winner-announcement.defeat .winner-text {
+    color: #ef4444;
+    text-shadow: 0 0 20px rgba(239, 68, 68, 0.5);
+}
+
+.winner-announcement.tie .winner-text {
+    color: #9ca3af;
+    text-shadow: 0 0 20px rgba(156, 163, 175, 0.5);
+}
+
+.score-comparison {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 16px;
+    font-size: 1.2rem;
+    font-weight: 700;
+}
+
+.player-score {
+    color: #3b82f6;
+}
+
+.enemy-score {
+    color: #ef4444;
+}
+
+.vs-small {
+    color: #9ca3af;
+    font-size: 1rem;
+}
+
+.auto-dismiss-bar {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: rgba(107, 114, 128, 0.3);
+    overflow: hidden;
+}
+
+.auto-dismiss-progress {
+    height: 100%;
+    background: linear-gradient(90deg, #3b82f6, #10b981);
+    width: 100%;
+    animation: dismissProgress 4s linear;
+    transform-origin: left;
+}
+
+.dice-results-footer {
+    padding: 16px 24px;
+    text-align: center;
+}
+
+.dismiss-text {
+    margin: 0;
+    color: #9ca3af;
+    font-size: 0.9rem;
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(50px) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+@keyframes diceRollIn {
+    0% {
+        opacity: 0;
+        transform: translateY(20px) rotateX(180deg);
+    }
+    50% {
+        opacity: 0.5;
+        transform: translateY(-5px) rotateX(90deg);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0) rotateX(0deg);
+    }
+}
+
+@keyframes pulse {
+    0%, 100% {
+        transform: scale(1);
+        box-shadow: 0 4px 12px rgba(251, 191, 36, 0.4);
+    }
+    50% {
+        transform: scale(1.1);
+        box-shadow: 0 6px 20px rgba(251, 191, 36, 0.6);
+    }
+}
+
+@keyframes victoryGlow {
+    0% {
+        transform: scale(0.8);
+        opacity: 0;
+    }
+    50% {
+        transform: scale(1.1);
+        opacity: 1;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+@keyframes dismissProgress {
+    from {
+        transform: scaleX(1);
+    }
+    to {
+        transform: scaleX(0);
+    }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .dice-results-modal {
+        width: 95%;
+        margin: 10px;
+    }
+
+    .dice-results-content {
+        grid-template-columns: 1fr;
+        gap: 24px;
+        padding: 20px;
+    }
+
+    .vs-divider {
+        grid-row: 2;
+        min-height: 60px;
+    }
+
+    .vs-text {
+        padding: 8px 12px;
+        font-size: 1rem;
+    }
+
+    .dice-container {
+        gap: 8px;
+    }
+
+    .die-result {
+        min-width: 50px;
+        padding: 8px;
+    }
+
+    .die-value {
+        font-size: 1.4rem;
+    }
+
+    .winner-text {
+        font-size: 1.5rem;
+    }
+
+    .score-comparison {
+        font-size: 1rem;
+        gap: 12px;
+    }
+}
+
+@media (max-width: 480px) {
+    .dice-results-header {
+        padding: 16px 20px 12px;
+    }
+
+    .dice-results-header h2 {
+        font-size: 1.3rem;
+    }
+
+    .close-btn {
+        width: 32px;
+        height: 32px;
+        font-size: 1.3rem;
+    }
+
+    .dice-results-content {
+        padding: 16px;
+        gap: 20px;
+    }
+
+    .section-title {
+        font-size: 1rem;
+        margin-bottom: 12px;
+    }
+
+    .die-result {
+        min-width: 45px;
+        padding: 6px;
+    }
+
+    .die-value {
+        font-size: 1.2rem;
+    }
+
+    .total-value {
+        font-size: 1.3rem;
+    }
+
+    .winner-text {
+        font-size: 1.3rem;
+    }
+}
