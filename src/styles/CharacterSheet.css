@@ -475,3 +475,198 @@
         border-radius: 16px;
     }
 }
+
+/* File: src/styles/CharacterSheet.css */
+/* Additional styles to make attribute cards clearly clickable */
+
+/* Make attribute cards clearly clickable */
+.attribute-card.clickable {
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+}
+
+.attribute-card.clickable:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(165, 180, 252, 0.3);
+    border-color: #a5b4fc;
+    background: linear-gradient(135deg, #374151 0%, #4b5563 100%);
+}
+
+.attribute-card.clickable:focus {
+    outline: none;
+    border-color: #a5b4fc;
+    box-shadow: 0 0 0 3px rgba(165, 180, 252, 0.3);
+}
+
+.attribute-card.clickable:active {
+    transform: translateY(0);
+}
+
+/* Visual indicator for clickable cards */
+.attribute-card.clickable .attribute-name::after {
+    content: " 📋";
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    font-size: 10px;
+    margin-left: 4px;
+}
+
+.attribute-card.clickable:hover .attribute-name::after {
+    opacity: 0.7;
+}
+
+/* Ensure existing attribute card styles are preserved */
+.attribute-card {
+    background: #374151;
+    border-radius: 8px;
+    padding: 16px;
+    text-align: center;
+    color: #eee;
+    position: relative;
+}
+
+.attribute-name {
+    font-size: 12px;
+    font-weight: 600;
+    color: #9ca3af;
+    margin-bottom: 8px;
+}
+
+.attribute-modifier {
+    font-size: 32px;
+    font-weight: bold;
+    color: #eee;
+    margin-bottom: 4px;
+}
+
+.attribute-score {
+    font-size: 14px;
+    color: #9ca3af;
+    background: #1f2937;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+}
+
+/* Improve modal backdrop on mobile */
+@media (max-width: 768px) {
+    .attribute-card.clickable:hover {
+        transform: none; /* Disable hover transform on mobile */
+    }
+
+    .attribute-card.clickable:active {
+        transform: scale(0.98);
+        transition: transform 0.1s ease;
+    }
+}
+
+/* Streak stat card styling */
+.stat-card.streak {
+    position: relative;
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    border: 2px solid #f59e0b;
+}
+
+.stat-card.streak .stat-value {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+}
+
+.streak-fire {
+    font-size: 0.8em;
+    animation: flicker 1.5s ease-in-out infinite alternate;
+}
+
+@keyframes flicker {
+    0% { opacity: 0.8; transform: scale(1); }
+    100% { opacity: 1; transform: scale(1.1); }
+}
+
+/* Streak message styling */
+.streak-message {
+    margin: 16px 0;
+    text-align: center;
+    padding: 8px 16px;
+    background: rgba(245, 158, 11, 0.1);
+    border-radius: 8px;
+    border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.streak-message p {
+    margin: 0;
+    color: #f59e0b;
+    font-weight: 500;
+    font-size: 14px;
+}
+
+/* Hover effect for streak card */
+.stat-card.streak:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4);
+}
+
+/* Different colors for different streak milestones */
+.stat-card.streak[data-streak="0"] {
+    background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+    border-color: #6b7280;
+}
+
+.stat-card.streak[data-streak="high"] {
+    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+    border-color: #dc2626;
+}
+
+.stat-card.streak[data-streak="legendary"] {
+    background: linear-gradient(135deg, #7c3aed 0%, #5b21b6 100%);
+    border-color: #7c3aed;
+    box-shadow: 0 0 20px rgba(124, 58, 237, 0.3);
+}
+
+/* Loading state for streak */
+.stat-card.streak .stat-value:has([data-loading="true"]) {
+    opacity: 0.6;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .streak-message {
+        margin: 12px 0;
+        padding: 6px 12px;
+    }
+
+    .streak-message p {
+        font-size: 12px;
+    }
+
+    .streak-fire {
+        font-size: 0.7em;
+    }
+}
+
+/* Accessibility improvements */
+.stat-card.streak:focus {
+    outline: 2px solid #f59e0b;
+    outline-offset: 2px;
+}
+
+/* Animation for streak updates */
+.stat-card.streak .stat-value {
+    transition: all 0.3s ease;
+}
+
+.stat-card.streak.streak-updated .stat-value {
+    animation: streakPulse 0.6s ease-in-out;
+}
+
+@keyframes streakPulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+}

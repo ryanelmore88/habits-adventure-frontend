@@ -1,16 +1,17 @@
 // File: src/components/AttributeModal.jsx
-// Fixed imports and function calls
+// Updated to notify parent when habits are modified (for streak recalculation)
 
 import { useState, useEffect } from 'react';
 import { useCharacter } from '../contexts/CharacterContext';
-import { habitApi, markHabitComplete } from '../api/habitApi';
+import { habitApi, markHabitComplete, deleteHabit } from '../api/habitApi';
 import '../styles/AttributeModal.css';
 
 const AttributeModal = ({
                             attributeName,
                             base,
                             bonus,
-                            onClose
+                            onClose,
+                            onHabitsChanged // NEW: Callback to notify parent of habit changes
                         }) => {
     const { selectedCharacter, refreshCharacter } = useCharacter();
     const [habits, setHabits] = useState([]);
@@ -19,6 +20,7 @@ const AttributeModal = ({
     const [isAddingHabit, setIsAddingHabit] = useState(false);
     const [newHabitName, setNewHabitName] = useState('');
     const [newHabitDescription, setNewHabitDescription] = useState('');
+    const [deletingHabitId, setDeletingHabitId] = useState(null);
 
     // Calculate attribute bonus D&D style
     const baseBonus = Math.floor((base - 10) / 2);
@@ -48,7 +50,7 @@ const AttributeModal = ({
         } catch (err) {
             console.error('Error loading habits:', err);
             setError('Failed to load habits');
-            setHabits([]); // Set empty array on error
+            setHabits([]);
         } finally {
             setLoading(false);
         }
@@ -75,6 +77,11 @@ const AttributeModal = ({
             await loadHabits();
             await refreshCharacter();
 
+            // Notify parent that habits changed (for streak recalculation)
+            if (onHabitsChanged) {
+                onHabitsChanged();
+            }
+
             // Reset form
             setNewHabitName('');
             setNewHabitDescription('');
@@ -97,12 +104,47 @@ const AttributeModal = ({
             // Refresh character data to update attribute bonuses
             await refreshCharacter();
 
-            alert('Habit marked as complete!');
+            // Reload habits to show any changes
+            await loadHabits();
+
+            // Notify parent that habits changed (for streak recalculation)
+            if (onHabitsChanged) {
+                onHabitsChanged();
+            }
+
+            setError(''); // Clear any previous errors
         } catch (err) {
             console.error('Error marking habit complete:', err);
             setError('Failed to mark habit complete: ' + (err.response?.data?.detail || err.message));
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleDeleteHabit = async (habitId) => {
+        if (!window.confirm('Are you sure you want to delete this habit? This action cannot be undone.')) {
+            return;
+        }
+
+        try {
+            setDeletingHabitId(habitId);
+            setError('');
+
+            await deleteHabit(habitId);
+
+            // Reload habits and refresh character
+            await loadHabits();
+            await refreshCharacter();
+
+            // Notify parent that habits changed (for streak recalculation)
+            if (onHabitsChanged) {
+                onHabitsChanged();
+            }
+        } catch (err) {
+            console.error('Error deleting habit:', err);
+            setError('Failed to delete habit: ' + (err.response?.data?.detail || err.message));
+        } finally {
+            setDeletingHabitId(null);
         }
     };
 
@@ -156,13 +198,22 @@ const AttributeModal = ({
                                             <p className="habit-description">{habit.description}</p>
                                         )}
                                     </div>
-                                    <button
-                                        onClick={() => handleMarkComplete(habit.habit_id || habit.id)}
-                                        className="complete-btn"
-                                        disabled={loading}
-                                    >
-                                        Complete Today
-                                    </button>
+                                    <div className="habit-actions">
+                                        <button
+                                            onClick={() => handleMarkComplete(habit.habit_id || habit.id)}
+                                            className="complete-btn"
+                                            disabled={loading}
+                                        >
+                                            Complete Today
+                                        </button>
+                                        <button
+                                            onClick={() => handleDeleteHabit(habit.habit_id || habit.id)}
+                                            className="delete-btn"
+                                            disabled={deletingHabitId === (habit.habit_id || habit.id)}
+                                        >
+                                            {deletingHabitId === (habit.habit_id || habit.id) ? 'Deleting...' : 'Delete'}
+                                        </button>
+                                    </div>
                                 </div>
                             ))
                         ) : !loading && (

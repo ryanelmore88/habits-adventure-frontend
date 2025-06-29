@@ -1,8 +1,8 @@
-// File: frontend/src/api/habitApi.js
-// Complete habit API with authentication
+// File: src/api/habitApi.js
+// Fixed to use consistent API endpoints and proper authentication
 
 import authClient from './authApi';
-import { getLocalTodayDate, getCurrentWeekDatesSundayStart, isValidDate } from '../utils/dateUtils.js';
+import { getLocalTodayDate, isValidDate } from '../utils/dateUtils.js';
 
 // Validate date format (YYYY-MM-DD)
 const validateDate = (dateString) => {
@@ -18,7 +18,7 @@ export const habitApi = {
         return response.data;
     },
 
-    // Get all habits for a character
+    // Get all habits for a character - FIXED TO USE CORRECT ENDPOINT
     getHabits: async (characterId) => {
         const response = await authClient.get(`/habit/character/${characterId}`);
         return response.data;
@@ -87,7 +87,7 @@ export const getWeeklyCompletions = async (characterId) => {
     return response.data;
 };
 
-// Fetch all habits for a character (daily view)
+// FIXED: Fetch all habits for a character using correct endpoint
 export const fetchHabitsForDate = async (characterId, date = null) => {
     // Input validation
     if (!characterId || !characterId.trim()) {
@@ -99,7 +99,8 @@ export const fetchHabitsForDate = async (characterId, date = null) => {
     validateDate(targetDate);
 
     try {
-        const response = await apiCall(`/character/${characterId.trim()}/habits`);
+        // FIXED: Use the same endpoint as other habit functions
+        const response = await habitApi.getHabits(characterId.trim());
 
         // Handle both array responses and { data: array } responses
         const habits = response.data || response;
@@ -113,27 +114,27 @@ export const fetchHabitsForDate = async (characterId, date = null) => {
         return habits;
 
     } catch (error) {
-        if (error.status === 404) {
+        if (error.response?.status === 404) {
             return []; // No habits found is not an error
         }
-        handleApiError(error, 'Fetch habits for date');
+        console.error('API call failed for fetchHabitsForDate:', error);
+        throw error;
     }
 };
 
-// Remove or update the old apiCall function
-// If you need to keep it for other endpoints, update it to use authClient:
-export const apiCall = async (endpoint, method = 'GET', body = null) => {
-    try {
-        const config = {
-            method,
-            url: endpoint,
-            data: body
-        };
+// Handle API errors consistently
+const handleApiError = (error, operation) => {
+    console.error(`${operation} failed:`, error);
 
-        const response = await authClient(config);
-        return response.data;
-    } catch (error) {
-        console.error(`API call failed: ${method} ${endpoint}`, error);
-        throw error;
+    if (error.response) {
+        // Server responded with error status
+        const message = error.response.data?.detail || error.response.data?.message || 'Unknown error';
+        throw new Error(`${operation} failed: ${message}`);
+    } else if (error.request) {
+        // Request made but no response received
+        throw new Error(`${operation} failed: No response from server`);
+    } else {
+        // Something else happened
+        throw new Error(`${operation} failed: ${error.message}`);
     }
 };
