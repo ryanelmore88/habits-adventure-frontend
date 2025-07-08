@@ -1,5 +1,5 @@
 // File: src/utils/combatEngine.js
-// Cleaned CombatEngine focused only on combat calculations and logic
+// Enhanced CombatEngine with multi-enemy dice pool combining
 
 export class CombatEngine {
     constructor() {
@@ -82,6 +82,91 @@ export class CombatEngine {
         }
 
         return Math.max(0, total);
+    }
+
+    // NEW: Parse dice pool string into components
+    parseDicePool(diceString) {
+        if (!diceString || typeof diceString !== 'string') {
+            return { dice: {}, bonus: 0 };
+        }
+
+        const parts = diceString.split('+');
+        const dice = {}; // { 4: count, 6: count, etc. }
+        let bonus = 0;
+
+        for (const part of parts) {
+            const trimmedPart = part.trim();
+
+            // Check if it's just a number (flat bonus)
+            if (/^\d+$/.test(trimmedPart)) {
+                bonus += parseInt(trimmedPart);
+                continue;
+            }
+
+            // Parse dice notation like "5d4" or "2d6"
+            const match = trimmedPart.match(/(\d+)d(\d+)/);
+            if (match) {
+                const [, numDice, dieSize] = match;
+                const num = parseInt(numDice);
+                const size = parseInt(dieSize);
+
+                dice[size] = (dice[size] || 0) + num;
+            }
+        }
+
+        return { dice, bonus };
+    }
+
+    // NEW: Combine multiple dice pools into one
+    combineDicePools(dicePools) {
+        if (!Array.isArray(dicePools) || dicePools.length === 0) {
+            return '1d4';
+        }
+
+        if (dicePools.length === 1) {
+            return dicePools[0];
+        }
+
+        const combinedDice = {}; // { 4: count, 6: count, etc. }
+        let combinedBonus = 0;
+
+        // Parse and combine all dice pools
+        for (const pool of dicePools) {
+            const parsed = this.parseDicePool(pool);
+
+            // Add dice counts
+            for (const [size, count] of Object.entries(parsed.dice)) {
+                const dieSize = parseInt(size);
+                combinedDice[dieSize] = (combinedDice[dieSize] || 0) + count;
+            }
+
+            // Add bonuses
+            combinedBonus += parsed.bonus;
+        }
+
+        // Build combined dice pool string
+        const diceParts = [];
+
+        // Sort dice sizes for consistent output (smallest first)
+        const sortedSizes = Object.keys(combinedDice).map(s => parseInt(s)).sort((a, b) => a - b);
+
+        for (const size of sortedSizes) {
+            const count = combinedDice[size];
+            if (count > 0) {
+                diceParts.push(`${count}d${size}`);
+            }
+        }
+
+        // Add bonus if present
+        if (combinedBonus > 0) {
+            diceParts.push(combinedBonus.toString());
+        }
+
+        // Join with + and return
+        const result = diceParts.length > 0 ? diceParts.join('+') : '1d4';
+
+        console.log(`Combined dice pools ${dicePools.join(' + ')} = ${result}`);
+        return result;
     }
 
     // Calculate character's dice pool based on attributes (excluding constitution)
@@ -228,5 +313,33 @@ export class CombatEngine {
         }
 
         return Math.max(1, baseXp);
+    }
+
+    // NEW: Utility to get dice pool statistics
+    getDicePoolStats(dicePool) {
+        const parsed = this.parseDicePool(dicePool);
+        let minRoll = parsed.bonus;
+        let maxRoll = parsed.bonus;
+        let averageRoll = parsed.bonus;
+        let totalDice = 0;
+
+        for (const [size, count] of Object.entries(parsed.dice)) {
+            const dieSize = parseInt(size);
+            const diceCount = count;
+
+            totalDice += diceCount;
+            minRoll += diceCount * 1; // Minimum roll per die is 1
+            maxRoll += diceCount * dieSize; // Maximum roll per die is die size
+            averageRoll += diceCount * ((dieSize + 1) / 2); // Average roll per die
+        }
+
+        return {
+            dicePool,
+            totalDice,
+            minRoll,
+            maxRoll,
+            averageRoll: Math.round(averageRoll * 10) / 10, // Round to 1 decimal
+            parsed
+        };
     }
 }

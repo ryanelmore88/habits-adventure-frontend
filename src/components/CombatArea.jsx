@@ -1,10 +1,11 @@
 // File: src/components/CombatArea.jsx
-// CombatArea with your original working 3D dice functionality restored
+// CombatArea with 3D dice rolling restored + combined multi-enemy system
 
 import { useState, useEffect, useRef } from 'react';
 import { useCharacter } from '../contexts/CharacterContext';
 import { useCombat } from '../hooks/useCombat';
 import { useEnemyData } from '../hooks/useEnemyData';
+import SimpleDicePopup from './dice/SimpleDicePopup';
 import '../styles/CombatArea.css';
 
 const CombatArea = ({
@@ -29,21 +30,33 @@ const CombatArea = ({
     const {
         combatState,
         startCombat,
+        startMultiCombat,           // Combined multi-enemy combat
         executeRound,
         resetCombat,
         getCharacterDiceInfo,
         getEnemyDiceInfo,
-        isUsingExternalEnemies
+        getIndividualEnemyStatus,   // Get status of individual enemies
+        isUsingExternalEnemies,
+        isMultiEnemy
     } = useCombat(selectedCharacter, enemyTemplates);
 
-    // 3D Dice state - exactly as in your working version
+    // 3D DICE STATE - RESTORED
     const [diceBox, setDiceBox] = useState(null);
     const [isRolling, setIsRolling] = useState(false);
     const [characterCurrentHp, setCharacterCurrentHp] = useState(selectedCharacter?.current_hp || 20);
     const [questCombatInitialized, setQuestCombatInitialized] = useState(false);
-    const [showDiceBorder, setShowDiceBorder] = useState(false); // Toggle for visible border
+    const [showDiceBorder, setShowDiceBorder] = useState(false);
     const diceBoxRef = useRef(null);
     const cleanupTimeoutRef = useRef(null);
+
+    // Simple popup state
+    const [showDicePopup, setShowDicePopup] = useState(false);
+    const [popupData, setPopupData] = useState({ characterTotal: 0, enemyTotal: 0 });
+    const [pendingRoundResult, setPendingRoundResult] = useState(null);
+
+    // Multi-enemy selection state
+    const [enemySelection, setEnemySelection] = useState({}); // { enemyId: count }
+    const [selectionMode, setSelectionMode] = useState('single'); // 'single' or 'multiple'
 
     // Quest combat logic
     const isQuestCombat = questContext?.isQuestCombat || false;
@@ -53,160 +66,140 @@ const CombatArea = ({
     useEffect(() => {
         if (isQuestCombat && predeterminedEnemy && !questCombatInitialized && combatState.phase === 'selection') {
             console.log(`Quest combat: Auto-starting combat with ${predeterminedEnemy}`);
-            startCombat(predeterminedEnemy);
-            setQuestCombatInitialized(true);
+            const enemy = getEnemyTemplate(predeterminedEnemy);
+            if (enemy) {
+                startCombat(enemy);
+                setQuestCombatInitialized(true);
+            }
         }
-    }, [isQuestCombat, predeterminedEnemy, questCombatInitialized, combatState.phase, startCombat]);
+    }, [isQuestCombat, predeterminedEnemy, questCombatInitialized, combatState.phase, getEnemyTemplate, startCombat]);
 
-    // Character HP management
+    // Character HP sync
     useEffect(() => {
         if (selectedCharacter) {
-            const newHp = selectedCharacter.current_hp || selectedCharacter.max_hp || 20;
-            setCharacterCurrentHp(newHp);
-            clearTemporaryHp();
+            const initialHp = selectedCharacter.current_hp || selectedCharacter.max_hp || 20;
+            setCharacterCurrentHp(initialHp);
+            // Ensure character context has the current HP
+            if (selectedCharacter.current_hp !== initialHp) {
+                updateTemporaryHp(initialHp);
+            }
         }
-    }, [selectedCharacter, clearTemporaryHp]);
+    }, [selectedCharacter, updateTemporaryHp]);
 
+    // 3D DICE INITIALIZATION - COMPREHENSIVE DEBUGGING
     useEffect(() => {
-        if (combatState.phase === 'active' || combatState.phase === 'victory' || combatState.phase === 'defeat') {
-            updateTemporaryHp(characterCurrentHp);
-        }
-    }, [characterCurrentHp, combatState.phase, updateTemporaryHp]);
-
-    // 3D DICE INITIALIZATION - Your exact working version
-    useEffect(() => {
-        let mounted = true;
-        let currentDiceBox = null;
-
-        const initDiceBox = async () => {
+        const loadDiceBox = async () => {
             try {
-                // Clean up existing dice box
-                if (diceBoxRef.current) {
-                    try {
-                        if (diceBoxRef.current.clear) {
-                            diceBoxRef.current.clear();
-                        }
-                    } catch (error) {
-                        console.warn('Error cleaning up previous dice box:', error);
+                console.log('Loading 3D DiceBox...');
+
+                // First check if the dice-box element exists
+                const diceElement = document.getElementById('dice-box');
+                if (!diceElement) {
+                    console.error('Dice box element not found!');
+                    return;
+                }
+                console.log('Dice box element found:', diceElement);
+
+                // Try to import the package with comprehensive error handling
+                let DiceBox;
+                try {
+                    console.log('Attempting to import @3d-dice/dice-box...');
+                    const module = await import('@3d-dice/dice-box');
+                    console.log('Import successful, module:', module);
+
+                    // Try different possible exports
+                    DiceBox = module.DiceBox || module.default || module;
+                    console.log('DiceBox constructor:', DiceBox, typeof DiceBox);
+
+                    if (typeof DiceBox !== 'function') {
+                        // Sometimes it's nested deeper
+                        DiceBox = module.DiceBox?.DiceBox || module.default?.DiceBox;
+                        console.log('Trying nested DiceBox:', DiceBox, typeof DiceBox);
                     }
-                    diceBoxRef.current = null;
+                } catch (importError) {
+                    console.error('Import failed:', importError);
+                    throw new Error(`Failed to import @3d-dice/dice-box: ${importError.message}`);
                 }
 
-                if (cleanupTimeoutRef.current) {
-                    clearTimeout(cleanupTimeoutRef.current);
-                    cleanupTimeoutRef.current = null;
+                if (!DiceBox || typeof DiceBox !== 'function') {
+                    throw new Error(`DiceBox is not a constructor. Type: ${typeof DiceBox}, Value:`, DiceBox);
                 }
 
-                if (mounted) {
-                    // Import DiceBox correctly - it's the default export
-                    const DiceBoxModule = await import('@3d-dice/dice-box');
-                    const DiceBox = DiceBoxModule.default || DiceBoxModule;
+                console.log('Creating DiceBox instance...');
 
-                    // Mobile-optimized configuration with boundaries
-                    currentDiceBox = new DiceBox('#dice-box', {
-                        id: 'dice-canvas',
-                        assetPath: '/assets/dice-box/',
-                        startingHeight: 8,
-                        throwForce: 6,
-                        spinForce: 5,
-                        lightIntensity: 0.9,
-                        scale: 6,           // Good size for mobile
-                        gravity: 1,         // Reasonable gravity
-                        mass: 1,
-                        friction: 0.8,      // Good bouncing
-                        restitution: 0.3,   // Not too bouncy
-                        shadowIntensity: 0.6,
-                        enableShadows: true,
-                        // Mobile performance optimizations
-                        shadowQuality: 'medium',
-                        lightingQuality: 'medium',
+                // Check if assets exist
+                console.log('Dice assets should be at: /assets/dice-box/');
 
-                        // BOUNDARY SETTINGS - Keep dice on screen
-                        bounds: {
-                            x: { min: 20, max: window.innerWidth - 20 },
-                            y: { min: 20, max: window.innerHeight - 20 },
-                            z: { min: -10, max: 50 }
-                        },
+                const newDiceBox = new DiceBox('#dice-box', {
+                    assetPath: '/assets/dice-box/',
+                    theme: 'default',
+                    scale: 6,
+                    gravity: 1,
+                    mass: 1,
+                    friction: .8,
+                    restitution: 0,
+                    angularDamping: .4,
+                    linearDamping: .5,
+                    spinForce: 6,
+                    throwForce: 5,
+                    startingHeight: 8,
+                    settleTimeout: 5000,
+                    offscreen: false,
+                    delay: 10
+                });
 
-                        // Physics boundaries
-                        world: {
-                            width: window.innerWidth - 40,
-                            height: window.innerHeight - 40,
-                            depth: 60
-                        }
-                    });
+                console.log('DiceBox instance created:', newDiceBox);
+                console.log('Initializing DiceBox...');
 
-                    await currentDiceBox.init();
+                await newDiceBox.init();
 
-                    if (mounted) {
-                        diceBoxRef.current = currentDiceBox;
-                        setDiceBox(currentDiceBox);
-                        console.log('3D Dice box initialized successfully');
+                setDiceBox(newDiceBox);
+                diceBoxRef.current = newDiceBox;
+                console.log('✅ 3D DiceBox initialized successfully!');
 
-                        // Your working onRollComplete handler
-                        currentDiceBox.onRollComplete = (results) => {
-                            console.log('3D Dice roll completed:', results);
-                            setIsRolling(false);
-
-                            // Remove border when rolling completes
-                            const diceBoxElement = document.getElementById('dice-box');
-                            if (diceBoxElement) {
-                                diceBoxElement.classList.remove('rolling-border');
-                            }
-
-                            // Auto-clear after 4 seconds
-                            cleanupTimeoutRef.current = setTimeout(() => {
-                                if (diceBoxRef.current && mounted) {
-                                    try {
-                                        diceBoxRef.current.clear();
-                                    } catch (error) {
-                                        console.warn('Error clearing dice:', error);
-                                    }
-                                }
-                            }, 4000);
-                        };
-                    }
-                }
             } catch (error) {
-                console.error('Error initializing 3D dice box:', error);
-                if (mounted) {
-                    setDiceBox(null);
-                }
+                console.error('❌ Failed to initialize 3D DiceBox:', error);
+                console.error('Error details:', {
+                    message: error.message,
+                    stack: error.stack,
+                    name: error.name
+                });
+                console.warn('🔄 Using fallback dice rolling instead');
+
+                // Set diceBox to null to indicate fallback should be used
+                setDiceBox(null);
+                diceBoxRef.current = null;
             }
         };
 
-        initDiceBox();
+        // Add a small delay to ensure DOM is ready
+        setTimeout(loadDiceBox, 100);
 
         return () => {
-            mounted = false;
-            if (currentDiceBox) {
-                try {
-                    if (currentDiceBox.clear) {
-                        currentDiceBox.clear();
-                    }
-                } catch (error) {
-                    console.warn('Error cleaning up dice box:', error);
-                }
-            }
             if (cleanupTimeoutRef.current) {
                 clearTimeout(cleanupTimeoutRef.current);
+            }
+            if (diceBoxRef.current) {
+                try {
+                    console.log('Cleaning up DiceBox...');
+                    diceBoxRef.current.clear();
+                } catch (e) {
+                    console.warn('Error cleaning up dice box:', e);
+                }
+                diceBoxRef.current = null;
             }
         };
     }, []);
 
-    // CHARACTER DICE POOL - Your exact implementation
+    // GET CHARACTER DICE POOL - RESTORED
     const getCharacterDicePool = () => {
         if (!selectedCharacter?.attributes) {
-            return {
-                dicePool: '1d4',
-                totalDice: 1,
-                description: 'Default (no attributes found)'
-            };
+            return { totalDice: 2, notation: '2d4', breakdown: {}, description: '2 dice (default)' };
         }
 
-        const attributeNames = ['strength', 'dexterity', 'intelligence', 'wisdom', 'charisma'];
-        const breakdown = {};
+        const attributeNames = ['strength', 'dexterity', 'constitution', 'intelligence', 'wisdom', 'charisma'];
         let totalDice = 0;
+        const breakdown = {};
 
         attributeNames.forEach(attrName => {
             const attribute = selectedCharacter.attributes[attrName];
@@ -226,14 +219,21 @@ const CombatArea = ({
         };
     };
 
-    // 3D DICE ROLLING - Your exact working implementation
+    // 3D DICE ROLLING FUNCTION - WITH BETTER FALLBACK
     const rollDice = async (playerDiceInfo, enemyDicePool) => {
-        if (!diceBox || !diceBoxRef.current || isRolling) {
-            console.warn('Cannot roll - dice not ready or already rolling');
+        // Check if 3D dice is available
+        if (!diceBox || !diceBoxRef.current) {
+            console.log('3D dice not available, using fallback dice rolling');
+            return null; // This will trigger fallback in handleCombatRound
+        }
+
+        if (isRolling) {
+            console.warn('Dice already rolling, please wait');
             return null;
         }
 
         setIsRolling(true);
+        console.log('Starting 3D dice roll...', { playerDiceInfo, enemyDicePool });
 
         // Clear any pending cleanup
         if (cleanupTimeoutRef.current) {
@@ -253,22 +253,32 @@ const CombatArea = ({
         try {
             await diceBoxRef.current.show();
 
-            // Add border when rolling starts (optional visual feedback)
+            // Add visual border when rolling starts (optional)
             const diceBoxElement = document.getElementById('dice-box');
             if (diceBoxElement && showDiceBorder) {
                 diceBoxElement.classList.add('rolling-border');
             }
 
-            // Parse dice pools - YOUR EXACT LOGIC
+            // Parse player dice
             const playerDiceCount = playerDiceInfo.totalDice || 1;
+
+            // Parse enemy dice - ENHANCED for combined pools
             const enemyDiceMatch = enemyDicePool.match(/(\d+)d(\d+)/);
             const enemyDiceCount = enemyDiceMatch ? parseInt(enemyDiceMatch[1]) : 1;
             const enemyDiceSize = enemyDiceMatch ? parseInt(enemyDiceMatch[2]) : 4;
 
-            // Create individual dice objects - YOUR EXACT FORMAT
+            console.log('Dice breakdown:', {
+                playerDiceCount,
+                enemyDiceCount,
+                enemyDiceSize,
+                isMultiEnemy,
+                enemyDicePool
+            });
+
+            // Create dice array for 3D rolling
             const allDice = [];
 
-            // Player dice (blue) - YOUR EXACT IMPLEMENTATION
+            // Player dice (blue)
             for (let i = 0; i < playerDiceCount; i++) {
                 allDice.push({
                     qty: 1,
@@ -277,7 +287,7 @@ const CombatArea = ({
                 });
             }
 
-            // Enemy dice (red) - YOUR EXACT IMPLEMENTATION
+            // Enemy dice (red) - handles combined pools
             for (let i = 0; i < enemyDiceCount; i++) {
                 allDice.push({
                     qty: 1,
@@ -286,21 +296,47 @@ const CombatArea = ({
                 });
             }
 
-            console.log('Rolling 3D dice:', {playerDiceCount, enemyDiceCount, enemyDiceSize, totalDice: allDice.length});
+            console.log('Rolling 3D dice with config:', {
+                playerDiceCount,
+                enemyDiceCount,
+                enemyDiceSize,
+                totalDice: allDice.length,
+                isMultiEnemy
+            });
 
-            // Roll all dice at once - YOUR EXACT CALL
+            // Roll all dice at once
             const allRolls = await diceBoxRef.current.roll(allDice);
+            console.log('3D Roll complete:', allRolls);
 
-            console.log('3D Roll results:', allRolls);
-
-            // Split results between player and enemy - YOUR EXACT LOGIC
+            // Split results between player and enemy
             const playerRolls = allRolls.slice(0, playerDiceCount);
             const enemyRolls = allRolls.slice(playerDiceCount);
 
             const playerTotal = playerRolls.reduce((sum, die) => sum + (die.value || 0), 0);
             const enemyTotal = enemyRolls.reduce((sum, die) => sum + (die.value || 0), 0);
 
-            console.log('3D Dice totals:', {playerTotal, enemyTotal, playerRolls, enemyRolls});
+            console.log('3D Dice totals:', {
+                playerTotal,
+                enemyTotal,
+                playerRolls: playerRolls.map(d => d.value),
+                enemyRolls: enemyRolls.map(d => d.value),
+                isMultiEnemy
+            });
+
+            // Schedule dice cleanup
+            cleanupTimeoutRef.current = setTimeout(async () => {
+                try {
+                    if (diceBoxRef.current) {
+                        await diceBoxRef.current.hide();
+                        const diceBoxElement = document.getElementById('dice-box');
+                        if (diceBoxElement) {
+                            diceBoxElement.classList.remove('rolling-border');
+                        }
+                    }
+                } catch (e) {
+                    console.warn('Error during dice cleanup:', e);
+                }
+            }, 3000);
 
             return {
                 playerTotal,
@@ -316,16 +352,17 @@ const CombatArea = ({
         }
     };
 
-    // COMBAT ROUND HANDLER - Updated to use your dice system
+    // COMBAT ROUND HANDLER - WITH 3D DICE INTEGRATION
     const handleCombatRound = async () => {
         if (isRolling || combatState.phase !== 'active') {
             console.log('Cannot start combat round - rolling:', isRolling, 'phase:', combatState.phase);
             return;
         }
 
+        console.log('Starting combat round...');
         const characterDiceInfo = getCharacterDicePool();
 
-        // Roll the 3D dice
+        // Roll the 3D dice first
         const diceResults = await rollDice(characterDiceInfo, combatState.enemy.dicePool);
 
         if (!diceResults) {
@@ -356,8 +393,12 @@ const CombatArea = ({
             description = `Both rolled ${playerTotal}. No damage dealt this round.`;
         }
 
-        // Create custom result for executeRound
-        const customRoundResult = {
+        // Show dice results popup
+        setPopupData({ characterTotal: playerTotal, enemyTotal: enemyTotal });
+        setShowDicePopup(true);
+
+        // Store the round result to process after popup closes
+        setPendingRoundResult({
             winner,
             damage,
             description,
@@ -365,17 +406,70 @@ const CombatArea = ({
             enemyRoll: enemyTotal,
             characterDice: characterDiceInfo,
             enemyDice: { dicePool: combatState.enemy.dicePool }
-        };
+        });
+    };
 
-        // Use useCombat's executeRound with our 3D dice result
-        const newCharacterHp = executeRound(customRoundResult);
-        if (newCharacterHp !== undefined) {
-            setCharacterCurrentHp(newCharacterHp);
+    // Handle popup close and continue combat
+    const handlePopupClose = () => {
+        setShowDicePopup(false);
+
+        if (pendingRoundResult) {
+            const newCharacterHp = executeRound(pendingRoundResult);
+            if (newCharacterHp !== undefined) {
+                setCharacterCurrentHp(newCharacterHp);
+                // UPDATE: Sync with character header immediately
+                updateTemporaryHp(newCharacterHp);
+            }
+            setPendingRoundResult(null);
         }
+
+        setIsRolling(false);
+    };
+
+    // Handle enemy selection for multi-combat
+    const handleEnemyCountChange = (enemyId, change) => {
+        setEnemySelection(prev => {
+            const currentCount = prev[enemyId] || 0;
+            const newCount = Math.max(0, currentCount + change);
+
+            if (newCount === 0) {
+                const { [enemyId]: removed, ...rest } = prev;
+                return rest;
+            } else {
+                return { ...prev, [enemyId]: newCount };
+            }
+        });
+    };
+
+    // Start multi-enemy combat with selected enemies
+    const handleStartMultiCombat = () => {
+        const selectedEnemyTypes = [];
+
+        for (const [enemyId, count] of Object.entries(enemySelection)) {
+            for (let i = 0; i < count; i++) {
+                selectedEnemyTypes.push(enemyId);
+            }
+        }
+
+        if (selectedEnemyTypes.length === 0) {
+            alert('Please select at least one enemy');
+            return;
+        }
+
+        if (selectedEnemyTypes.length === 1) {
+            startCombat(selectedEnemyTypes[0]);
+        } else {
+            startMultiCombat(selectedEnemyTypes);
+        }
+
+        setEnemySelection({});
     };
 
     // Combat completion handler
     const handleCombatComplete = (results) => {
+        // Make sure final HP is synced with character context
+        updateTemporaryHp(characterCurrentHp);
+
         if (isQuestCombat && onAdventureComplete) {
             onAdventureComplete({
                 victory: combatState.phase === 'victory',
@@ -383,142 +477,314 @@ const CombatArea = ({
                 hpChange: (selectedCharacter?.max_hp || 20) - characterCurrentHp,
                 xpGained: combatState.totalXpGained,
                 loot: combatState.totalLoot,
-                questContext: questContext
+                enemy: combatState.enemy?.name
             });
-        } else if (onAdventureComplete) {
-            onAdventureComplete(results);
         }
     };
 
-    // Character validation
+    // Enhanced reset combat function
+    const handleResetCombat = () => {
+        // Clear temporary HP changes when resetting combat
+        clearTemporaryHp();
+        setCharacterCurrentHp(selectedCharacter?.current_hp || selectedCharacter?.max_hp || 20);
+        setEnemySelection({});
+        resetCombat();
+    };
+
+    // Get individual enemy status for display
+    const individualEnemyStatus = getIndividualEnemyStatus();
+
+    // Calculate total selected enemies
+    const totalSelectedEnemies = Object.values(enemySelection).reduce((sum, count) => sum + count, 0);
+
+    // Component render logic
     if (!selectedCharacter) {
         return (
             <div className="combat-area-loading">
-                <h3>⚠️ No Character Selected</h3>
-                <p>Please select a character to begin combat.</p>
+                <h2>Select a character to begin combat</h2>
             </div>
         );
     }
 
-    // Loading states
-    if (isQuestCombat && enemyLoading) {
+    if (enemyLoading) {
         return (
             <div className="combat-area-loading">
-                <h3>⚔️ Preparing for Battle...</h3>
-                <p>Loading enemy data for {predeterminedEnemy}...</p>
-                <div className="loading-spinner"></div>
-            </div>
-        );
-    }
-
-    if (!isQuestCombat && enemyLoading) {
-        return (
-            <div className="combat-area-loading">
-                <h3>🏹 Loading Combat Arena...</h3>
-                <p>Fetching enemies from the backend...</p>
-                <div className="loading-spinner"></div>
+                <h2>Loading enemy data...</h2>
             </div>
         );
     }
 
     return (
         <div className="combat-area">
-            {/* CRITICAL: 3D Dice Box Element - MUST be present for dice to render */}
-            <div id="dice-box"></div>
+            {/* 3D DICE CONTAINER - RESTORED */}
+            <div id="dice-box" className="dice-container"></div>
 
             {/* Quest Combat Header */}
             {isQuestCombat && questContext && (
                 <div className="quest-combat-header">
-                    <h3>🏛️ {questContext.questTitle}</h3>
-                    <h4>📍 {questContext.roomTitle}</h4>
-                    {predeterminedEnemy && (
-                        <p className="enemy-encounter">
-                            You must face: <strong>{getEnemyTemplate(predeterminedEnemy)?.name || predeterminedEnemy}</strong>
-                        </p>
-                    )}
+                    <h3>{questContext.questName}</h3>
+                    <h4>{questContext.locationName}</h4>
+                    <p className="enemy-encounter">
+                        <strong>Enemy Encounter:</strong> {combatState.enemy?.name || predeterminedEnemy}
+                    </p>
                 </div>
             )}
 
-            {/* Enemy Selection - ONLY FOR SKIRMISH */}
-            {!isQuestCombat && combatState.phase === 'selection' && (
+            {/* Enemy Selection Phase */}
+            {combatState.phase === 'selection' && !isQuestCombat && (
                 <div className="enemy-selection">
-                    <h3>⚔️ Choose Your Opponent</h3>
+                    <h3>Choose Your Combat</h3>
 
+                    {/* Combat Mode Selection */}
+                    <div className="combat-mode-selection" style={{
+                        display: 'flex',
+                        gap: '16px',
+                        justifyContent: 'center',
+                        marginBottom: '24px'
+                    }}>
+                        <button
+                            className={`mode-button ${selectionMode === 'single' ? 'active' : ''}`}
+                            onClick={() => {
+                                setSelectionMode('single');
+                                setEnemySelection({});
+                            }}
+                            style={{
+                                background: selectionMode === 'single' ? '#3b82f6' : '#374151',
+                                color: 'white',
+                                border: 'none',
+                                padding: '12px 24px',
+                                borderRadius: '8px',
+                                cursor: 'pointer',
+                                fontWeight: '600'
+                            }}
+                        >
+                            🥊 Single Combat
+                        </button>
+                        <button
+                            className={`mode-button ${selectionMode === 'multiple' ? 'active' : ''}`}
+                            onClick={() => {
+                                setSelectionMode('multiple');
+                                setEnemySelection({});
+                            }}
+                            style={{
+                                background: selectionMode === 'multiple' ? '#ef4444' : '#374151',
+                                color: 'white',
+                                border: 'none',
+                                padding: '12px 24px',
+                                borderRadius: '8px',
+                                cursor: 'pointer',
+                                fontWeight: '600'
+                            }}
+                        >
+                            ⚔️ Combined Multi-Enemy
+                        </button>
+                    </div>
+
+                    {/* 3D Dice Status Indicator */}
+                    <div style={{
+                        textAlign: 'center',
+                        marginBottom: '16px',
+                        padding: '8px 16px',
+                        background: diceBox ? '#065f46' : '#92400e',
+                        color: 'white',
+                        borderRadius: '6px',
+                        fontSize: '0.9rem'
+                    }}>
+                        {diceBox ? '🎲 3D Dice Ready' : '⚠️ Using Fallback Dice (3D dice failed to load)'}
+                    </div>
+
+                    {/* Enemy Source Status */}
                     <div className="enemy-source-status">
                         {isUsingExternalEnemies ? (
                             <div className="status-success">
-                                ✅ Using enemies from backend database
+                                ✅ Connected to Enemy Database
                             </div>
                         ) : (
                             <div className="status-fallback">
-                                ⚠️ Using offline enemy data
-                                <button onClick={refreshEnemyData} className="refresh-button">
-                                    🔄 Try Backend
+                                ⚠️ Using Fallback Enemies
+                                <button
+                                    className="refresh-button"
+                                    onClick={refreshEnemyData}
+                                    title="Try to reconnect to enemy database"
+                                >
+                                    🔄 Retry
                                 </button>
                             </div>
                         )}
                     </div>
 
-                    <div className="enemy-buttons">
-                        {availableEnemies.map(enemyType => {
-                            const template = isUsingExternalEnemies
-                                ? getEnemyTemplate(enemyType)
-                                : null;
+                    {/* Selected Enemies Preview (Multi-mode only) */}
+                    {selectionMode === 'multiple' && totalSelectedEnemies > 0 && (
+                        <div style={{
+                            background: '#1f2937',
+                            border: '2px solid #3b82f6',
+                            borderRadius: '12px',
+                            padding: '16px',
+                            marginBottom: '20px'
+                        }}>
+                            <h4 style={{ color: '#3b82f6', margin: '0 0 12px 0' }}>
+                                Selected Encounter ({totalSelectedEnemies} enemies):
+                            </h4>
+                            <div style={{
+                                display: 'flex',
+                                flexWrap: 'wrap',
+                                gap: '8px',
+                                marginBottom: '16px'
+                            }}>
+                                {Object.entries(enemySelection).map(([enemyId, count]) => (
+                                    <span key={enemyId} style={{
+                                        background: '#374151',
+                                        color: '#eee',
+                                        padding: '4px 12px',
+                                        borderRadius: '16px',
+                                        fontSize: '0.9rem'
+                                    }}>
+                                        {count}x {enemyTemplates[enemyId]?.name || enemyId}
+                                    </span>
+                                ))}
+                            </div>
 
-                            const displayInfo = template ? {
-                                name: template.name,
-                                level: template.level,
-                                hp: template.maxHp,
-                                dice: template.dicePool,
-                                xp: template.xpReward,
-                                description: template.description
-                            } : {
-                                name: enemyType.charAt(0).toUpperCase() + enemyType.slice(1),
-                                level: enemyType === 'troll' || enemyType === 'dragon' ? 5 :
-                                    enemyType === 'orc' ? 2 : 1,
-                                hp: enemyType === 'troll' || enemyType === 'dragon' ? 84 :
-                                    enemyType === 'orc' ? 15 :
-                                        enemyType === 'skeleton' ? 13 : 7,
-                                dice: enemyType === 'dragon' ? '2d12' :
-                                    enemyType === 'troll' ? '6d4+2' :
-                                        enemyType === 'skeleton' ? '2d4+1' :
-                                            enemyType === 'orc' ? '3d4' : '2d4',
-                                xp: enemyType === 'dragon' ? 400 :
-                                    enemyType === 'troll' ? 200 :
-                                        enemyType === 'orc' ? 50 :
-                                            enemyType === 'skeleton' ? 30 : 25
-                            };
+                            {/* Combined Stats Preview */}
+                            <div style={{
+                                background: '#374151',
+                                padding: '12px',
+                                borderRadius: '8px',
+                                marginBottom: '16px',
+                                fontSize: '0.9rem'
+                            }}>
+                                <strong>Combined Enemy Stats:</strong>
+                                <div style={{ marginTop: '8px', color: '#d1d5db' }}>
+                                    <div>Total HP: {Object.entries(enemySelection).reduce((total, [enemyId, count]) => {
+                                        const enemy = enemyTemplates[enemyId];
+                                        return total + (enemy ? enemy.maxHp * count : 0);
+                                    }, 0)}</div>
+                                    <div>Combined Dice Pool: (calculated during combat)</div>
+                                </div>
+                            </div>
+
+                            <button
+                                onClick={handleStartMultiCombat}
+                                style={{
+                                    background: 'linear-gradient(135deg, #ef4444, #dc2626)',
+                                    color: 'white',
+                                    border: 'none',
+                                    padding: '12px 24px',
+                                    borderRadius: '8px',
+                                    cursor: 'pointer',
+                                    fontWeight: '700',
+                                    fontSize: '1rem'
+                                }}
+                            >
+                                ⚔️ Start Combined Encounter
+                            </button>
+                        </div>
+                    )}
+
+                    {/* Enemy Buttons */}
+                    <div className="enemy-buttons">
+                        {(isUsingExternalEnemies ? availableEnemies : []).map(enemyId => {
+                            const enemy = enemyTemplates[enemyId];
+                            const selectedCount = enemySelection[enemyId] || 0;
 
                             return (
-                                <button
-                                    key={enemyType}
-                                    onClick={() => startCombat(enemyType)}
+                                <div
+                                    key={enemyId}
                                     className="enemy-button"
+                                    style={{
+                                        border: selectedCount > 0 ? '3px solid #3b82f6' : '2px solid #4b5563',
+                                        background: selectedCount > 0 ? '#1e40af' : '#374151',
+                                        position: 'relative'
+                                    }}
                                 >
-                                    <div className="enemy-name">{displayInfo.name}</div>
+                                    <div className="enemy-name">{enemy?.name || enemyId}</div>
                                     <div className="enemy-details">
-                                        <div>Level {displayInfo.level}</div>
-                                        <div>{displayInfo.hp} HP</div>
-                                        <div>Dice: {displayInfo.dice}</div>
-                                        <div>XP: {displayInfo.xp}</div>
+                                        <div><strong>HP:</strong> {enemy?.maxHp || enemy?.hp}</div>
+                                        <div><strong>Dice:</strong> {enemy?.dicePool}</div>
                                     </div>
-                                    {displayInfo.description && (
-                                        <div className="enemy-description">
-                                            {displayInfo.description}
+                                    {enemy?.description && (
+                                        <div className="enemy-description">{enemy.description}</div>
+                                    )}
+
+                                    {/* Combat Mode Actions */}
+                                    {selectionMode === 'single' ? (
+                                        <button
+                                            onClick={() => startCombat(enemyId)}
+                                            style={{
+                                                position: 'absolute',
+                                                bottom: '8px',
+                                                right: '8px',
+                                                background: '#3b82f6',
+                                                color: 'white',
+                                                border: 'none',
+                                                padding: '6px 12px',
+                                                borderRadius: '6px',
+                                                cursor: 'pointer',
+                                                fontSize: '0.8rem',
+                                                fontWeight: '600'
+                                            }}
+                                        >
+                                            Fight
+                                        </button>
+                                    ) : (
+                                        <div style={{
+                                            position: 'absolute',
+                                            bottom: '8px',
+                                            right: '8px',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: '8px',
+                                            background: 'rgba(0, 0, 0, 0.6)',
+                                            padding: '4px 8px',
+                                            borderRadius: '6px'
+                                        }}>
+                                            <button
+                                                onClick={() => handleEnemyCountChange(enemyId, -1)}
+                                                disabled={selectedCount === 0}
+                                                style={{
+                                                    background: '#ef4444',
+                                                    color: 'white',
+                                                    border: 'none',
+                                                    width: '24px',
+                                                    height: '24px',
+                                                    borderRadius: '4px',
+                                                    cursor: 'pointer',
+                                                    fontSize: '14px',
+                                                    fontWeight: 'bold',
+                                                    opacity: selectedCount === 0 ? 0.5 : 1
+                                                }}
+                                            >
+                                                -
+                                            </button>
+                                            <span style={{
+                                                color: 'white',
+                                                fontWeight: 'bold',
+                                                minWidth: '20px',
+                                                textAlign: 'center'
+                                            }}>
+                                                {selectedCount}
+                                            </span>
+                                            <button
+                                                onClick={() => handleEnemyCountChange(enemyId, 1)}
+                                                style={{
+                                                    background: '#10b981',
+                                                    color: 'white',
+                                                    border: 'none',
+                                                    width: '24px',
+                                                    height: '24px',
+                                                    borderRadius: '4px',
+                                                    cursor: 'pointer',
+                                                    fontSize: '14px',
+                                                    fontWeight: 'bold'
+                                                }}
+                                            >
+                                                +
+                                            </button>
                                         </div>
                                     )}
-                                </button>
+                                </div>
                             );
                         })}
                     </div>
-                </div>
-            )}
-
-            {/* Quest Combat Loading */}
-            {isQuestCombat && combatState.phase === 'selection' && !questCombatInitialized && (
-                <div className="quest-combat-loading">
-                    <h3>⚔️ Entering Combat...</h3>
-                    <p>Preparing to face {predeterminedEnemy}...</p>
                 </div>
             )}
 
@@ -527,186 +793,219 @@ const CombatArea = ({
                 <div className="combat-active">
                     {/* Combat Mode Indicator */}
                     <div className={`combat-mode-indicator ${isQuestCombat ? 'quest-mode' : 'skirmish-mode'}`}>
-                        {isQuestCombat ? '🏛️ Quest Combat' : '⚔️ Skirmish Combat'}
-                    </div>
-
-                    {/* Character Status */}
-                    <div className="character-status">
-                        <h3>🧙‍♂️ {selectedCharacter.name}</h3>
-                        <div className="hp-bar">
-                            <div
-                                className="hp-fill character-hp"
-                                style={{
-                                    width: `${(characterCurrentHp / (selectedCharacter.max_hp || 20)) * 100}%`,
-                                    backgroundColor: characterCurrentHp > (selectedCharacter.max_hp || 20) * 0.5
-                                        ? '#10b981'
-                                        : characterCurrentHp > (selectedCharacter.max_hp || 20) * 0.2
-                                            ? '#f59e0b'
-                                            : '#ef4444'
-                                }}
-                            ></div>
-                            <span className="hp-text">
-                                {characterCurrentHp}/{selectedCharacter.max_hp || 20} HP
+                        <span>
+                            {isQuestCombat ? '⚔️ Quest Combat' :
+                                isMultiEnemy ? '⚔️ Combined Multi-Enemy Encounter' : '🥊 Single Combat'}
+                        </span>
+                        {isMultiEnemy && (
+                            <span style={{ fontSize: '0.9rem', opacity: 0.9 }}>
+                                {individualEnemyStatus.filter(e => e.isAlive).length} alive, {individualEnemyStatus.filter(e => !e.isAlive).length} defeated
                             </span>
-                        </div>
-                        <div className="character-dice-info">
-                            {(() => {
-                                const diceInfo = getCharacterDicePool();
-                                return (
-                                    <>
-                                        <p><strong>Dice Pool:</strong> {diceInfo.dicePool}</p>
-                                        <p><strong>Breakdown:</strong> {diceInfo.description}</p>
-                                    </>
-                                );
-                            })()}
-                        </div>
+                        )}
                     </div>
 
-                    {/* Enemy Status */}
+                    {/* Combined Enemy Status */}
                     <div className="enemy-status">
-                        <h3>👹 {combatState.enemy.name}</h3>
+                        <h3>{combatState.enemy.name}</h3>
                         <div className="hp-bar">
                             <div
                                 className="hp-fill enemy-hp"
-                                style={{
-                                    width: `${(combatState.enemy.currentHp / combatState.enemy.maxHp) * 100}%`
-                                }}
+                                style={{width: `${(combatState.enemy.currentHp / combatState.enemy.maxHp) * 100}%`}}
                             ></div>
-                            <span className="hp-text">
-                                {combatState.enemy.currentHp}/{combatState.enemy.maxHp} HP
-                            </span>
+                            <div className="hp-text">
+                                {combatState.enemy.currentHp} / {combatState.enemy.maxHp} HP
+                            </div>
                         </div>
                         <div className="enemy-dice-info">
-                            <p><strong>Level:</strong> {combatState.enemy.level}</p>
-                            <p><strong>Dice Pool:</strong> {combatState.enemy.dicePool}</p>
+                            <p><strong>Combined Dice Pool:</strong> {combatState.enemy.dicePool}</p>
+                            {isMultiEnemy && (
+                                <p>{getEnemyDiceInfo().description}</p>
+                            )}
                         </div>
                     </div>
 
-                    {/* Combat Actions - The main attack button */}
+                    {/* Combat Actions */}
                     <div className="combat-actions">
                         <button
+                            className="attack-button"
                             onClick={handleCombatRound}
-                            className="combat-button attack-button"
                             disabled={isRolling}
+                            style={{
+                                background: isRolling
+                                    ? 'linear-gradient(135deg, #6b7280, #4b5563)'
+                                    : 'linear-gradient(135deg, #ef4444, #dc2626)',
+                                color: 'white',
+                                border: 'none',
+                                padding: '16px 32px',
+                                borderRadius: '12px',
+                                cursor: isRolling ? 'not-allowed' : 'pointer',
+                                fontWeight: '700',
+                                fontSize: '1.2rem',
+                                minWidth: '200px',
+                                opacity: isRolling ? 0.6 : 1
+                            }}
                         >
-                            {isRolling ? '🎲 Rolling 3D Dice...' : '🎲 Roll 3D Dice for Combat!'}
+                            {isRolling ? (
+                                <>
+                                    <span style={{ animation: 'spin 1s linear infinite' }}>🎲</span>
+                                    Rolling 3D Dice...
+                                </>
+                            ) : (
+                                <>
+                                    ⚔️ ATTACK! {diceBox ? '🎲' : '⚠️'}
+                                </>
+                            )}
                         </button>
-
-                        {/* Dice Border Toggle (Optional) */}
-                        <button
-                            onClick={() => setShowDiceBorder(!showDiceBorder)}
-                            className="combat-button border-toggle-button"
-                            disabled={isRolling}
-                            title="Toggle dice border visibility"
-                        >
-                            {showDiceBorder ? '🎯 Hide Border' : '🎯 Show Border'}
-                        </button>
-
-                        {isQuestCombat ? (
-                            <button
-                                onClick={() => handleCombatComplete({ victory: false, defeat: true })}
-                                className="combat-button retreat-button"
-                                disabled={isRolling}
-                            >
-                                🏃‍♂️ Retreat from Quest
-                            </button>
-                        ) : (
-                            <button
-                                onClick={resetCombat}
-                                className="combat-button flee-button"
-                                disabled={isRolling}
-                            >
-                                🏃‍♂️ Flee Combat
-                            </button>
-                        )}
                     </div>
+
+                    {/* Individual Enemy Status (Multi-Enemy only) */}
+                    {isMultiEnemy && individualEnemyStatus.length > 0 && (
+                        <div style={{
+                            background: '#1f2937',
+                            border: '1px solid #374151',
+                            borderRadius: '12px',
+                            padding: '16px',
+                            marginBottom: '20px'
+                        }}>
+                            <h4 style={{ color: '#a5b4fc', margin: '0 0 12px 0' }}>Individual Enemy Status:</h4>
+                            <div style={{
+                                display: 'grid',
+                                gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                                gap: '12px'
+                            }}>
+                                {individualEnemyStatus.map((enemy, index) => (
+                                    <div
+                                        key={enemy.id}
+                                        style={{
+                                            background: enemy.isAlive ? '#374151' : '#1f2937',
+                                            border: `1px solid ${enemy.isAlive ? '#4b5563' : '#6b7280'}`,
+                                            borderRadius: '8px',
+                                            padding: '12px',
+                                            opacity: enemy.isAlive ? 1 : 0.6
+                                        }}
+                                    >
+                                        <div style={{
+                                            fontWeight: 'bold',
+                                            color: enemy.isAlive ? '#eee' : '#9ca3af',
+                                            marginBottom: '6px'
+                                        }}>
+                                            {enemy.name} {enemy.isAlive ? '' : '(💀 Defeated)'}
+                                        </div>
+                                        <div style={{
+                                            fontSize: '0.9rem',
+                                            color: enemy.isAlive ? '#d1d5db' : '#6b7280'
+                                        }}>
+                                            HP: {enemy.currentHp} / {enemy.maxHp}
+                                        </div>
+                                        <div style={{
+                                            fontSize: '0.8rem',
+                                            color: enemy.isAlive ? '#9ca3af' : '#6b7280'
+                                        }}>
+                                            Dice: {enemy.dicePool}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+
 
                     {/* Rolling Indicator */}
                     {isRolling && (
                         <div className="rolling-indicator">
-                            <div className="dice-animation">🎲</div>
-                            <p>Watch the 3D dice fly across your screen!</p>
+                            <div className="dice-spinner">🎲</div>
+                            <p>Rolling 3D dice...</p>
+                        </div>
+                    )}
+                </div>
+            )}
+
+            {/* Combat Results */}
+            {(combatState.phase === 'victory' || combatState.phase === 'defeat') && (
+                <div className={`combat-result ${combatState.phase}`}>
+                    <h3>{combatState.phase === 'victory' ? 'VICTORY!' : 'DEFEAT!'}</h3>
+                    <p>
+                        {isMultiEnemy && combatState.phase === 'victory'
+                            ? `All enemies defeated!`
+                            : `Combat has ended against ${combatState.enemy?.name}.`
+                        }
+                    </p>
+
+                    {combatState.phase === 'victory' && (
+                        <div className="victory-rewards">
+                            <p><strong>Total XP Gained:</strong> {combatState.totalXpGained}</p>
+                            {combatState.totalLoot && combatState.totalLoot.length > 0 && (
+                                <p><strong>Loot:</strong> {combatState.totalLoot.join(', ')}</p>
+                            )}
                         </div>
                     )}
 
-                    {/* Combat Log */}
-                    <div className="combat-log">
-                        <h4>📜 Combat Log</h4>
-                        <div className="log-entries">
-                            {combatState.combatLog.map((entry, index) => (
-                                <div key={index} className="log-entry">
-                                    {typeof entry === 'string' ? entry : (
-                                        <div className="combat-round">
-                                            <div className="roll-summary">
-                                                <span className="player-roll">
-                                                    🔵 You: {entry.characterRoll} ({entry.characterDice?.dicePool || 'unknown'})
-                                                </span>
-                                                <span className="vs">vs</span>
-                                                <span className="enemy-roll">
-                                                    🔴 {combatState.enemy.name}: {entry.enemyRoll} ({entry.enemyDice?.dicePool || 'unknown'})
-                                                </span>
-                                            </div>
-                                            <div className="result-text">
-                                                {entry.description || entry.result || 'Combat action'}
-                                            </div>
+                    <div className="result-actions">
+                        {isQuestCombat ? (
+                            <button onClick={() => handleCombatComplete({ victory: combatState.phase === 'victory', defeat: combatState.phase === 'defeat' })}>
+                                ⬅️ Continue Quest
+                            </button>
+                        ) : (
+                            <button onClick={handleResetCombat}>🔄 Fight Again</button>
+                        )}
+                    </div>
+                </div>
+            )}
+
+            {/* Combat Log */}
+            {combatState.combatLog && combatState.combatLog.length > 0 && (
+                <div className="combat-log">
+                    <h4>Combat Log</h4>
+                    <div className="log-entries">
+                        {combatState.combatLog.map((entry, index) => (
+                            <div key={index} className="log-entry">
+                                {entry.type === 'round' ? (
+                                    <div className="combat-round">
+                                        <div className="roll-summary">
+                                            <span className="player-roll">You: {entry.characterRoll}</span>
+                                            <span className="vs">vs</span>
+                                            <span className="enemy-roll">{combatState.enemy?.name}: {entry.enemyRoll}</span>
                                         </div>
-                                    )}
-                                </div>
-                            ))}
-                        </div>
+                                        <div className="result-text">{entry.description}</div>
+                                    </div>
+                                ) : entry.type === 'encounter' ? (
+                                    <div style={{
+                                        background: '#7c3aed',
+                                        color: 'white',
+                                        padding: '8px 12px',
+                                        borderRadius: '6px',
+                                        fontWeight: 'bold'
+                                    }}>
+                                        {entry.description}
+                                    </div>
+                                ) : entry.type === 'victory' ? (
+                                    <div style={{
+                                        background: '#10b981',
+                                        color: 'white',
+                                        padding: '8px 12px',
+                                        borderRadius: '6px',
+                                        fontWeight: 'bold'
+                                    }}>
+                                        {entry.description}
+                                    </div>
+                                ) : (
+                                    <div>{entry.description}</div>
+                                )}
+                            </div>
+                        ))}
                     </div>
                 </div>
             )}
 
-            {/* Victory/Defeat Results */}
-            {combatState.phase === 'victory' && (
-                <div className="combat-result victory">
-                    <h3>🎉 Victory!</h3>
-                    <p>You defeated the {combatState.enemy.name}!</p>
-                    <p>Gained {combatState.totalXpGained} XP!</p>
-                    {combatState.totalLoot.length > 0 && (
-                        <p>Loot: {combatState.totalLoot.join(', ')}</p>
-                    )}
-                    <div className="result-actions">
-                        {isQuestCombat ? (
-                            <button onClick={() => handleCombatComplete({ victory: true, defeat: false })}>
-                                ➡️ Continue Quest
-                            </button>
-                        ) : (
-                            <>
-                                <button onClick={resetCombat}>⚔️ Fight Another</button>
-                                <button onClick={() => handleCombatComplete({ victory: true })}>
-                                    🏰 Return to Hub
-                                </button>
-                            </>
-                        )}
-                    </div>
-                </div>
-            )}
-
-            {combatState.phase === 'defeat' && (
-                <div className="combat-result defeat">
-                    <h3>💀 Defeat!</h3>
-                    <p>The {combatState.enemy.name} has defeated you!</p>
-                    {isQuestCombat && (
-                        <p>You retreat from the quest, wounded but alive.</p>
-                    )}
-                    <div className="result-actions">
-                        {isQuestCombat ? (
-                            <button onClick={() => handleCombatComplete({ victory: false, defeat: true })}>
-                                ⬅️ Return to Quest (Defeated)
-                            </button>
-                        ) : (
-                            <>
-                                <button onClick={resetCombat}>🔄 Try Again</button>
-                                <button onClick={() => handleCombatComplete({ victory: false })}>
-                                    🏰 Return to Hub
-                                </button>
-                            </>
-                        )}
-                    </div>
-                </div>
-            )}
+            {/* Simple Dice Results Popup */}
+            <SimpleDicePopup
+                isVisible={showDicePopup}
+                characterTotal={popupData.characterTotal}
+                enemyTotal={popupData.enemyTotal}
+                onClose={handlePopupClose}
+                autoDismissDelay={3000}
+            />
         </div>
     );
 };

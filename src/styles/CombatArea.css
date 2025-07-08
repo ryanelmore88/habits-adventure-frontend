@@ -1,7 +1,6 @@
-/* File: src/styles/CombatArea.css - REPLACE THE ENTIRE FILE */
-/* Mobile-optimized 3D dice CSS for full-screen rolling */
+/* File: src/styles/CombatArea.css - Combined multi-enemy + 3D dice styles */
 
-/* CRITICAL: 3D Dice Box Full-Screen Setup with Border */
+/* CRITICAL: 3D Dice Container */
 #dice-box {
     position: fixed !important;
     top: 0 !important;
@@ -23,30 +22,13 @@
     /* Invisible border to contain dice physics */
     border: 20px solid transparent !important;
     box-sizing: border-box !important;
-
-    /* Visual border for debugging (remove in production) */
-    /* border: 2px solid rgba(255, 0, 0, 0.3) !important; */
 }
 
-/* Alternative: Visible border when rolling (optional) */
+/* Optional: Visible border when rolling */
 #dice-box.rolling-border {
     border: 3px solid rgba(59, 130, 246, 0.4) !important;
     border-radius: 8px !important;
     background: rgba(0, 0, 0, 0.1) !important;
-}
-
-/* Dice physics boundary enforcement */
-#dice-box::before {
-    content: '';
-    position: absolute;
-    top: 10px;
-    left: 10px;
-    right: 10px;
-    bottom: 10px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 4px;
-    pointer-events: none;
-    z-index: -1;
 }
 
 /* Dice canvas styling */
@@ -78,7 +60,7 @@
     overflow: hidden !important;
 }
 
-/* Combat Area Base Styling */
+/* Combat Area Base */
 .combat-area {
     position: relative;
     max-width: 900px;
@@ -91,664 +73,434 @@
     z-index: 1;
 }
 
-/* Loading States */
-.combat-area-loading {
-    text-align: center;
-    padding: 60px 20px;
-    color: #eee;
+.dice-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    pointer-events: none;
+    z-index: 1000;
+    background: rgba(0, 0, 0, 0.3);
+}
+
+/* Character info reference styling */
+.character-hp-reference {
     background: #1f2937;
-    border-radius: 12px;
-    border: 1px solid #374151;
-}
-
-.combat-area-loading h3 {
-    margin: 0 0 16px 0;
-    color: #a5b4fc;
-    font-size: 1.5rem;
-}
-
-.combat-area-loading p {
-    margin: 0 0 20px 0;
-    color: #9ca3af;
-    font-size: 1.1rem;
-}
-
-/* Quest Combat Header */
-.quest-combat-header {
-    background: linear-gradient(135deg, #7c3aed, #5b21b6);
-    color: white;
-    padding: 20px;
-    border-radius: 12px;
-    text-align: center;
-    margin-bottom: 24px;
-    border: 2px solid #8b5cf6;
-    position: relative;
-    z-index: 2;
-}
-
-.quest-combat-header h3 {
-    margin: 0 0 8px 0;
-    font-size: 1.5rem;
-    font-weight: 700;
-}
-
-.quest-combat-header h4 {
-    margin: 0 0 12px 0;
-    font-size: 1.2rem;
-    font-weight: 600;
-    color: #c4b5fd;
-}
-
-.enemy-encounter {
-    margin: 0;
-    font-size: 1.1rem;
-    font-style: italic;
-    background: rgba(255, 255, 255, 0.1);
-    padding: 8px 16px;
-    border-radius: 6px;
-    display: inline-block;
-}
-
-.enemy-encounter strong {
-    color: #fbbf24;
-    font-weight: 700;
-}
-
-/* Enemy Selection */
-.enemy-selection {
-    background: #1f2937;
-    border-radius: 12px;
-    padding: 32px;
-    border: 1px solid #374151;
-    text-align: center;
-    position: relative;
-    z-index: 2;
-}
-
-.enemy-selection h3 {
-    margin: 0 0 24px 0;
-    color: #a5b4fc;
-    font-size: 1.8rem;
-    font-weight: 700;
-}
-
-.enemy-source-status {
-    margin-bottom: 20px;
-    text-align: center;
-}
-
-.status-success {
-    background: linear-gradient(135deg, #10b981, #059669);
-    color: white;
-    padding: 12px 20px;
+    border: 1px solid #3b82f6;
     border-radius: 8px;
-    font-weight: 600;
-    display: inline-block;
-    margin-bottom: 8px;
+    padding: 12px;
+    margin-bottom: 16px;
+    text-align: center;
+    font-size: 0.9rem;
+    color: #a5b4fc;
+    line-height: 1.4;
 }
 
-.status-fallback {
-    background: linear-gradient(135deg, #f59e0b, #d97706);
-    color: white;
-    padding: 12px 20px;
-    border-radius: 8px;
+.character-hp-reference strong {
+    color: #3b82f6;
     font-weight: 600;
-    display: inline-flex;
+}
+
+.character-hp-reference .dice-breakdown {
+    font-size: 0.8rem;
+    opacity: 0.8;
+    margin-top: 4px;
+}
+
+/* Enemy count selector styles */
+.enemy-count-selector {
+    position: absolute;
+    bottom: 8px;
+    right: 8px;
+    display: flex;
     align-items: center;
-    gap: 12px;
-    margin-bottom: 8px;
+    gap: 8px;
+    background: rgba(0, 0, 0, 0.8);
+    padding: 4px 8px;
+    border-radius: 6px;
+    backdrop-filter: blur(4px);
 }
 
-.refresh-button {
-    background: rgba(255, 255, 255, 0.2);
+.count-button {
+    background: #ef4444;
     color: white;
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    padding: 4px 8px;
+    border: none;
+    width: 24px;
+    height: 24px;
     border-radius: 4px;
     cursor: pointer;
-    font-size: 0.9rem;
+    font-size: 14px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     transition: all 0.2s ease;
 }
 
-.refresh-button:hover {
-    background: rgba(255, 255, 255, 0.3);
-    border-color: rgba(255, 255, 255, 0.5);
+.count-button:hover:not(:disabled) {
+    transform: scale(1.1);
 }
 
-.enemy-buttons {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 20px;
-    margin-top: 24px;
-}
-
-.enemy-button {
-    background: #374151;
-    border: 2px solid #4b5563;
-    border-radius: 12px;
-    padding: 24px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    color: #eee;
-    text-align: left;
-    position: relative;
-    overflow: hidden;
-}
-
-.enemy-button:hover {
-    border-color: #ef4444;
-    transform: translateY(-4px);
-    box-shadow: 0 12px 32px rgba(239, 68, 68, 0.25);
-    background: #4b5563;
-}
-
-.enemy-name {
-    font-size: 1.3rem;
-    font-weight: 700;
-    color: #fbbf24;
-    margin-bottom: 12px;
-}
-
-.enemy-details {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 8px;
-    margin-bottom: 12px;
-}
-
-.enemy-details div {
-    color: #9ca3af;
-    font-size: 0.9rem;
-    font-weight: 500;
-}
-
-.enemy-description {
-    color: #d1d5db;
-    font-size: 0.9rem;
-    font-style: italic;
-    line-height: 1.4;
-    margin-top: 8px;
-    padding-top: 12px;
-    border-top: 1px solid #4b5563;
-}
-
-/* Combat Active Phase */
-.combat-active {
-    display: flex;
-    flex-direction: column;
-    gap: 24px;
-    position: relative;
-    z-index: 2;
-}
-
-.combat-mode-indicator {
-    text-align: center;
-    padding: 8px 16px;
-    border-radius: 8px;
-    font-weight: 600;
-    font-size: 0.9rem;
-    margin-bottom: 16px;
-}
-
-.combat-mode-indicator.quest-mode {
-    background: linear-gradient(135deg, #7c3aed, #5b21b6);
-    color: white;
-    border: 1px solid #8b5cf6;
-}
-
-.combat-mode-indicator.skirmish-mode {
-    background: linear-gradient(135deg, #ef4444, #dc2626);
-    color: white;
-    border: 1px solid #f87171;
-}
-
-/* Character and Enemy Status */
-.character-status,
-.enemy-status {
-    background: #1f2937;
-    border: 2px solid #374151;
-    border-radius: 12px;
-    padding: 24px;
-    transition: border-color 0.3s ease;
-    position: relative;
-    z-index: 2;
-}
-
-.character-status {
-    border-color: #10b981;
-}
-
-.enemy-status {
-    border-color: #ef4444;
-}
-
-.character-status h3,
-.enemy-status h3 {
-    margin: 0 0 16px 0;
-    font-size: 1.4rem;
-    font-weight: 700;
-}
-
-.character-status h3 {
-    color: #10b981;
-}
-
-.enemy-status h3 {
-    color: #ef4444;
-}
-
-/* HP Bars */
-.hp-bar {
-    position: relative;
-    background: #374151;
-    border-radius: 20px;
-    height: 32px;
-    margin: 16px 0;
-    overflow: hidden;
-    border: 2px solid #4b5563;
-}
-
-.hp-fill {
-    height: 100%;
-    transition: width 0.5s ease;
-    border-radius: 18px;
-    position: relative;
-}
-
-.hp-fill.character-hp {
-    background: linear-gradient(90deg, #10b981, #34d399);
-}
-
-.hp-fill.enemy-hp {
-    background: linear-gradient(90deg, #ef4444, #f87171);
-}
-
-.hp-text {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    font-weight: 700;
-    color: white;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
-    font-size: 1rem;
-    z-index: 10;
-}
-
-/* Combat Actions - Critical for dice rolling */
-.combat-actions {
-    display: flex;
-    gap: 16px;
-    justify-content: center;
-    margin: 24px 0;
-    position: relative;
-    z-index: 2;
-}
-
-.combat-button {
-    padding: 16px 32px;
-    border: none;
-    border-radius: 10px;
-    font-size: 1.1rem;
-    font-weight: 700;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    min-width: 160px;
-    position: relative;
-    overflow: hidden;
-    touch-action: manipulation; /* Better mobile touch handling */
-}
-
-.attack-button {
-    background: linear-gradient(135deg, #ef4444, #dc2626);
-    color: white;
-}
-
-.attack-button:hover:not(:disabled) {
-    background: linear-gradient(135deg, #dc2626, #b91c1c);
-    transform: translateY(-2px);
-    box-shadow: 0 8px 24px rgba(239, 68, 68, 0.4);
-}
-
-.flee-button {
-    background: linear-gradient(135deg, #6b7280, #4b5563);
-    color: white;
-}
-
-.flee-button:hover:not(:disabled) {
-    background: linear-gradient(135deg, #4b5563, #374151);
-    transform: translateY(-2px);
-    box-shadow: 0 8px 24px rgba(107, 114, 128, 0.4);
-}
-
-.retreat-button {
-    background: linear-gradient(135deg, #7c3aed, #5b21b6);
-    color: white;
-}
-
-.retreat-button:hover:not(:disabled) {
-    background: linear-gradient(135deg, #5b21b6, #4c1d95);
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(124, 58, 237, 0.4);
-}
-
-.border-toggle-button {
-    background: linear-gradient(135deg, #8b5cf6, #7c3aed);
-    color: white;
-    font-size: 0.9rem;
-    min-width: 120px;
-}
-
-.border-toggle-button:hover:not(:disabled) {
-    background: linear-gradient(135deg, #7c3aed, #6d28d9);
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(139, 92, 246, 0.4);
-}
-
-.combat-button:disabled {
-    opacity: 0.6;
+.count-button:disabled {
+    opacity: 0.5;
     cursor: not-allowed;
-    transform: none;
 }
 
-/* Rolling Animation */
-.rolling-indicator {
-    margin-top: 16px;
+.count-button.add {
+    background: #10b981;
+}
+
+.count-button.add:hover:not(:disabled) {
+    background: #059669;
+}
+
+.count-button.remove:hover:not(:disabled) {
+    background: #dc2626;
+}
+
+.enemy-count-display {
+    color: white;
+    font-weight: bold;
+    min-width: 20px;
     text-align: center;
-    position: relative;
-    z-index: 3;
+    font-size: 14px;
 }
 
-.dice-animation {
-    font-size: 2rem;
-    animation: dice-roll 0.5s infinite;
-    margin-bottom: 8px;
+/* Combined enemy stats preview */
+.combined-stats-preview {
+    background: #374151;
+    padding: 12px;
+    border-radius: 8px;
+    margin-bottom: 16px;
+    font-size: 0.9rem;
 }
 
-@keyframes dice-roll {
-    0%, 100% {
-        transform: rotate(0deg) scale(1);
-    }
-    25% {
-        transform: rotate(90deg) scale(1.1);
-    }
-    50% {
-        transform: rotate(180deg) scale(1);
-    }
-    75% {
-        transform: rotate(270deg) scale(1.1);
-    }
-}
-
-.rolling-indicator p {
-    color: #3b82f6;
-    font-style: italic;
-    margin: 0;
-}
-
-/* Combat Log */
-.combat-log {
-    background: #111827;
-    border: 1px solid #374151;
-    border-radius: 10px;
-    padding: 20px;
-    max-height: 300px;
-    overflow-y: auto;
-    margin-top: 20px;
-    position: relative;
-    z-index: 2;
-}
-
-.combat-log h4 {
-    margin: 0 0 16px 0;
-    color: #a5b4fc;
-    font-size: 1.1rem;
+.combined-stats-preview h5 {
+    margin: 0 0 8px 0;
+    color: #fbbf24;
     font-weight: 600;
 }
 
-.log-entries {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-
-.log-entry {
-    padding: 8px 12px;
-    background: #1f2937;
-    border-radius: 6px;
+.combined-stats-preview .stat-line {
+    margin: 4px 0;
     color: #d1d5db;
-    font-size: 0.95rem;
-    border-left: 3px solid #4b5563;
-    animation: fadeInUp 0.3s ease;
 }
 
-.combat-round {
-    background: #1f2937;
+.combined-stats-preview .stat-value {
+    color: #3b82f6;
+    font-weight: 600;
+}
+
+/* Individual enemy status grid */
+.individual-enemy-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 12px;
+    margin-top: 12px;
+}
+
+.individual-enemy-card {
+    background: #374151;
+    border: 1px solid #4b5563;
     border-radius: 8px;
     padding: 12px;
-    border-left: 4px solid #3b82f6;
+    transition: all 0.3s ease;
 }
 
-.roll-summary {
+.individual-enemy-card.defeated {
+    background: #1f2937;
+    border-color: #6b7280;
+    opacity: 0.6;
+}
+
+.individual-enemy-card.alive {
+    border-color: #10b981;
+    background: #065f46;
+}
+
+.individual-enemy-card.damaged {
+    border-color: #f59e0b;
+    background: #92400e;
+}
+
+.enemy-card-name {
+    font-weight: bold;
+    margin-bottom: 6px;
     display: flex;
     align-items: center;
-    gap: 12px;
-    margin-bottom: 8px;
-    flex-wrap: wrap;
+    justify-content: space-between;
 }
 
-.player-roll {
-    color: #3b82f6;
-    font-weight: bold;
-}
-
-.enemy-roll {
-    color: #ef4444;
-    font-weight: bold;
-}
-
-.vs {
-    color: #9ca3af;
-    font-size: 0.9rem;
-}
-
-.result-text {
-    color: #d1d5db;
-    font-size: 0.9rem;
-}
-
-/* Combat Results */
-.combat-result {
-    text-align: center;
-    padding: 40px;
-    background: #1f2937;
-    border-radius: 16px;
-    border: 2px solid;
-    position: relative;
-    z-index: 2;
-}
-
-.victory {
-    border-color: #10b981;
+.enemy-card-name.alive {
     color: #10b981;
 }
 
-.defeat {
-    border-color: #ef4444;
-    color: #ef4444;
+.enemy-card-name.defeated {
+    color: #6b7280;
 }
 
-.combat-result h3 {
-    margin: 0 0 16px 0;
-    font-size: 2.2rem;
-    font-weight: 800;
+.enemy-card-hp {
+    font-size: 0.9rem;
+    margin-bottom: 4px;
 }
 
-.combat-result p {
-    margin: 0 0 12px 0;
+.enemy-card-hp.alive {
     color: #d1d5db;
-    font-size: 1.1rem;
-    line-height: 1.5;
 }
 
-.result-actions {
-    display: flex;
-    gap: 16px;
-    justify-content: center;
-    margin-top: 32px;
-    flex-wrap: wrap;
+.enemy-card-hp.defeated {
+    color: #6b7280;
 }
 
-.result-actions button {
-    background: linear-gradient(135deg, #3b82f6, #2563eb);
+.enemy-card-dice {
+    font-size: 0.8rem;
+    opacity: 0.8;
+}
+
+.enemy-card-dice.alive {
+    color: #9ca3af;
+}
+
+.enemy-card-dice.defeated {
+    color: #6b7280;
+}
+
+.defeated-indicator {
+    color: #ef4444;
+    font-size: 0.9rem;
+    font-weight: bold;
+}
+
+/* Enhanced combat mode indicators for combined enemies */
+.combat-mode-indicator.combined-enemy-mode {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
     color: white;
-    border: none;
-    padding: 12px 24px;
-    border-radius: 8px;
-    cursor: pointer;
+    border: 1px solid #fbbf24;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.enemy-progress-info {
+    font-size: 0.9rem;
+    opacity: 0.9;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.alive-count {
+    color: #10b981;
     font-weight: 600;
-    transition: all 0.3s ease;
-    min-width: 140px;
-    touch-action: manipulation;
 }
 
-.result-actions button:hover {
-    background: linear-gradient(135deg, #2563eb, #1d4ed8);
+.defeated-count {
+    color: #ef4444;
+    font-weight: 600;
+}
+
+/* Enemy selection enhancements */
+.enemy-button.has-selection {
+    border-color: #3b82f6;
+    background: #1e40af;
     transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+    box-shadow: 0 8px 24px rgba(59, 130, 246, 0.4);
 }
 
-/* Loading Spinner */
-.loading-spinner {
-    width: 40px;
-    height: 40px;
-    border: 4px solid #374151;
-    border-top: 4px solid #a5b4fc;
+.enemy-button.has-selection:hover {
+    border-color: #2563eb;
+    background: #1d4ed8;
+}
+
+.selection-count-badge {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    background: #3b82f6;
+    color: white;
     border-radius: 50%;
-    animation: spin 1s linear infinite;
-    margin: 20px auto;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    font-weight: bold;
+    transform: scale(0);
+    transition: transform 0.2s ease;
 }
 
+.enemy-button.has-selection .selection-count-badge {
+    transform: scale(1);
+}
+
+/* Combat log enhancements for multi-enemy */
+.combat-log .enemy-defeated-log {
+    background: #059669;
+    color: white;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-weight: bold;
+    border-left: none;
+    margin: 4px 0;
+}
+
+.combat-log .damage-distribution-log {
+    background: #7c3aed;
+    color: white;
+    padding: 6px 10px;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    font-style: italic;
+    border-left: none;
+    margin: 2px 0;
+}
+
+/* Enhanced victory display for multi-enemy */
+.victory-rewards.multi-enemy {
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(6, 95, 70, 0.1));
+    border: 2px solid #10b981;
+    border-radius: 12px;
+    padding: 20px;
+    margin: 20px 0;
+}
+
+.victory-rewards.multi-enemy h4 {
+    color: #10b981;
+    margin: 0 0 12px 0;
+    font-size: 1.2rem;
+    text-align: center;
+}
+
+.reward-breakdown {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 12px;
+    margin-top: 12px;
+}
+
+.reward-item {
+    background: rgba(16, 185, 129, 0.1);
+    padding: 8px 12px;
+    border-radius: 6px;
+    text-align: center;
+}
+
+.reward-value {
+    color: #10b981;
+    font-weight: bold;
+    font-size: 1.1rem;
+}
+
+.reward-label {
+    color: #d1d5db;
+    font-size: 0.9rem;
+}
+
+/* Damage distribution animation */
+@keyframes damageDistribution {
+    0% {
+        transform: scale(1);
+        background: #374151;
+    }
+    50% {
+        transform: scale(1.05);
+        background: #ef4444;
+    }
+    100% {
+        transform: scale(1);
+        background: #374151;
+    }
+}
+
+.individual-enemy-card.taking-damage {
+    animation: damageDistribution 0.6s ease-in-out;
+}
+
+/* Spin animation for loading/rolling dice */
 @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
 }
 
-@keyframes fadeInUp {
-    from {
-        opacity: 0;
-        transform: translateY(10px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-/* Mobile Optimizations */
+/* Responsive adjustments for multi-enemy */
 @media (max-width: 768px) {
-    .combat-area {
-        padding: 16px;
-        margin: 0 8px;
-    }
-
-    /* Optimize dice performance on mobile */
-    #dice-box {
-        image-rendering: optimizeSpeed !important;
-        transform: translateZ(0) !important; /* Hardware acceleration */
-        will-change: auto !important;
-    }
-
-    #dice-box canvas {
-        image-rendering: optimizeSpeed !important;
-        transform: translateZ(0) !important; /* Hardware acceleration */
-    }
-
-    .enemy-buttons {
+    .individual-enemy-grid {
         grid-template-columns: 1fr;
-        gap: 16px;
     }
 
-    .enemy-button {
-        padding: 20px;
+    .combined-stats-preview {
+        padding: 8px;
+        font-size: 0.8rem;
     }
 
-    .enemy-details {
-        grid-template-columns: 1fr;
+    .enemy-progress-info {
+        flex-direction: column;
         gap: 4px;
+        font-size: 0.8rem;
     }
 
-    .combat-actions {
-        flex-direction: column;
-        align-items: center;
-    }
-
-    .combat-button {
-        width: 100%;
-        max-width: 280px;
-        min-height: 48px; /* Better touch targets */
-    }
-
-    .result-actions {
-        flex-direction: column;
-        align-items: center;
-    }
-
-    .result-actions button {
-        width: 100%;
-        max-width: 280px;
-        min-height: 48px; /* Better touch targets */
-    }
-
-    .roll-summary {
-        flex-direction: column;
-        gap: 8px;
-    }
-
-    .status-fallback {
-        flex-direction: column;
+    .reward-breakdown {
+        grid-template-columns: 1fr;
         gap: 8px;
     }
 }
 
 @media (max-width: 480px) {
-    .combat-area {
-        padding: 12px;
-        margin: 0 4px;
+    .enemy-count-selector {
+        padding: 2px 6px;
     }
 
-    .quest-combat-header {
-        padding: 16px;
+    .count-button {
+        width: 20px;
+        height: 20px;
+        font-size: 12px;
     }
 
-    .quest-combat-header h3 {
-        font-size: 1.3rem;
+    .enemy-count-display {
+        font-size: 12px;
+        min-width: 16px;
     }
 
-    .enemy-selection {
-        padding: 20px;
+    .individual-enemy-card {
+        padding: 8px;
     }
 
-    .enemy-selection h3 {
-        font-size: 1.5rem;
+    .enemy-card-name {
+        font-size: 0.9rem;
     }
 
-    .character-status,
-    .enemy-status {
-        padding: 16px;
+    .enemy-card-hp {
+        font-size: 0.8rem;
     }
 
-    .combat-result {
-        padding: 24px;
+    .enemy-card-dice {
+        font-size: 0.7rem;
     }
+}
 
-    .combat-result h3 {
-        font-size: 1.8rem;
-    }
+/* Additional utility classes */
+.text-alive { color: #10b981; }
+.text-defeated { color: #6b7280; }
+.text-damaged { color: #f59e0b; }
 
-    /* Mobile dice optimizations */
-    .combat-button {
-        font-size: 1rem;
-        padding: 14px 28px;
-    }
+.bg-alive { background-color: #065f46; }
+.bg-defeated { background-color: #1f2937; }
+.bg-damaged { background-color: #92400e; }
+
+.border-alive { border-color: #10b981; }
+.border-defeated { border-color: #6b7280; }
+.border-damaged { border-color: #f59e0b; }
+
+/* Loading states for combined enemies */
+.loading-combined-stats {
+    background: linear-gradient(90deg, #374151 25%, #4b5563 50%, #374151 75%);
+    background-size: 200% 100%;
+    animation: loading 2s infinite;
+}
+
+@keyframes loading {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
 }

@@ -58,7 +58,8 @@ const QuestAdventure = ({ onAdventureComplete }) => {
                     exits: [
                         { direction: 'North', description: 'Stairs leading to an upper level', roomId: 'upper-sanctum' },
                         { direction: 'West', description: 'A hidden passage behind a fallen pillar', roomId: 'treasure-room' },
-                        { direction: 'South', description: 'Back to the entrance', roomId: 'temple-entrance' }
+                        { direction: 'South', description: 'Back to the entrance', roomId: 'temple-entrance' },
+                        { direction: 'East', description: 'A crack in the wall, just wide enough to squeeze through.', roomId: 'hidden-library' }
                     ]
                 },
                 'side-chamber': {
@@ -68,6 +69,22 @@ const QuestAdventure = ({ onAdventureComplete }) => {
                     features: [
                         {
                             type: 'puzzle',
+                            description: 'Ancient texts describe a ritual to safely navigate the temple.',
+                            result: 'You learn the safe path through the temple (Avoid all traps for this quest)'
+                        }
+                    ],
+                    exits: [
+                        { direction: 'West', description: 'Back to the entrance', roomId: 'temple-entrance' },
+                        { direction: 'North', description: 'A secret passage to the main hall', roomId: 'main-hall' }
+                    ]
+                },
+                'hidden-library': {
+                    id: 'hidden-library',
+                    title: 'Hidden Library',
+                    description: 'A massive room with dusty tomes lining every wall, A desk with a grimoire on it  .',
+                    features: [
+                        {
+                            type: 'combat',
                             description: 'Ancient texts describe a ritual to safely navigate the temple.',
                             result: 'You learn the safe path through the temple (Avoid all traps for this quest)'
                         }
