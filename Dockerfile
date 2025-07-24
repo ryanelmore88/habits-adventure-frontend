@@ -1,4 +1,4 @@
-# File: frontend/Dockerfile
+# File: frontend/Dockerfile (FIXED VERSION)
 # Multi-stage build for optimized production deployment
 
 # Build stage
@@ -10,15 +10,15 @@ WORKDIR /app
 # Copy package files for dependency installation
 COPY package*.json ./
 
-# Install dependencies
-RUN npm ci --only=production --silent
+# Install ALL dependencies (including dev dependencies needed for build)
+RUN npm ci --silent
 
-# Copy dice assets (required for 3D dice functionality)
+# Copy source code first
+COPY . .
+
+# Copy dice assets AFTER installing dependencies (required for 3D dice functionality)
 RUN mkdir -p public/assets/dice-box && \
     cp -R node_modules/@3d-dice/dice-box/dist/assets/* public/assets/dice-box/ || true
-
-# Copy source code
-COPY . .
 
 # Create production environment file
 ARG VITE_API_BASE_URL=http://localhost:8000
@@ -43,8 +43,8 @@ RUN apk add --no-cache curl
 # Copy built app from builder stage
 COPY --from=builder /app/dist /usr/share/nginx/html
 
-# Copy nginx configuration
-COPY <<EOF /etc/nginx/conf.d/default.conf
+# Create nginx configuration file
+RUN cat > /etc/nginx/conf.d/default.conf << 'EOF'
 server {
     listen 80;
     server_name localhost;
@@ -64,22 +64,13 @@ server {
 
     # Handle client-side routing (React Router)
     location / {
-        try_files \$uri \$uri/ /index.html;
+        try_files $uri $uri/ /index.html;
     }
 
     # Cache static assets
     location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$ {
         expires 1y;
         add_header Cache-Control "public, immutable";
-    }
-
-    # API proxy (optional - remove if backend is on different domain)
-    location /api/ {
-        proxy_pass \${VITE_API_BASE_URL};
-        proxy_set_header Host \$host;
-        proxy_set_header X-Real-IP \$remote_addr;
-        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto \$scheme;
     }
 }
 EOF
