@@ -1,0 +1,64 @@
+version: '3.8'
+
+services:
+  habits-frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        VITE_API_BASE_URL: http://localhost:8000
+        VITE_APP_NAME: "Habits Adventure"
+        VITE_ENABLE_DICE: "true"
+        VITE_DEBUG_MODE: "false"
+    ports:
+      - "3000:80"
+    environment:
+      - NODE_ENV=production
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    restart: unless-stopped
+    networks:
+      - habits-network
+
+  # Backend service (placeholder - adjust based on your backend setup)
+  habits-backend:
+    image: habits-backend:latest  # Replace with your backend image
+    ports:
+      - "8000:8000"
+    environment:
+      - ENVIRONMENT=production
+      - NEPTUNE_ENDPOINT=neptune-db
+      - NEPTUNE_PORT=8182
+      - NEPTUNE_USE_SSL=false
+      - ALLOWED_ORIGINS=http://localhost:3000,http://127.0.0.1:3000
+      - DEBUG=false
+      - LOG_LEVEL=INFO
+    depends_on:
+      - neptune-db
+    restart: unless-stopped
+    networks:
+      - habits-network
+
+  # Neptune-compatible graph database (using Gremlin server)
+  neptune-db:
+    image: tinkerpop/gremlin-server:latest
+    ports:
+      - "8182:8182"
+    volumes:
+      - neptune-data:/opt/gremlin-server/data
+      - ./docker/gremlin-server.yaml:/opt/gremlin-server/conf/gremlin-server.yaml:ro
+    restart: unless-stopped
+    networks:
+      - habits-network
+
+networks:
+  habits-network:
+    driver: bridge
+
+volumes:
+  neptune-data:
+    driver: local

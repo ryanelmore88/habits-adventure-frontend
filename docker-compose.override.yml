@@ -1,0 +1,14 @@
+# docker-compose.override.yml
+# This file is automatically loaded by docker-compose and overrides settings
+# Use this for local development customizations
+
+version: '3.8'
+
+services:
+  habits-frontend:
+    environment:
+      - VITE_DEBUG_MODE=true
+    # Uncomment to enable live reload in development
+    # volumes:
+    #   - .:/app
+    #   - /app/node_modules
